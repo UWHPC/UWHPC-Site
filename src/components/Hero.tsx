@@ -14,7 +14,7 @@ export default function Hero() {
         className="pointer-events-none absolute inset-0"
         style={{
           backgroundImage:
-            "radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px)",
+            "radial-gradient(circle, rgba(255,255,255,0.13) 1px, transparent 1px)",
           backgroundSize: "24px 24px",
         }}
       />
@@ -54,7 +54,7 @@ export default function Hero() {
             Join the Team
           </a>
           <a
-            href="#about"
+            href="#projects"
             className="rounded-lg border border-border px-7 py-3 font-medium text-text transition-all hover:-translate-y-0.5 hover:border-text-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
             Learn More
