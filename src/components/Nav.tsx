@@ -6,6 +6,7 @@ import { useState } from "react";
 const links = [
   { label: "About", href: "#about" },
   { label: "Focus Areas", href: "#focus" },
+  { label: "Team", href: "/team" },
   { label: "Join", href: "#join" },
 ];
 
@@ -15,7 +16,7 @@ export default function Nav() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-bg/85 backdrop-blur-xl">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-        <a href="#" className="flex items-center gap-2">
+        <a href="/" className="flex items-center gap-2">
           <Image
             src="/banner-dark.png"
             alt="UWHPC"
@@ -57,18 +58,15 @@ export default function Nav() {
               key={l.href}
               href={l.href}
               onClick={() => setOpen(false)}
-              className="text-sm text-text-muted transition-colors hover:text-text"
+              className={
+                l.href === "#join"
+                  ? "rounded-lg bg-accent px-4 py-2 text-center text-sm font-medium text-white transition-colors hover:bg-accent-light"
+                  : "text-sm text-text-muted transition-colors hover:text-text"
+              }
             >
-              {l.label}
+              {l.href === "#join" ? "Get Involved" : l.label}
             </a>
           ))}
-          <a
-            href="#join"
-            onClick={() => setOpen(false)}
-            className="rounded-lg bg-accent px-4 py-2 text-center text-sm font-medium text-white transition-colors hover:bg-accent-light"
-          >
-            Get Involved
-          </a>
         </div>
       </div>
     </nav>

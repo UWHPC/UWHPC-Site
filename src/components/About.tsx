@@ -18,10 +18,9 @@ export default function About() {
 
         <div className="grid items-center gap-12 md:grid-cols-2">
           <p className="text-base/7 font-light text-text-muted">
-            UWHPC is a student-run design team dedicated to exploring and
-            advancing high-performance computing. We design, build, and optimize
-            systems that solve computationally intensive problems — from parallel
-            algorithms to cluster architecture.
+            We build clusters, crush benchmarks, and compete — UWHPC is
+            Waterloo&apos;s team for students who want to push hardware and code
+            to their absolute limits.
           </p>
 
           <div className="grid grid-cols-2 gap-4">

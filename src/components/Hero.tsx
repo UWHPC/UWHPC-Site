@@ -2,7 +2,15 @@ import Image from "next/image";
 
 export default function Hero() {
   return (
-    <section className="flex min-h-screen flex-col items-center justify-center px-6 pt-24 pb-16 text-center">
+    <section className="relative flex min-h-screen flex-col items-center justify-center px-6 pt-24 pb-16 text-center">
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
+        }}
+      />
       <div className="pointer-events-none absolute top-0 left-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/[0.07] blur-3xl" />
 
       <Image

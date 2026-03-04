@@ -51,7 +51,7 @@ function FadeCard({ children }: { children: React.ReactNode }) {
   return (
     <div
       ref={ref}
-      className="opacity-0 translate-y-5 transition-all duration-500 ease-out rounded-xl border border-border bg-bg-card p-6 hover:border-accent hover:-translate-y-0.5"
+      className="opacity-0 translate-y-5 transition-all duration-500 ease-out rounded-xl border-l-2 border border-border border-l-accent/40 bg-bg-card p-6 hover:border-accent hover:border-l-accent hover:-translate-y-0.5"
     >
       {children}
     </div>
@@ -74,8 +74,11 @@ export default function Focus() {
         </p>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {areas.map((a) => (
+          {areas.map((a, i) => (
             <FadeCard key={a.title}>
+              <span className="mb-3 block font-mono text-xs font-semibold text-accent">
+                {String(i + 1).padStart(2, "0")}
+              </span>
               <h3 className="mb-2 text-lg font-semibold">{a.title}</h3>
               <p className="text-sm/6 font-light text-text-muted">{a.desc}</p>
             </FadeCard>
