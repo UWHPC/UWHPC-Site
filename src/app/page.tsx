@@ -11,7 +11,7 @@ export default function Home() {
       <Nav />
       <main>
         <Hero />
-        <About />
+        {/* <About /> */}
         <Focus />
         <Join />
       </main>

@@ -32,9 +32,9 @@ export default function About() {
         <span className="mb-3 block text-xs font-semibold uppercase tracking-widest text-accent">
           About Us
         </span>
-        <h2 className="mb-10 text-3xl font-bold tracking-tight sm:text-4xl">
+        {/* <h2 className="mb-10 text-3xl font-bold tracking-tight sm:text-4xl">
           Building the future of computation
-        </h2>
+        </h2> */}
 
         <div className="grid items-center gap-12 md:grid-cols-2">
           <div ref={descRef} className="opacity-0 translate-y-5 transition-all duration-500 ease-out">
