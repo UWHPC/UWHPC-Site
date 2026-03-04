@@ -8,9 +8,35 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://uwhpc.ca"),
   title: "UWHPC — University of Waterloo High Performance Computing",
   description:
     "A student design team at the University of Waterloo pushing the boundaries of parallel and high-performance computing.",
+  keywords: [
+    "HPC",
+    "high performance computing",
+    "University of Waterloo",
+    "student team",
+    "parallel computing",
+    "cluster computing",
+    "UWHPC",
+    "student cluster competition",
+  ],
+  openGraph: {
+    title: "UWHPC — University of Waterloo High Performance Computing",
+    description:
+      "A student design team at the University of Waterloo pushing the boundaries of parallel and high-performance computing.",
+    siteName: "UWHPC",
+    type: "website",
+    locale: "en_CA",
+    url: "https://uwhpc.ca",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "UWHPC — University of Waterloo High Performance Computing",
+    description:
+      "A student design team at the University of Waterloo pushing the boundaries of parallel and high-performance computing.",
+  },
   icons: {
     icon: [
       { url: "/favicon.ico" },

@@ -1,8 +1,13 @@
+"use client";
+
 import Image from "next/image";
+import { useFadeIn } from "@/hooks/useFadeIn";
 
 export default function Footer() {
+  const ref = useFadeIn(0);
+
   return (
-    <footer className="border-t border-border px-6 py-8">
+    <footer ref={ref} className="opacity-0 translate-y-5 transition-all duration-700 ease-out border-t border-border px-6 py-8">
       <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-4 sm:flex-row">
         <div className="flex items-center gap-3">
           <Image
@@ -29,7 +34,7 @@ export default function Footer() {
               href={l.href}
               target={l.href.startsWith("mailto") ? undefined : "_blank"}
               rel="noopener noreferrer"
-              className="text-sm text-text-muted transition-colors hover:text-text"
+              className="text-sm text-text-muted transition-colors hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
               {l.label}
             </a>

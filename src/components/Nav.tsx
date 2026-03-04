@@ -16,7 +16,7 @@ export default function Nav() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-bg/85 backdrop-blur-xl">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-        <a href="/" className="flex items-center gap-2">
+        <a href="/" className="flex items-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
           <Image
             src="/banner-dark.png"
             alt="UWHPC"
@@ -29,7 +29,7 @@ export default function Nav() {
 
         <button
           onClick={() => setOpen(!open)}
-          className="text-text-muted md:hidden"
+          className="text-text-muted md:hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           aria-label="Toggle menu"
         >
           <svg
@@ -49,9 +49,11 @@ export default function Nav() {
         </button>
 
         <div
-          className={`${
-            open ? "flex" : "hidden"
-          } absolute top-full left-0 right-0 flex-col gap-4 border-b border-border bg-bg-elevated px-6 py-5 md:relative md:top-auto md:flex md:flex-row md:items-center md:gap-8 md:border-0 md:bg-transparent md:p-0`}
+          className={`absolute top-full left-0 right-0 flex-col gap-4 border-b border-border bg-bg-elevated px-6 py-5 transition-all duration-300 ease-out md:relative md:top-auto md:flex md:flex-row md:items-center md:gap-8 md:border-0 md:bg-transparent md:p-0 md:opacity-100 md:max-h-none ${
+            open
+              ? "flex opacity-100 max-h-96"
+              : "hidden opacity-0 max-h-0 md:flex"
+          }`}
         >
           {links.map((l) => (
             <a
@@ -60,8 +62,8 @@ export default function Nav() {
               onClick={() => setOpen(false)}
               className={
                 l.href === "#join"
-                  ? "rounded-lg bg-accent px-4 py-2 text-center text-sm font-medium text-white transition-colors hover:bg-accent-light"
-                  : "text-sm text-text-muted transition-colors hover:text-text"
+                  ? "rounded-lg bg-accent px-4 py-2 text-center text-sm font-medium text-white transition-colors hover:bg-accent-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  : "text-sm text-text-muted transition-colors hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
               }
             >
               {l.href === "#join" ? "Get Involved" : l.label}
