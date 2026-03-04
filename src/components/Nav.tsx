@@ -49,11 +49,10 @@ export default function Nav() {
         </button>
 
         <div
-          className={`absolute top-full left-0 right-0 flex-col gap-4 border-b border-border bg-bg-elevated px-6 py-5 transition-all duration-300 ease-out md:relative md:top-auto md:flex md:flex-row md:items-center md:gap-8 md:border-0 md:bg-transparent md:p-0 md:opacity-100 md:max-h-none ${
-            open
-              ? "flex opacity-100 max-h-96"
-              : "hidden opacity-0 max-h-0 md:flex"
-          }`}
+          className={`absolute top-full left-0 right-0 flex-col gap-4 border-b border-border bg-bg-elevated px-6 py-5 transition-all duration-300 ease-out md:relative md:top-auto md:flex md:flex-row md:items-center md:gap-8 md:border-0 md:bg-transparent md:p-0 md:opacity-100 md:max-h-none ${open
+            ? "flex opacity-100 max-h-96"
+            : "hidden opacity-0 max-h-0 md:flex"
+            }`}
         >
           {links.map((l) => (
             <a

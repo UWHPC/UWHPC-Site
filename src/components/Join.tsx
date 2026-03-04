@@ -6,7 +6,7 @@ export default function Join() {
   const cardRef = useFadeIn(100);
 
   return (
-    <section id="join" className="px-6 py-24">
+    <section id="join" className="px-6 py-12">
       <div className="mx-auto max-w-5xl">
         <span className="mb-3 block text-xs font-semibold uppercase tracking-widest text-accent">
           Get Involved
@@ -31,7 +31,7 @@ export default function Join() {
 
           <div className="flex flex-wrap justify-center gap-3">
             <a
-              href="mailto:uwhpc@uwaterloo.ca"
+              href="mailto:k2keshav@uwaterloo.ca"
               className="rounded-lg bg-accent px-6 py-3 font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-accent-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
               Contact Us
@@ -44,6 +44,7 @@ export default function Join() {
             >
               Discord
             </a>
+            {/* 
             <a
               href="https://www.instagram.com/"
               target="_blank"
@@ -51,7 +52,7 @@ export default function Join() {
               className="rounded-lg border border-border px-6 py-3 font-medium text-text transition-all hover:-translate-y-0.5 hover:border-text-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
               Instagram
-            </a>
+            </a>*/}
           </div>
         </div>
       </div>
