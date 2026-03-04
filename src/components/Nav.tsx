@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
 
 const links = [
@@ -16,15 +15,8 @@ export default function Nav() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-bg/85 backdrop-blur-xl">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-        <a href="/" className="flex items-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
-          <Image
-            src="/banner-dark.png"
-            alt="UWHPC"
-            width={280}
-            height={80}
-            className="h-10 w-auto"
-            unoptimized
-          />
+        <a href="/" className="text-3xl font-bold tracking-tight focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
+          <span className="text-text">UW</span><span className="ml-1 text-accent">HPC</span>
         </a>
 
         <button
