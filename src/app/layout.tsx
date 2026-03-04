@@ -30,12 +30,14 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_CA",
     url: "https://uwhpc.ca",
+    images: [{ url: "/banner-dark.png", alt: "UWHPC Banner" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "UWHPC — University of Waterloo High Performance Computing",
     description:
       "A student design team at the University of Waterloo pushing the boundaries of parallel and high-performance computing.",
+    images: ["/banner-dark.png"],
   },
   icons: {
     icon: [
