@@ -6,11 +6,11 @@ export default function Footer() {
       <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-4 sm:flex-row">
         <div className="flex items-center gap-3">
           <Image
-            src="/logo-dark.png"
+            src="/transparent-logo-dark.png"
             alt="UWHPC"
-            width={48}
-            height={48}
-            className="h-6 w-6"
+            width={351}
+            height={222}
+            className="h-auto w-10"
             unoptimized
           />
           <span className="text-sm text-text-muted">

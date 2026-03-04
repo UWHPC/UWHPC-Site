@@ -14,11 +14,11 @@ export default function Hero() {
       <div className="pointer-events-none absolute top-0 left-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/[0.07] blur-3xl" />
 
       <Image
-        src="/logo-dark.png"
+        src="/transparent-logo-dark.png"
         alt="UWHPC Logo"
-        width={240}
-        height={240}
-        className="mb-8 h-[120px] w-[120px] animate-float"
+        width={351}
+        height={222}
+        className="mb-8 h-auto w-[190px] animate-float"
         priority
         unoptimized
       />
