@@ -44,7 +44,7 @@ function FadeCard({ children, index }: { children: React.ReactNode; index: numbe
 
 export default function Focus() {
     return (
-        <section id="focus" className="bg-bg-elevated px-6 py-24">
+        <section id="focus" className="px-6 py-24">
             <div className="mx-auto max-w-5xl">
                 <span className="mb-3 block text-xs font-semibold uppercase tracking-widest text-accent">
                     What We Do
