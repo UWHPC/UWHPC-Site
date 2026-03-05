@@ -30,7 +30,8 @@ const projects = [
 ];
 
 function ProjectCard({ project, index }: { project: (typeof projects)[number]; index: number }) {
-  const ref = useFadeIn(index * 100);
+  const divRef = useFadeIn<HTMLDivElement>(index * 100);
+  const anchorRef = useFadeIn<HTMLAnchorElement>(index * 100);
 
   const content = (
     <>
@@ -64,14 +65,14 @@ function ProjectCard({ project, index }: { project: (typeof projects)[number]; i
 
   if (project.href) {
     return (
-      <a ref={ref} href={project.href} target="_blank" rel="noopener noreferrer" className={`block ${className}`}>
+      <a ref={anchorRef} href={project.href} target="_blank" rel="noopener noreferrer" className={`block ${className}`}>
         {content}
       </a>
     );
   }
 
   return (
-    <div ref={ref} className={className}>
+    <div ref={divRef} className={className}>
       {content}
     </div>
   );

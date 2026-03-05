@@ -2,8 +2,8 @@
 
 import { useEffect, useRef } from "react";
 
-export function useFadeIn(delay: number = 0) {
-  const ref = useRef<HTMLDivElement>(null);
+export function useFadeIn<T extends HTMLElement = HTMLDivElement>(delay: number = 0) {
+  const ref = useRef<T>(null);
 
   useEffect(() => {
     const el = ref.current;
