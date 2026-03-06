@@ -5,15 +5,15 @@ import { useFadeIn } from "@/hooks/useFadeIn";
 const areas = [
     {
         title: "Parallel Computing",
-        desc: "Designing and implementing parallel algorithms using MPI, OpenMP, and CUDA for multi-core and GPU architectures.",
+        desc: "Designing parallel algorithms with MPI, OpenMP, and CUDA for multi-core and GPU systems, and applying them to computational physics simulations and large-scale numerical workloads.",
     },
     {
         title: "Benchmarking & Profiling",
-        desc: "System benchmarking, performance analysis, and building tooling to measure and optimize real-world workloads.",
+        desc: "Running system benchmarks, profiling real workloads, and building performance tooling to identify bottlenecks and guide optimization decisions.",
     },
     {
         title: "Performance Optimization",
-        desc: "Vectorization, cache optimization, and low-level tuning to maximize computational throughput.",
+        desc: "Maximizing throughput with vectorization, cache-aware tuning, and low-level systems programming in C, C++, and Rust, including modern C++ techniques for zero-cost abstractions.",
     },
 ];
 
