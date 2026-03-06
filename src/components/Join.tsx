@@ -37,7 +37,7 @@ export default function Join() {
               Contact Us
             </a>
             <a
-              href="https://discord.gg/"
+              href="https://discord.gg/S2fRgkqcDF"
               target="_blank"
               rel="noopener noreferrer"
               className="rounded-lg border border-border px-6 py-3 font-medium text-text transition-all hover:-translate-y-0.5 hover:border-text-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
