@@ -8,24 +8,12 @@ const areas = [
         desc: "Designing and implementing parallel algorithms using MPI, OpenMP, and CUDA for multi-core and GPU architectures.",
     },
     {
-        title: "Computational Physics",
-        desc: "Building compute clusters and applying HPC techniques to physics simulations, numerical methods, and large-scale data processing.",
-    },
-    {
-        title: "Performance Optimization",
-        desc: "Vectorization, cache optimization, and low-level tuning to maximize computational throughput.",
-    },
-    {
-        title: "Systems Programming",
-        desc: "Low-level development in C, C++, and Rust. Writing the performant code that powers HPC workloads.",
-    },
-    {
         title: "Benchmarking & Profiling",
         desc: "System benchmarking, performance analysis, and building tooling to measure and optimize real-world workloads.",
     },
     {
-        title: "Modern C++",
-        desc: "Exploring advanced C++ features, template metaprogramming, constexpr, and zero-cost abstractions for high-performance code.",
+        title: "Performance Optimization",
+        desc: "Vectorization, cache optimization, and low-level tuning to maximize computational throughput.",
     },
 ];
 
