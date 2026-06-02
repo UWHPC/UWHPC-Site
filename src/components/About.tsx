@@ -9,7 +9,13 @@ const stats = [
   { value: "++", label: "Student Led" },
 ];
 
-function StatCard({ stat, index }: { stat: { value: string; label: string }; index: number }) {
+function StatCard({
+  stat,
+  index,
+}: {
+  stat: { value: string; label: string };
+  index: number;
+}) {
   const ref = useFadeIn(200 + index * 100);
 
   return (
@@ -37,11 +43,14 @@ export default function About() {
         </h2> */}
 
         <div className="grid items-center gap-12 md:grid-cols-2">
-          <div ref={descRef} className="opacity-0 translate-y-5 transition-all duration-500 ease-out">
+          <div
+            ref={descRef}
+            className="opacity-0 translate-y-5 transition-all duration-500 ease-out"
+          >
             <p className="text-base/7 font-light text-text-muted">
-              We build clusters, crush benchmarks, and compete — UWHPC is
-              Waterloo&apos;s team for students who want to push hardware and code
-              to their absolute limits.
+              We build clusters, crush benchmarks, and compete - UWHPC is
+              Waterloo&apos;s team for students who want to push hardware and
+              code to their absolute limits.
             </p>
           </div>
 

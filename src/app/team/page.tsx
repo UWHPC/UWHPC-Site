@@ -3,7 +3,7 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 
 export const metadata = {
-  title: "Team — UWHPC",
+  title: "Team - UWHPC",
   description: "Meet the UWHPC team.",
 };
 
