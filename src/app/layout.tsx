@@ -8,7 +8,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://uwhpc.ca"),
+  metadataBase: new URL("https://uwhpc.com"),
   title: "UWHPC — University of Waterloo High Performance Computing",
   description:
     "A student design team at the University of Waterloo pushing the boundaries of parallel and high-performance computing.",
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     siteName: "UWHPC",
     type: "website",
     locale: "en_CA",
-    url: "https://uwhpc.ca",
+    url: "https://uwhpc.com",
     images: [{ url: "/banner-dark.png", alt: "UWHPC Banner" }],
   },
   twitter: {
