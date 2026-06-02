@@ -31,7 +31,7 @@ export default function Join() {
 
           <div className="flex flex-wrap justify-center gap-3">
             <a
-              href="info@uwhpc.com"
+              href="mailto:info@uwhpc.com"
               className="rounded-lg bg-accent px-6 py-3 font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-accent-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
               Contact Us

@@ -28,7 +28,7 @@ export default function Footer() {
         </div>
         <div className="flex gap-5">
           {[
-            { label: "Email", href: "info@uwhpc.com" }, // TODO: implement
+            { label: "Email", href: "mailto:info@uwhpc.com" }, // TODO: implement
             { label: "GitHub", href: "https://github.com/UWHPC" },
             {
               label: "LinkedIn",
