@@ -11,25 +11,15 @@ const projects = [
     status: "In Progress",
     href: "https://github.com/UWHPC/Variational-Monte-Carlo",
   },
-  {
-    title: "FDTD Wave Solver",
-    description:
-      "Finite-difference time-domain solver for Maxwell\u2019s equations. Simulates electric and magnetic fields for various sources, validated with plane wave tests and analytical solutions.",
-    tags: ["C++", "FDTD", "Electromagnetics"],
-    status: "Completed",
-    href: "https://github.com/karl-kes/FDTD-Wave-Solver",
-  },
-  {
-    title: "N-Body Gravity Simulator",
-    description:
-      "N-body physics engine simulating gravity with symplectic Yoshida integration. Validated solar system dynamics with NASA JPL Horizons data across 249 years.",
-    tags: ["C++", "Physics", "Simulation"],
-    status: "Completed",
-    href: "https://github.com/karl-kes/N-Body-Gravity-Simulator",
-  },
 ];
 
-function ProjectCard({ project, index }: { project: (typeof projects)[number]; index: number }) {
+function ProjectCard({
+  project,
+  index,
+}: {
+  project: (typeof projects)[number];
+  index: number;
+}) {
   const divRef = useFadeIn<HTMLDivElement>(index * 100);
   const anchorRef = useFadeIn<HTMLAnchorElement>(index * 100);
 
@@ -65,7 +55,13 @@ function ProjectCard({ project, index }: { project: (typeof projects)[number]; i
 
   if (project.href) {
     return (
-      <a ref={anchorRef} href={project.href} target="_blank" rel="noopener noreferrer" className={`block ${className}`}>
+      <a
+        ref={anchorRef}
+        href={project.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`block ${className}`}
+      >
         {content}
       </a>
     );
