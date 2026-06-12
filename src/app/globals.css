@@ -15,6 +15,19 @@
   --font-mono: var(--font-fragment-mono);
 }
 
+:root {
+  /* written by useScrollProgress once the hero mounts;
+     fallback 1 keeps the nav visible on pages without the chip hero */
+  --chip-title: 0;
+}
+
+/* Nav fades in at the bird's-eye finale with the hero headline.
+   --chip-title is written to :root by useScrollProgress; fallback 1
+   keeps the nav visible on any page that has no chip hero. */
+.chip-nav {
+  opacity: var(--chip-title, 1);
+}
+
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 5.5rem;

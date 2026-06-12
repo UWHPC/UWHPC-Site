@@ -16,7 +16,7 @@ export default function Nav() {
   const [open, setOpen] = useState(false);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 border-b border-line bg-bg/90 backdrop-blur-md">
+    <nav className="chip-nav fixed top-0 left-0 right-0 z-50 border-b border-line bg-bg/90 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between border-line px-6 md:border-x md:px-10">
         <Link
           href="/"

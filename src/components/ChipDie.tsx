@@ -77,25 +77,92 @@ function comb(x0: number, y: number, count: number, step: number, len: number) {
   ));
 }
 
-/** Badge block: the UWHPC chip mark as pure line art (no text). */
+/** Badge block: the UWHPC chip mark as dense line art (no text). */
 function badgeShape() {
   return (
     <>
+      {/* outer frame */}
       <rect x={84} y={84} width={288} height={124} rx={4} />
-      {/* chip body + core */}
-      <rect x={250} y={108} width={76} height={76} rx={10} />
-      <rect className="chip-cell" x={266} y={124} width={44} height={44} rx={4} />
-      {/* pins */}
-      {[118, 134, 150, 166].map((y) => (
-        <rect key={y} className="chip-cell" x={332} y={y} width={12} height={8} rx={1} />
+
+      {/* corner fiducials */}
+      <rect className="chip-cell" x={88} y={88} width={7} height={7} />
+      <rect className="chip-cell" x={357} y={88} width={7} height={7} />
+      <rect className="chip-cell" x={88} y={201} width={7} height={7} />
+      <rect className="chip-cell" x={357} y={201} width={7} height={7} />
+
+      {/* left control block */}
+      <rect x={92} y={96} width={54} height={96} rx={2} />
+      <rect className="chip-cell" x={96} y={100} width={46} height={14} rx={1} />
+      {[118, 129, 140, 151, 162, 173].map((y) => (
+        <rect key={y} className="chip-cell" x={96} y={y} width={46} height={7} rx={1} />
       ))}
-      {/* speed trails */}
-      <line x1={140} y1={126} x2={244} y2={126} />
-      <line x1={116} y1={146} x2={244} y2={146} />
-      <line x1={140} y1={166} x2={244} y2={166} />
-      <circle cx={128} cy={126} r={4} />
-      <circle cx={104} cy={146} r={4} />
-      <circle cx={128} cy={166} r={4} />
+
+      {/* routing channels: three horizontal buses */}
+      <line x1={146} y1={122} x2={238} y2={122} />
+      <line x1={122} y1={146} x2={238} y2={146} />
+      <line x1={146} y1={170} x2={238} y2={170} />
+
+      {/* branch stubs off the buses */}
+      <line x1={172} y1={100} x2={172} y2={122} />
+      <line x1={192} y1={100} x2={192} y2={122} />
+      <line x1={212} y1={100} x2={212} y2={122} />
+      <line x1={162} y1={170} x2={162} y2={192} />
+      <line x1={184} y1={170} x2={184} y2={192} />
+      <line x1={206} y1={170} x2={206} y2={192} />
+      <line x1={158} y1={122} x2={158} y2={170} />
+      <line x1={224} y1={122} x2={224} y2={170} />
+
+      {/* bus-endpoint nodes */}
+      <circle cx={110} cy={122} r={4} />
+      <circle cx={88} cy={146} r={4} />
+      <circle cx={110} cy={170} r={4} />
+
+      {/* chip package */}
+      <rect x={238} y={94} width={118} height={100} rx={8} />
+
+      {/* top pin row */}
+      {[248, 263, 278, 293, 308, 323, 338].map((x) => (
+        <rect key={`tp${x}`} className="chip-cell" x={x} y={94} width={11} height={6} rx={1} />
+      ))}
+      {/* bottom pin row */}
+      {[248, 263, 278, 293, 308, 323, 338].map((x) => (
+        <rect key={`bp${x}`} className="chip-cell" x={x} y={188} width={11} height={6} rx={1} />
+      ))}
+      {/* right pin column */}
+      {[104, 118, 132, 146, 160, 174].map((y) => (
+        <rect key={`rp${y}`} className="chip-cell" x={356} y={y} width={6} height={11} rx={1} />
+      ))}
+
+      {/* die area */}
+      <rect className="chip-cell" x={250} y={106} width={94} height={76} rx={4} />
+
+      {/* internal cross */}
+      <line x1={297} y1={106} x2={297} y2={182} />
+      <line x1={250} y1={144} x2={344} y2={144} />
+
+      {/* four quadrant cells */}
+      <rect className="chip-cell" x={254} y={110} width={39} height={30} rx={2} />
+      <rect className="chip-cell" x={301} y={110} width={39} height={30} rx={2} />
+      <rect className="chip-cell" x={254} y={148} width={39} height={30} rx={2} />
+      <rect className="chip-cell" x={301} y={148} width={39} height={30} rx={2} />
+
+      {/* quadrant detail: vertical ticks top-left */}
+      <line x1={261} y1={114} x2={261} y2={136} />
+      <line x1={269} y1={114} x2={269} y2={136} />
+      <line x1={277} y1={114} x2={277} y2={136} />
+      <line x1={285} y1={114} x2={285} y2={136} />
+      {/* top-right: horizontal ticks */}
+      <line x1={305} y1={118} x2={336} y2={118} />
+      <line x1={305} y1={126} x2={336} y2={126} />
+      <line x1={305} y1={134} x2={336} y2={134} />
+      {/* bottom-left: vertical ticks */}
+      <line x1={261} y1={152} x2={261} y2={174} />
+      <line x1={269} y1={152} x2={269} y2={174} />
+      <line x1={277} y1={152} x2={277} y2={174} />
+      <line x1={285} y1={152} x2={285} y2={174} />
+      {/* bottom-right: sub-cell */}
+      <rect className="chip-cell" x={307} y={152} width={29} height={11} rx={1} />
+      <rect className="chip-cell" x={307} y={167} width={29} height={11} rx={1} />
     </>
   );
 }
@@ -309,7 +376,7 @@ export default function ChipDie() {
 
         {/* FINALE (long bird's-eye freeze): the main channels flood
             one by one, ending with the perimeter moat */}
-        <Gap d="M 386 84 V 716" td={0.64} tw={0.1} sw={9} color={RED} />
+        <Gap d="M 386 84 V 716" td={0.64} tw={0.1} sw={9} color={COPPER} />
         <Gap d="M 84 503 H 372" td={0.66} tw={0.09} sw={5} color={COPPER} />
         <Gap d="M 400 503 H 716" td={0.675} tw={0.09} sw={5} color={COPPER} />
         <Gap d="M 84 613 H 372" td={0.69} tw={0.09} sw={5} color={COPPER} />

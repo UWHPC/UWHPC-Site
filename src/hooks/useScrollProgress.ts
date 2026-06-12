@@ -39,6 +39,15 @@ export function useScrollProgress<T extends HTMLElement = HTMLDivElement>() {
         ease(clamp01((p - SWOOP_START) / (SWOOP_END - SWOOP_START))).toFixed(4)
       );
       el.dataset.end = p > 0.74 ? "true" : "false";
+      // Expose key progress values on :root so Nav (outside chip-stage) can read them
+      document.documentElement.style.setProperty(
+        "--chip-fade",
+        clamp01((p - 0.02) / 0.3).toFixed(4)
+      );
+      document.documentElement.style.setProperty(
+        "--chip-title",
+        clamp01((p - 0.72) / 0.07).toFixed(4)
+      );
     };
 
     const targetP = () => {
