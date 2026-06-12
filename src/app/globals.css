@@ -120,10 +120,10 @@ body {
   --m3: 0; /* pull back, half-flatten         (p 0.56-0.66) */
   --m4: 0; /* settle into bird's-eye          (p 0.74-0.84) */
   /* content phase windows */
-  --title: clamp(0, calc((var(--p) - 0.04) / 0.1), 1); /* headline fades OUT */
-  --edge: clamp(0, calc((var(--p) - 0.08) / 0.12), 1); /* die edge traces in */
-  --amb: clamp(0, calc((var(--p) - 0.2) / 0.55), 1); /* ambient glow grows */
-  --endcap: clamp(0, calc((var(--p) - 0.93) / 0.07), 1); /* CTAs resolve */
+  --title: clamp(0, calc((var(--p) - 0.03) / 0.09), 1); /* headline fades OUT */
+  --edge: clamp(0, calc((var(--p) - 0.06) / 0.1), 1); /* die edge traces in */
+  --amb: clamp(0, calc((var(--p) - 0.15) / 0.5), 1); /* ambient glow grows */
+  --endcap: clamp(0, calc((var(--p) - 0.95) / 0.05), 1); /* CTAs resolve */
 }
 
 .chip-title {
@@ -276,26 +276,26 @@ body {
   stroke-width: 1;
 }
 
-/* ember tint as the block wakes — kept low, dark and moody */
+/* ember tint as the block wakes — moody but clearly the lead voice */
 .chip-block-lit {
   opacity: var(--bp);
-  filter: drop-shadow(0 0 8px rgb(205 57 60 / 0.4));
+  filter: drop-shadow(0 0 10px rgb(205 57 60 / 0.55));
 }
 
 .chip-block-lit rect:not(.chip-cell) {
-  fill: rgb(205 57 60 / 0.05);
-  stroke: rgb(224 73 77 / 0.75);
-  stroke-width: 1.25;
+  fill: rgb(205 57 60 / 0.08);
+  stroke: rgb(232 85 90 / 0.9);
+  stroke-width: 1.5;
 }
 
 .chip-block-lit .chip-cell {
-  fill: rgb(205 57 60 / 0.04);
-  stroke: rgb(224 73 77 / 0.35);
+  fill: rgb(205 57 60 / 0.06);
+  stroke: rgb(224 73 77 / 0.45);
   stroke-width: 1;
 }
 
 .chip-block-lit line {
-  stroke: rgb(224 73 77 / 0.3);
+  stroke: rgb(224 73 77 / 0.38);
   stroke-width: 1;
 }
 
@@ -313,29 +313,39 @@ body {
   stroke-linejoin: round;
 }
 
-/* the empty pipe, always faintly visible */
+/* the empty pipe, clearly there before it lights */
 .chip-trace-base {
-  stroke: #2f2f2f;
+  stroke: #3a3a3a;
   stroke-width: 1.5;
 }
 
-/* the fluid: draws along the pipe as scroll progresses */
+/* permanent grey routing fabric — texture that never lights */
+.chip-fabric path {
+  fill: none;
+  stroke: #333333;
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* the fluid: draws along the pipe as scroll progresses.
+   Kept thinner and softer than the blocks so it doesn't overpower. */
 .chip-trace {
   stroke: var(--tc);
-  stroke-width: 2;
+  stroke-width: 1.5;
   stroke-dasharray: 1;
   stroke-dashoffset: calc(1 - var(--tp));
-  opacity: var(--tp);
-  filter: drop-shadow(0 0 6px var(--tc));
+  opacity: calc(0.8 * var(--tp));
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--tc) 55%, transparent));
 }
 
 /* light packets running along filled pathways */
 .chip-trace-pulse {
   stroke: var(--tc);
-  stroke-width: 2.5;
+  stroke-width: 2;
   stroke-dasharray: 0.06 0.19;
   animation: chip-pulse 2.4s linear infinite;
-  opacity: calc(0.7 * var(--tp));
+  opacity: calc(0.45 * var(--tp));
 }
 
 .chip-trace-group:nth-child(odd) .chip-trace-pulse {

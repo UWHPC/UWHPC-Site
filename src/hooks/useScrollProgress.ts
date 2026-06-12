@@ -17,12 +17,14 @@ import { useEffect, useRef } from "react";
  * self-running pulse effects.
  */
 
-/** [start, end] of each camera MOVE in progress space; gaps are HOLDs. */
+/** [start, end] of each camera MOVE in progress space; gaps are HOLDs.
+    The camera is done by 0.68 — the entire last third of the runway
+    is the frozen bird's-eye while the network finishes connecting. */
 const MOVES: [number, number][] = [
-  [0.08, 0.2], // A: glide in over the CPU cluster
-  [0.34, 0.44], // B: pan across to the GPU side
-  [0.56, 0.66], // C: pull back, half-flatten
-  [0.74, 0.84], // D: settle into bird's-eye
+  [0.06, 0.16], // A: glide in over the CPU cluster
+  [0.28, 0.36], // B: pan across to the GPU side
+  [0.46, 0.54], // C: pull back, half-flatten
+  [0.6, 0.68], // D: settle into bird's-eye
 ];
 
 const smoothstep = (t: number) => t * t * (3 - 2 * t);
@@ -45,7 +47,7 @@ export function useScrollProgress<T extends HTMLElement = HTMLDivElement>() {
           smoothstep(clamp01((p - a) / (b - a))).toFixed(4)
         );
       });
-      el.dataset.end = p > 0.9 ? "true" : "false";
+      el.dataset.end = p > 0.92 ? "true" : "false";
     };
 
     const targetP = () => {

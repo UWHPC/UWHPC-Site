@@ -2,10 +2,16 @@ import type { CSSProperties, ReactNode } from "react";
 
 /**
  * Dense M1-style die floorplan for the scroll hero. Everything is
- * faintly outlined in grey from the start; blocks tint ember-red as
- * `--p` passes their `--d` offset, and the grey pathways fill with
- * glowing color ("fluid") as `--p` passes their `--td` offset.
- * Styling lives in globals.css under "Chip hero".
+ * faintly outlined in grey from the start — including the full
+ * routing fabric — and blocks tint ember-red as `--p` passes their
+ * `--d` offset while pathways fill with glowing color as `--p`
+ * passes their `--td` offset. Styling: globals.css "Chip hero".
+ *
+ * Timeline (camera holds in useScrollProgress MOVES):
+ *   HOLD A  0.16-0.28  cores pop crisscross, lines spill out
+ *   HOLD B  0.36-0.46  GPU blooms, logic blocks scatter
+ *   HOLD C  0.54-0.60  memory + IO sweep
+ *   FINALE  0.68-1.00  bird's-eye freeze, fabric stitches together
  */
 
 function varStyle(vars: Record<string, string | number>) {
@@ -86,6 +92,37 @@ function eCore(x: number) {
   );
 }
 
+/** Permanent grey routing fabric — never lights, pure texture. */
+const FABRIC_ROUTES = [
+  // doubled-up channel runs
+  "M 130 334 H 370",
+  "M 150 341 H 350",
+  "M 130 448.5 H 368",
+  "M 160 456.5 H 340",
+  "M 393 130 V 680",
+  "M 401 150 V 660",
+  "M 420 394 H 680",
+  "M 430 402 H 660",
+  "M 420 563.5 H 670",
+  "M 430 571.5 H 650",
+  // block stubs
+  "M 160 300 V 375",
+  "M 232 305 V 370",
+  "M 160 425 V 485",
+  "M 328 420 V 495",
+  "M 490 355 V 435",
+  "M 610 360 V 430",
+  "M 510 545 V 598",
+  "M 660 540 V 602",
+  // edge taps
+  "M 110 260 H 74",
+  "M 690 320 H 726",
+  "M 320 690 V 726",
+  "M 450 690 V 726",
+  "M 690 540 H 726",
+  "M 110 540 H 74",
+];
+
 export default function ChipDie() {
   const padsTop: ReactNode[] = [];
   const padsBottom: ReactNode[] = [];
@@ -135,24 +172,30 @@ export default function ChipDie() {
       <rect className="chip-die-base" x={70} y={70} width={660} height={660} rx={14} fill="url(#chip-die-grad)" />
       <rect className="chip-die-edge" pathLength={1} x={70} y={70} width={660} height={660} rx={14} />
 
+      {/* permanent grey routing fabric */}
+      <g className="chip-fabric">
+        {FABRIC_ROUTES.map((d) => (
+          <path key={d} d={d} />
+        ))}
+      </g>
+
       {/* ---- left half ---- */}
-      {/* HOLD A (p 0.20-0.34, camera frozen over the cluster):
-          performance cores pop in crisscross order 1-3-2-4,
+      {/* HOLD A: performance cores pop crisscross 1-3-2-4,
           then efficiency cores in a different scatter */}
-      <Block d={0.2} shape={pCore(110)} />
-      <Block d={0.25} shape={pCore(182)} />
-      <Block d={0.225} shape={pCore(254)} />
-      <Block d={0.275} shape={pCore(326)} />
+      <Block d={0.16} shape={pCore(110)} />
+      <Block d={0.2} shape={pCore(182)} />
+      <Block d={0.18} shape={pCore(254)} />
+      <Block d={0.22} shape={pCore(326)} />
 
-      <Block d={0.297} w={0.05} shape={eCore(110)} />
-      <Block d={0.321} w={0.05} shape={eCore(182)} />
-      <Block d={0.309} w={0.05} shape={eCore(254)} />
-      <Block d={0.285} w={0.05} shape={eCore(326)} />
+      <Block d={0.25} w={0.05} shape={eCore(110)} />
+      <Block d={0.27} w={0.05} shape={eCore(182)} />
+      <Block d={0.26} w={0.05} shape={eCore(254)} />
+      <Block d={0.24} w={0.05} shape={eCore(326)} />
 
-      {/* HOLD C (p 0.66-0.74): memory array sweeps awake */}
+      {/* HOLD C: memory array sweeps awake */}
       <Block
-        d={0.66}
-        w={0.08}
+        d={0.54}
+        w={0.07}
         shape={
           <>
             <rect x={110} y={460} width={278} height={230} rx={3} />
@@ -163,10 +206,10 @@ export default function ChipDie() {
       />
 
       {/* ---- right half ---- */}
-      {/* HOLD B (p 0.44-0.56): GPU wakes first, slower bloom */}
+      {/* HOLD B: GPU wakes first, slower bloom */}
       <Block
-        d={0.44}
-        w={0.09}
+        d={0.36}
+        w={0.08}
         shape={
           <>
             <rect x={406} y={110} width={284} height={280} rx={3} />
@@ -180,7 +223,7 @@ export default function ChipDie() {
 
       {/* small logic blocks pop scattered: right, left, wide */}
       <Block
-        d={0.515}
+        d={0.435}
         shape={
           <>
             <rect x={406} y={406} width={134} height={74} rx={3} />
@@ -191,7 +234,7 @@ export default function ChipDie() {
         }
       />
       <Block
-        d={0.49}
+        d={0.41}
         shape={
           <>
             <rect x={550} y={406} width={140} height={74} rx={3} />
@@ -201,7 +244,7 @@ export default function ChipDie() {
         }
       />
       <Block
-        d={0.54}
+        d={0.46}
         shape={
           <>
             <rect x={406} y={490} width={284} height={70} rx={3} />
@@ -215,7 +258,8 @@ export default function ChipDie() {
 
       {/* bottom-right striped block: second beat of HOLD C */}
       <Block
-        d={0.69}
+        d={0.57}
+        w={0.06}
         shape={
           <>
             <rect x={406} y={575} width={284} height={115} rx={3} />
@@ -228,49 +272,55 @@ export default function ChipDie() {
 
       {/* ---- pathways: grey pipes that fill like fluid ----
           Each line starts AT its source block and flows outward the
-          beat after that block lights. The long network runs complete
-          during the bird's-eye freeze (p 0.84-1). */}
+          beat after that block lights. The long fabric runs complete
+          during the bird's-eye freeze (p 0.68-1). */}
       <g className="chip-traces">
         {/* HOLD A: lines spill out of each core as it lights (1-3-2-4) */}
-        <Trace d="M 141 300 V 375" td={0.225} tw={0.1} color={CYAN} />
-        <Trace d="M 285 305 V 370" td={0.25} tw={0.1} color={BLUE} />
-        <Trace d="M 213 290 V 380" td={0.275} tw={0.1} color={CYAN} />
-        <Trace d="M 357 295 V 385" td={0.3} tw={0.1} color={VIOLET} />
+        <Trace d="M 141 300 V 375" td={0.18} tw={0.09} color={CYAN} />
+        <Trace d="M 285 305 V 370" td={0.2} tw={0.09} color={BLUE} />
+        <Trace d="M 213 290 V 380" td={0.22} tw={0.09} color={CYAN} />
+        <Trace d="M 357 295 V 385" td={0.24} tw={0.09} color={VIOLET} />
 
         {/* HOLD B: GPU reaches back to the cores, then down into logic */}
-        <Trace d="M 440 160 H 360" td={0.465} tw={0.1} color={CYAN} />
-        <Trace d="M 440 240 H 360" td={0.49} tw={0.1} color={BLUE} />
-        <Trace d="M 460 350 V 440" td={0.5} tw={0.1} color={CYAN} />
-        <Trace d="M 520 360 V 430" td={0.52} tw={0.1} color={BLUE} />
-        <Trace d="M 580 340 V 445" td={0.535} tw={0.1} color={VIOLET} />
-        <Trace d="M 640 355 V 435" td={0.55} tw={0.1} color={CYAN} />
+        <Trace d="M 440 160 H 360" td={0.39} tw={0.08} color={CYAN} />
+        <Trace d="M 440 240 H 360" td={0.41} tw={0.08} color={BLUE} />
+        <Trace d="M 460 350 V 440" td={0.42} tw={0.08} color={CYAN} />
+        <Trace d="M 520 360 V 430" td={0.435} tw={0.08} color={BLUE} />
+        <Trace d="M 580 340 V 445" td={0.45} tw={0.08} color={VIOLET} />
+        <Trace d="M 640 355 V 435" td={0.46} tw={0.08} color={CYAN} />
 
         {/* HOLD C: memory reaches up to the e-cores, IO reaches up to logic */}
-        <Trace d="M 141 480 V 425" td={0.67} tw={0.09} color={BLUE} />
-        <Trace d="M 213 495 V 415" td={0.685} tw={0.09} color={CYAN} />
-        <Trace d="M 285 475 V 430" td={0.7} tw={0.09} color={VIOLET} />
-        <Trace d="M 357 500 V 420" td={0.715} tw={0.09} color={BLUE} />
-        <Trace d="M 450 600 V 540" td={0.7} tw={0.09} color={BLUE} />
-        <Trace d="M 540 595 V 545" td={0.72} tw={0.09} color={CYAN} />
-        <Trace d="M 620 605 V 540" td={0.735} tw={0.09} color={VIOLET} />
+        <Trace d="M 141 480 V 425" td={0.56} tw={0.08} color={BLUE} />
+        <Trace d="M 213 495 V 415" td={0.57} tw={0.08} color={CYAN} />
+        <Trace d="M 285 475 V 430" td={0.585} tw={0.08} color={VIOLET} />
+        <Trace d="M 357 500 V 420" td={0.6} tw={0.08} color={BLUE} />
+        <Trace d="M 450 600 V 540" td={0.585} tw={0.08} color={BLUE} />
+        <Trace d="M 540 595 V 545" td={0.6} tw={0.08} color={CYAN} />
+        <Trace d="M 620 605 V 540" td={0.615} tw={0.08} color={VIOLET} />
 
-        {/* FINALE (bird's-eye freeze): the fabric stitches together */}
-        <Trace d="M 397 120 V 685" td={0.84} tw={0.14} color={RED} />
-        <Trace d="M 118 337.5 H 380" td={0.85} tw={0.12} color={VIOLET} />
-        <Trace d="M 412 398 H 684" td={0.86} tw={0.12} color={CYAN} />
-        <Trace d="M 118 452.5 H 380" td={0.87} tw={0.12} color={CYAN} />
-        <Trace d="M 412 567.5 H 684" td={0.88} tw={0.12} color={BLUE} />
-        <Trace d="M 240 337.5 H 397 V 398 H 430" td={0.86} tw={0.13} color={CYAN} />
-        <Trace d="M 300 452.5 H 397 V 567.5 H 440" td={0.87} tw={0.13} color={BLUE} />
-        <Trace d="M 397 500 H 450" td={0.89} tw={0.11} color={VIOLET} />
+        {/* FINALE (long bird's-eye freeze): the fabric stitches together */}
+        <Trace d="M 397 120 V 685" td={0.68} tw={0.16} color={RED} />
+        <Trace d="M 118 337.5 H 380" td={0.7} tw={0.14} color={VIOLET} />
+        <Trace d="M 412 398 H 684" td={0.72} tw={0.14} color={CYAN} />
+        <Trace d="M 118 452.5 H 380" td={0.74} tw={0.14} color={CYAN} />
+        <Trace d="M 412 567.5 H 684" td={0.76} tw={0.14} color={BLUE} />
+        <Trace d="M 240 337.5 H 397 V 398 H 430" td={0.71} tw={0.15} color={CYAN} />
+        <Trace d="M 300 452.5 H 397 V 567.5 H 440" td={0.75} tw={0.15} color={BLUE} />
+        <Trace d="M 397 500 H 450" td={0.78} tw={0.11} color={VIOLET} />
+        <Trace d="M 232 415 V 490" td={0.77} tw={0.1} color={VIOLET} />
+        <Trace d="M 304 295 V 380" td={0.79} tw={0.1} color={BLUE} />
+        <Trace d="M 550 345 V 440" td={0.8} tw={0.1} color={CYAN} />
+        <Trace d="M 480 545 V 600" td={0.82} tw={0.1} color={BLUE} />
 
         {/* edge taps land last */}
-        <Trace d="M 110 200 H 74" td={0.88} tw={0.1} color={RED} />
-        <Trace d="M 690 230 H 726" td={0.89} tw={0.1} color={CYAN} />
-        <Trace d="M 180 690 V 726" td={0.9} tw={0.1} color={BLUE} />
-        <Trace d="M 540 690 V 726" td={0.9} tw={0.1} color={VIOLET} />
-        <Trace d="M 110 600 H 74" td={0.89} tw={0.1} color={CYAN} />
-        <Trace d="M 690 620 H 726" td={0.88} tw={0.1} color={BLUE} />
+        <Trace d="M 110 200 H 74" td={0.84} tw={0.1} color={RED} />
+        <Trace d="M 690 230 H 726" td={0.85} tw={0.1} color={CYAN} />
+        <Trace d="M 180 690 V 726" td={0.86} tw={0.1} color={BLUE} />
+        <Trace d="M 540 690 V 726" td={0.87} tw={0.1} color={VIOLET} />
+        <Trace d="M 110 600 H 74" td={0.88} tw={0.1} color={CYAN} />
+        <Trace d="M 690 620 H 726" td={0.89} tw={0.1} color={BLUE} />
+        <Trace d="M 250 110 V 74" td={0.9} tw={0.1} color={VIOLET} />
+        <Trace d="M 480 110 V 74" td={0.91} tw={0.09} color={CYAN} />
       </g>
     </svg>
   );
