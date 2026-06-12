@@ -183,25 +183,23 @@ body {
 }
 
 /*
- * Camera rig: ONE continuous swoop. The view opens low and close
- * over the badge/CPU corner and arcs in a single smootherstep-eased
- * motion — panning across the die while pulling up and flattening —
- * into the final bird's-eye, where it freezes for the flood finale.
+ * Camera rig: ONE continuous swoop. Opens near-centered with a steep
+ * tilt and slight orbit, then flattens to bird's-eye.
  *
  *          tx     ty    scale  rotX   rotZ
- *  open    34%    24%   2.30   72deg  -30deg
+ *  open     8%    14%   2.10   70deg  -18deg
  *  birds    0%     8%   0.95    0deg    0deg
  */
 .chip-die3d {
   transform-style: preserve-3d;
   transform: translate3d(
-      calc(34% * (1 - var(--m))),
-      calc(24% * (1 - var(--m)) + 8% * var(--m)),
+      calc(8% * (1 - var(--m))),
+      calc(14% * (1 - var(--m)) + 8% * var(--m)),
       0
     )
-    rotateX(calc(72deg * (1 - var(--m))))
-    rotateZ(calc(-30deg * (1 - var(--m))))
-    scale(calc(0.95 + 1.35 * (1 - var(--m))));
+    rotateX(calc(70deg * (1 - var(--m))))
+    rotateZ(calc(-18deg * (1 - var(--m))))
+    scale(calc(0.95 + 1.15 * (1 - var(--m))));
   will-change: transform;
 }
 
