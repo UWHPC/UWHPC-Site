@@ -244,70 +244,84 @@ body {
   --bp: clamp(0, calc((var(--p) - var(--d)) / 0.14), 1);
 }
 
-.chip-block-base {
-  fill: rgb(255 255 255 / 0.015);
-  stroke: #2c2c2c;
-  stroke-width: 1.5;
+/* dim grey skeleton: every outline faintly visible from the start */
+.chip-block-base rect:not(.chip-cell) {
+  fill: rgb(255 255 255 / 0.008);
+  stroke: #2a2a2a;
+  stroke-width: 1.25;
 }
 
+.chip-block-base .chip-cell {
+  fill: none;
+  stroke: #232323;
+  stroke-width: 1;
+}
+
+.chip-block-base line {
+  stroke: #222222;
+  stroke-width: 1;
+}
+
+/* ember tint as the block wakes — kept low, dark and moody */
 .chip-block-lit {
   opacity: var(--bp);
-  filter: drop-shadow(0 0 10px rgb(205 57 60 / 0.65));
+  filter: drop-shadow(0 0 8px rgb(205 57 60 / 0.4));
 }
 
-.chip-block-lit > rect:not(.chip-cell) {
-  fill: rgb(205 57 60 / 0.14);
-  stroke: #e8555a;
-  stroke-width: 1.75;
+.chip-block-lit rect:not(.chip-cell) {
+  fill: rgb(205 57 60 / 0.05);
+  stroke: rgb(224 73 77 / 0.75);
+  stroke-width: 1.25;
 }
 
 .chip-block-lit .chip-cell {
-  fill: rgb(205 57 60 / 0.06);
-  stroke: rgb(224 73 77 / 0.5);
+  fill: rgb(205 57 60 / 0.04);
+  stroke: rgb(224 73 77 / 0.35);
   stroke-width: 1;
 }
 
 .chip-block-lit line {
-  stroke: rgb(224 73 77 / 0.45);
+  stroke: rgb(224 73 77 / 0.3);
   stroke-width: 1;
 }
 
-.chip-block-lit text {
-  fill: #d8d8d8;
-  font-family: var(--font-fragment-mono), monospace;
-  font-size: 13px;
-  letter-spacing: 2px;
-  opacity: 0.85;
-}
-
-/* --- signal traces -------------------------------------------------- */
+/* --- pathways: grey lines that fill like fluid ----------------------- */
 
 .chip-trace-group {
   --tp: clamp(0, calc((var(--p) - var(--td)) / 0.18), 1);
 }
 
+.chip-trace-base,
 .chip-trace,
 .chip-trace-pulse {
   fill: none;
-  stroke: var(--tc);
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
+/* the empty pipe, always faintly visible */
+.chip-trace-base {
+  stroke: #2f2f2f;
+  stroke-width: 1.5;
+}
+
+/* the fluid: draws along the pipe as scroll progresses */
 .chip-trace {
+  stroke: var(--tc);
   stroke-width: 2;
   stroke-dasharray: 1;
   stroke-dashoffset: calc(1 - var(--tp));
-  opacity: calc(0.85 * var(--tp));
+  opacity: var(--tp);
   filter: drop-shadow(0 0 6px var(--tc));
 }
 
-/* light packets running along drawn traces */
+/* light packets running along filled pathways */
 .chip-trace-pulse {
-  stroke-width: 3;
+  stroke: var(--tc);
+  stroke-width: 2.5;
   stroke-dasharray: 0.06 0.19;
   animation: chip-pulse 2.4s linear infinite;
-  opacity: calc(0.9 * var(--tp));
+  opacity: calc(0.7 * var(--tp));
 }
 
 .chip-trace-group:nth-child(odd) .chip-trace-pulse {
