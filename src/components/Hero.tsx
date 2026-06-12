@@ -30,7 +30,7 @@ export default function Hero() {
         <div className="chip-ambience pointer-events-none absolute top-1/2 left-1/2 h-[70vmin] w-[70vmin] -translate-x-1/2 -translate-y-1/2 rounded-full" />
 
         {/* headline — hidden until the bird's-eye finale */}
-        <div className="chip-title pointer-events-none absolute inset-x-0 top-[10vh] z-10 px-6 text-center">
+        <div className="chip-title pointer-events-none absolute inset-x-0 top-[18vh] z-10 px-6 text-center">
           <h1 className="mx-auto mb-6 text-5xl font-bold tracking-tight font-stretch-expanded leading-[0.98] sm:text-6xl lg:text-7xl">
             UW<span className="text-accent">HPC</span>
           </h1>
