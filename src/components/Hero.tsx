@@ -29,8 +29,8 @@ export default function Hero() {
         {/* growing red ambience behind the die */}
         <div className="chip-ambience pointer-events-none absolute top-1/2 left-1/2 h-[70vmin] w-[70vmin] -translate-x-1/2 -translate-y-1/2 rounded-full" />
 
-        {/* headline — fades up and out as the chip wakes */}
-        <div className="chip-title pointer-events-none absolute inset-x-0 top-[16vh] z-10 px-6 text-center">
+        {/* headline — hidden until the bird's-eye finale */}
+        <div className="chip-title pointer-events-none absolute inset-x-0 top-[10vh] z-10 px-6 text-center">
           <div className="mx-auto mb-5 flex items-center justify-center gap-3 font-mono text-xs tracking-[0.2em] uppercase text-ink-muted">
             <span className="h-1.5 w-1.5 bg-accent animate-blink" />
             University of Waterloo

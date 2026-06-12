@@ -8,10 +8,11 @@ import type { CSSProperties, ReactNode } from "react";
  * Styling: globals.css "Chip hero".
  *
  * Timeline (one continuous camera swoop, p 0.05-0.70):
- *   0.145+  badge, then cores crisscross, streets flood behind them
- *   0.36+   GPU blooms, SRAM macros scatter
- *   0.54+   media/memory/bricks sweep
- *   0.68+   bird's-eye freeze: main channels flood, moat ring closes
+ *   0.04+   the die edge sweeps most of the way around, alone
+ *   0.22+   badge, then cores crisscross, streets flood behind them
+ *   0.42+   GPU blooms, SRAM macros scatter
+ *   0.56+   media/memory/bricks sweep
+ *   0.68+   bird's-eye freeze: channels flood, moat closes, title fades in
  */
 
 function varStyle(vars: Record<string, string | number>) {
@@ -53,9 +54,7 @@ function Gap({
   );
 }
 
-const CYAN = "#4cc9f0";
-const BLUE = "#5a8bff";
-const VIOLET = "#b15cff";
+const COPPER = "#e08a4a";
 const RED = "#e0494d";
 
 function vLines(x0: number, y0: number, y1: number, step: number, count: number) {
@@ -190,8 +189,8 @@ export default function ChipDie() {
     >
       <defs>
         <radialGradient id="chip-die-grad" cx="50%" cy="42%" r="75%">
-          <stop offset="0%" stopColor="#161616" />
-          <stop offset="100%" stopColor="#101010" />
+          <stop offset="0%" stopColor="#141414" />
+          <stop offset="100%" stopColor="#0e0e0e" />
         </radialGradient>
       </defs>
 
@@ -200,29 +199,29 @@ export default function ChipDie() {
 
       {/* ---- left half ---- */}
       {/* badge block first: the brand mark wakes the die */}
-      <Block d={0.145} w={0.1} shape={badgeShape()} />
+      <Block d={0.22} w={0.1} shape={badgeShape()} />
 
       {/* performance cores pop crisscross 1-3-2-4 */}
-      <Block d={0.16} shape={pCoreShape(84)} />
-      <Block d={0.2} shape={pCoreShape(158)} />
-      <Block d={0.18} shape={pCoreShape(232)} />
-      <Block d={0.22} shape={pCoreShape(306)} />
+      <Block d={0.26} shape={pCoreShape(84)} />
+      <Block d={0.3} shape={pCoreShape(158)} />
+      <Block d={0.28} shape={pCoreShape(232)} />
+      <Block d={0.32} shape={pCoreShape(306)} />
 
       {/* efficiency units: checkerboard scatter */}
-      <Block d={0.24} w={0.06} shape={eUnitShape(84, 506)} />
-      <Block d={0.26} w={0.06} shape={eUnitShape(182, 506)} />
-      <Block d={0.28} w={0.06} shape={eUnitShape(280, 506)} />
-      <Block d={0.27} w={0.06} shape={eUnitShape(84, 561)} />
-      <Block d={0.25} w={0.06} shape={eUnitShape(182, 561)} />
-      <Block d={0.29} w={0.06} shape={eUnitShape(280, 561)} />
+      <Block d={0.34} w={0.06} shape={eUnitShape(84, 506)} />
+      <Block d={0.36} w={0.06} shape={eUnitShape(182, 506)} />
+      <Block d={0.38} w={0.06} shape={eUnitShape(280, 506)} />
+      <Block d={0.37} w={0.06} shape={eUnitShape(84, 561)} />
+      <Block d={0.35} w={0.06} shape={eUnitShape(182, 561)} />
+      <Block d={0.39} w={0.06} shape={eUnitShape(280, 561)} />
 
       {/* memory bricks sweep awake */}
-      <Block d={0.56} w={0.09} shape={<>{memCells}</>} />
+      <Block d={0.58} w={0.09} shape={<>{memCells}</>} />
 
       {/* ---- right half ---- */}
       {/* GPU blooms slowly */}
       <Block
-        d={0.36}
+        d={0.42}
         w={0.12}
         shape={
           <>
@@ -233,13 +232,13 @@ export default function ChipDie() {
       />
 
       {/* SRAM macros scatter: middle, right, left */}
-      <Block d={0.41} shape={sramMacro(508)} />
-      <Block d={0.435} shape={sramMacro(616)} />
-      <Block d={0.455} shape={sramMacro(400)} />
+      <Block d={0.47} shape={sramMacro(508)} />
+      <Block d={0.49} shape={sramMacro(616)} />
+      <Block d={0.51} shape={sramMacro(400)} />
 
       {/* media engine ladder */}
       <Block
-        d={0.54}
+        d={0.56}
         w={0.08}
         shape={
           <>
@@ -253,11 +252,11 @@ export default function ChipDie() {
       />
 
       {/* brick PHY column */}
-      <Block d={0.575} w={0.07} shape={<>{bricks}</>} />
+      <Block d={0.595} w={0.07} shape={<>{bricks}</>} />
 
       {/* bottom strips */}
       <Block
-        d={0.59}
+        d={0.615}
         w={0.07}
         shape={
           <>
@@ -267,7 +266,7 @@ export default function ChipDie() {
         }
       />
       <Block
-        d={0.605}
+        d={0.625}
         w={0.07}
         shape={
           <>
@@ -285,36 +284,36 @@ export default function ChipDie() {
           floorplan itself light up after their neighbouring blocks. */}
       <g className="chip-traces">
         {/* badge channel, then the streets between cores (1-3-2) */}
-        <Gap d="M 84 214 H 372" td={0.17} tw={0.13} sw={8} color={BLUE} />
-        <Gap d="M 154 220 V 500" td={0.19} tw={0.11} color={CYAN} />
-        <Gap d="M 302 220 V 500" td={0.21} tw={0.11} color={CYAN} />
-        <Gap d="M 228 220 V 500" td={0.23} tw={0.11} color={BLUE} />
+        <Gap d="M 84 214 H 372" td={0.24} tw={0.13} sw={8} color={COPPER} />
+        <Gap d="M 154 220 V 500" td={0.28} tw={0.11} color={COPPER} />
+        <Gap d="M 302 220 V 500" td={0.3} tw={0.11} color={COPPER} />
+        <Gap d="M 228 220 V 500" td={0.32} tw={0.11} color={COPPER} />
         {/* streets around the e-units */}
-        <Gap d="M 178 506 V 610" td={0.27} tw={0.1} color={VIOLET} />
-        <Gap d="M 276 506 V 610" td={0.285} tw={0.1} color={CYAN} />
-        <Gap d="M 84 558 H 372" td={0.3} tw={0.1} color={BLUE} />
+        <Gap d="M 178 506 V 610" td={0.37} tw={0.1} color={COPPER} />
+        <Gap d="M 276 506 V 610" td={0.385} tw={0.1} color={COPPER} />
+        <Gap d="M 84 558 H 372" td={0.4} tw={0.1} color={COPPER} />
 
         {/* the channel under the GPU sweeps, then SRAM streets */}
-        <Gap d="M 400 417 H 716" td={0.4} tw={0.14} color={CYAN} />
-        <Gap d="M 504 420 V 500" td={0.445} tw={0.1} color={BLUE} />
-        <Gap d="M 612 420 V 500" td={0.465} tw={0.1} color={VIOLET} />
+        <Gap d="M 400 417 H 716" td={0.46} tw={0.14} color={COPPER} />
+        <Gap d="M 504 420 V 500" td={0.5} tw={0.1} color={COPPER} />
+        <Gap d="M 612 420 V 500" td={0.52} tw={0.1} color={COPPER} />
 
         {/* streets around media, bricks, memory */}
-        <Gap d="M 584 506 V 630" td={0.575} tw={0.1} color={CYAN} />
-        <Gap d="M 652 506 V 630" td={0.59} tw={0.1} color={BLUE} />
-        <Gap d="M 154 616 V 716" td={0.58} tw={0.1} color={BLUE} />
-        <Gap d="M 228 616 V 716" td={0.59} tw={0.1} color={CYAN} />
-        <Gap d="M 302 616 V 716" td={0.6} tw={0.1} color={VIOLET} />
-        <Gap d="M 554 636 V 716" td={0.615} tw={0.1} color={CYAN} />
+        <Gap d="M 584 506 V 630" td={0.585} tw={0.1} color={COPPER} />
+        <Gap d="M 652 506 V 630" td={0.6} tw={0.1} color={COPPER} />
+        <Gap d="M 154 616 V 716" td={0.6} tw={0.1} color={COPPER} />
+        <Gap d="M 228 616 V 716" td={0.61} tw={0.1} color={COPPER} />
+        <Gap d="M 302 616 V 716" td={0.62} tw={0.1} color={COPPER} />
+        <Gap d="M 554 636 V 716" td={0.63} tw={0.1} color={COPPER} />
 
         {/* FINALE (long bird's-eye freeze): the main channels flood
             one by one, ending with the perimeter moat */}
         <Gap d="M 386 84 V 716" td={0.68} tw={0.2} sw={9} color={RED} />
-        <Gap d="M 84 503 H 372" td={0.71} tw={0.16} sw={5} color={CYAN} />
-        <Gap d="M 400 503 H 716" td={0.73} tw={0.16} sw={5} color={BLUE} />
-        <Gap d="M 84 613 H 372" td={0.74} tw={0.16} sw={5} color={VIOLET} />
-        <Gap d="M 84 666 H 372" td={0.76} tw={0.15} sw={5} color={BLUE} />
-        <Gap d="M 400 633 H 716" td={0.78} tw={0.15} sw={5} color={CYAN} />
+        <Gap d="M 84 503 H 372" td={0.71} tw={0.16} sw={5} color={COPPER} />
+        <Gap d="M 400 503 H 716" td={0.73} tw={0.16} sw={5} color={COPPER} />
+        <Gap d="M 84 613 H 372" td={0.74} tw={0.16} sw={5} color={COPPER} />
+        <Gap d="M 84 666 H 372" td={0.76} tw={0.15} sw={5} color={COPPER} />
+        <Gap d="M 400 633 H 716" td={0.78} tw={0.15} sw={5} color={COPPER} />
         <Gap
           d="M 110 77 H 690 A 33 33 0 0 1 723 110 V 690 A 33 33 0 0 1 690 723 H 110 A 33 33 0 0 1 77 690 V 110 A 33 33 0 0 1 110 77 Z"
           td={0.8}

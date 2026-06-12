@@ -54,10 +54,10 @@ body {
 @utility blueprint-grid {
   background-image: linear-gradient(
       to right,
-      rgb(255 255 255 / 0.035) 1px,
+      rgb(255 255 255 / 0.022) 1px,
       transparent 1px
     ),
-    linear-gradient(to bottom, rgb(255 255 255 / 0.035) 1px, transparent 1px);
+    linear-gradient(to bottom, rgb(255 255 255 / 0.022) 1px, transparent 1px);
   background-size: 56px 56px;
 }
 
@@ -117,19 +117,21 @@ body {
      written by useScrollProgress */
   --m: 0;
   /* content phase windows */
-  --title: clamp(0, calc((var(--p) - 0.03) / 0.12), 1); /* headline fades OUT */
-  --edge: clamp(0, calc((var(--p) - 0.06) / 0.3), 1); /* die edge traces in, slowly */
+  --cue: clamp(0, calc((var(--p) - 0.05) / 0.1), 1); /* scroll hint fades out */
+  --edge: clamp(0, calc((var(--p) - 0.04) / 0.22), 1); /* edge sweeps the die alone */
   --amb: clamp(0, calc((var(--p) - 0.15) / 0.5), 1); /* ambient glow grows */
+  --title: clamp(0, calc((var(--p) - 0.88) / 0.1), 1); /* headline fades IN at birds-eye */
   --endcap: clamp(0, calc((var(--p) - 0.95) / 0.05), 1); /* CTAs resolve */
 }
 
 .chip-title {
-  opacity: calc(1 - var(--title));
-  transform: translateY(calc(var(--title) * -40px));
+  opacity: var(--title);
+  transform: translateY(calc((1 - var(--title)) * 18px));
+  text-shadow: 0 2px 24px rgb(0 0 0 / 0.85);
 }
 
 .chip-cue {
-  opacity: calc(0.9 * (1 - var(--title)));
+  opacity: calc(0.9 * (1 - var(--cue)));
 }
 
 .chip-endcap {
@@ -143,7 +145,7 @@ body {
 
 .chip-ambience {
   background: radial-gradient(circle, rgb(205 57 60 / 0.11), transparent 65%);
-  opacity: calc(0.25 + 0.75 * var(--amb));
+  opacity: calc(0.08 + 0.92 * var(--amb));
   transform: translate(-50%, -50%) scale(calc(0.8 + 0.5 * var(--amb)));
 }
 
@@ -161,19 +163,19 @@ body {
  * into the final bird's-eye, where it freezes for the flood finale.
  *
  *          tx     ty    scale  rotX   rotZ
- *  open    22%    16%   1.70   58deg  -14deg
- *  birds    0%     0%   1.08    0deg    0deg
+ *  open    28%    20%   2.00   66deg  -22deg
+ *  birds    0%     8%   0.95    0deg    0deg
  */
 .chip-die3d {
   transform-style: preserve-3d;
   transform: translate3d(
-      calc(22% * (1 - var(--m))),
-      calc(16% * (1 - var(--m))),
+      calc(28% * (1 - var(--m))),
+      calc(20% * (1 - var(--m)) + 8% * var(--m)),
       0
     )
-    rotateX(calc(58deg * (1 - var(--m))))
-    rotateZ(calc(-14deg * (1 - var(--m))))
-    scale(calc(1.08 + 0.62 * (1 - var(--m))));
+    rotateX(calc(66deg * (1 - var(--m))))
+    rotateZ(calc(-22deg * (1 - var(--m))))
+    scale(calc(0.95 + 1.05 * (1 - var(--m))));
   will-change: transform;
 }
 
@@ -224,7 +226,7 @@ body {
 /* --- die artwork phases -------------------------------------------- */
 
 .chip-die-base {
-  stroke: #2e2e2e;
+  stroke: #262626;
   stroke-width: 1.5;
 }
 
@@ -234,7 +236,7 @@ body {
   stroke-width: 2;
   stroke-dasharray: 1;
   stroke-dashoffset: calc(1 - var(--edge));
-  opacity: calc(0.15 + 0.85 * var(--edge));
+  opacity: calc(0.08 + 0.92 * var(--edge));
   filter: drop-shadow(0 0 8px rgb(205 57 60 / 0.75));
 }
 
@@ -243,21 +245,21 @@ body {
   --bp: clamp(0, calc((var(--p) - var(--d)) / var(--w, 0.08)), 1);
 }
 
-/* dim grey skeleton: every outline faintly visible from the start */
+/* dim grey skeleton: barely-there structure in the dark */
 .chip-block-base rect:not(.chip-cell) {
-  fill: rgb(255 255 255 / 0.008);
-  stroke: #2a2a2a;
+  fill: rgb(255 255 255 / 0.004);
+  stroke: #232323;
   stroke-width: 1.25;
 }
 
 .chip-block-base .chip-cell {
   fill: none;
-  stroke: #232323;
+  stroke: #1e1e1e;
   stroke-width: 1;
 }
 
 .chip-block-base line {
-  stroke: #222222;
+  stroke: #1d1d1d;
   stroke-width: 1;
 }
 
@@ -300,7 +302,7 @@ body {
 
 /* the empty channel: visibly there as part of the floorplan */
 .chip-trace-base {
-  stroke: #272727;
+  stroke: #222222;
   stroke-width: var(--sw, 5);
 }
 
