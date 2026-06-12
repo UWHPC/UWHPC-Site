@@ -27,22 +27,25 @@ function Block({ d, w, shape }: { d: number; w?: number; shape: ReactNode }) {
   );
 }
 
-function Trace({
+/** A gap between blocks: a dark channel that floods with color. */
+function Gap({
   d,
   td,
   tw,
+  sw,
   color,
 }: {
   d: string;
   td: number;
   tw?: number;
+  sw?: number;
   color: string;
 }) {
+  const vars: Record<string, string | number> = { "--td": td, "--tc": color };
+  if (tw) vars["--tw"] = tw;
+  if (sw) vars["--sw"] = sw;
   return (
-    <g
-      className="chip-trace-group"
-      style={varStyle(tw ? { "--td": td, "--tc": color, "--tw": tw } : { "--td": td, "--tc": color })}
-    >
+    <g className="chip-trace-group" style={varStyle(vars)}>
       <path className="chip-trace-base" d={d} />
       <path className="chip-trace" pathLength={1} d={d} />
       <path className="chip-trace-pulse" pathLength={1} d={d} />
@@ -214,43 +217,6 @@ export default function ChipDie() {
       <rect className="chip-die-base" x={70} y={70} width={660} height={660} rx={14} fill="url(#chip-die-grad)" />
       <rect className="chip-die-edge" pathLength={1} x={70} y={70} width={660} height={660} rx={14} />
 
-      {/* permanent grey routing fabric */}
-      <g className="chip-fabric">
-        {[
-          // doubled channel runs
-          "M 92 211 H 364",
-          "M 110 217 H 340",
-          "M 92 500 H 364",
-          "M 120 509 H 330",
-          "M 92 610 H 364",
-          "M 408 414 H 700",
-          "M 420 420 H 680",
-          "M 408 630 H 700",
-          "M 380 100 V 700",
-          "M 392 130 V 670",
-          // stubs
-          "M 130 470 V 530",
-          "M 250 480 V 525",
-          "M 320 630 V 590",
-          "M 440 385 V 435",
-          "M 560 380 V 440",
-          "M 680 385 V 430",
-          "M 470 530 V 480",
-          "M 630 535 V 485",
-          // edge taps
-          "M 84 300 H 73",
-          "M 716 260 H 727",
-          "M 716 560 H 727",
-          "M 250 716 V 727",
-          "M 500 716 V 727",
-          "M 84 660 H 73",
-          "M 320 84 V 73",
-          "M 600 84 V 73",
-        ].map((d) => (
-          <path key={d} d={d} />
-        ))}
-      </g>
-
       {/* ---- left half ---- */}
       {/* badge block first: the brand mark wakes the die */}
       <Block d={0.145} shape={badgeShape()} />
@@ -333,54 +299,48 @@ export default function ChipDie() {
         }
       />
 
-      {/* ---- pathways: grey pipes that fill like fluid ---- */}
+      {/* ---- the gaps between blocks: dark channels that flood ----
+          No individual connectors — the streets and channels of the
+          floorplan itself light up after their neighbouring blocks. */}
       <g className="chip-traces">
-        {/* HOLD A: lines spill out of each core as it lights (1-3-2-4) */}
-        <Trace d="M 117 470 V 530" td={0.18} tw={0.09} color={CYAN} />
-        <Trace d="M 265 475 V 525" td={0.2} tw={0.09} color={BLUE} />
-        <Trace d="M 191 465 V 535" td={0.22} tw={0.09} color={CYAN} />
-        <Trace d="M 339 470 V 530" td={0.24} tw={0.09} color={VIOLET} />
+        {/* HOLD A: badge channel, then the streets between cores (1-3-2) */}
+        <Gap d="M 84 214 H 372" td={0.17} tw={0.1} sw={8} color={BLUE} />
+        <Gap d="M 154 220 V 500" td={0.19} tw={0.08} color={CYAN} />
+        <Gap d="M 302 220 V 500" td={0.21} tw={0.08} color={CYAN} />
+        <Gap d="M 228 220 V 500" td={0.23} tw={0.08} color={BLUE} />
+        {/* streets around the e-units */}
+        <Gap d="M 178 506 V 610" td={0.27} tw={0.07} color={VIOLET} />
+        <Gap d="M 276 506 V 610" td={0.285} tw={0.07} color={CYAN} />
+        <Gap d="M 84 558 H 372" td={0.3} tw={0.07} color={BLUE} />
 
-        {/* HOLD B: GPU reaches back to the cores, then down into SRAM */}
-        <Trace d="M 420 260 H 350" td={0.39} tw={0.08} color={CYAN} />
-        <Trace d="M 420 340 H 350" td={0.41} tw={0.08} color={BLUE} />
-        <Trace d="M 430 385 V 440" td={0.42} tw={0.08} color={CYAN} />
-        <Trace d="M 520 380 V 435" td={0.435} tw={0.08} color={BLUE} />
-        <Trace d="M 610 385 V 440" td={0.45} tw={0.08} color={VIOLET} />
-        <Trace d="M 690 380 V 435" td={0.46} tw={0.08} color={CYAN} />
+        {/* HOLD B: the channel under the GPU sweeps, then SRAM streets */}
+        <Gap d="M 400 417 H 716" td={0.4} tw={0.1} color={CYAN} />
+        <Gap d="M 504 420 V 500" td={0.445} tw={0.07} color={BLUE} />
+        <Gap d="M 612 420 V 500" td={0.465} tw={0.07} color={VIOLET} />
 
-        {/* HOLD C: media/memory/bricks reach outward as they wake */}
-        <Trace d="M 450 530 V 475" td={0.56} tw={0.08} color={BLUE} />
-        <Trace d="M 530 535 V 480" td={0.57} tw={0.08} color={CYAN} />
-        <Trace d="M 117 630 V 590" td={0.58} tw={0.08} color={VIOLET} />
-        <Trace d="M 191 625 V 585" td={0.59} tw={0.08} color={BLUE} />
-        <Trace d="M 265 630 V 590" td={0.6} tw={0.08} color={CYAN} />
-        <Trace d="M 620 530 V 485" td={0.585} tw={0.08} color={BLUE} />
-        <Trace d="M 700 535 V 490" td={0.61} tw={0.08} color={VIOLET} />
+        {/* HOLD C: streets around media, bricks, memory */}
+        <Gap d="M 584 506 V 630" td={0.575} tw={0.07} color={CYAN} />
+        <Gap d="M 652 506 V 630" td={0.59} tw={0.07} color={BLUE} />
+        <Gap d="M 154 616 V 716" td={0.58} tw={0.07} color={BLUE} />
+        <Gap d="M 228 616 V 716" td={0.59} tw={0.07} color={CYAN} />
+        <Gap d="M 302 616 V 716" td={0.6} tw={0.07} color={VIOLET} />
+        <Gap d="M 554 636 V 716" td={0.615} tw={0.07} color={CYAN} />
 
-        {/* FINALE (long bird's-eye freeze): the fabric stitches together */}
-        <Trace d="M 386 100 V 700" td={0.68} tw={0.16} color={RED} />
-        <Trace d="M 92 214 H 364" td={0.7} tw={0.14} color={VIOLET} />
-        <Trace d="M 408 417 H 708" td={0.72} tw={0.14} color={CYAN} />
-        <Trace d="M 92 503 H 364" td={0.74} tw={0.14} color={CYAN} />
-        <Trace d="M 408 633 H 708" td={0.76} tw={0.14} color={BLUE} />
-        <Trace d="M 300 214 H 386 V 417 H 408" td={0.71} tw={0.15} color={CYAN} />
-        <Trace d="M 250 503 H 386 V 633 H 408" td={0.75} tw={0.15} color={BLUE} />
-        <Trace d="M 408 503 H 580" td={0.78} tw={0.11} color={VIOLET} />
-        <Trace d="M 92 613 H 364" td={0.77} tw={0.12} color={VIOLET} />
-        <Trace d="M 339 625 V 585" td={0.79} tw={0.1} color={BLUE} />
-        <Trace d="M 560 380 V 440" td={0.8} tw={0.1} color={CYAN} />
-        <Trace d="M 470 636 V 600" td={0.82} tw={0.1} color={BLUE} />
-
-        {/* edge taps land last */}
-        <Trace d="M 84 260 H 73" td={0.84} tw={0.1} color={RED} />
-        <Trace d="M 716 230 H 727" td={0.85} tw={0.1} color={CYAN} />
-        <Trace d="M 180 716 V 727" td={0.86} tw={0.1} color={BLUE} />
-        <Trace d="M 540 716 V 727" td={0.87} tw={0.1} color={VIOLET} />
-        <Trace d="M 84 600 H 73" td={0.88} tw={0.1} color={CYAN} />
-        <Trace d="M 716 620 H 727" td={0.89} tw={0.1} color={BLUE} />
-        <Trace d="M 250 84 V 73" td={0.9} tw={0.1} color={VIOLET} />
-        <Trace d="M 480 84 V 73" td={0.91} tw={0.09} color={CYAN} />
+        {/* FINALE (long bird's-eye freeze): the main channels flood
+            one by one, ending with the perimeter moat */}
+        <Gap d="M 386 84 V 716" td={0.68} tw={0.16} sw={9} color={RED} />
+        <Gap d="M 84 503 H 372" td={0.71} tw={0.13} sw={5} color={CYAN} />
+        <Gap d="M 400 503 H 716" td={0.73} tw={0.13} sw={5} color={BLUE} />
+        <Gap d="M 84 613 H 372" td={0.74} tw={0.13} sw={5} color={VIOLET} />
+        <Gap d="M 84 666 H 372" td={0.76} tw={0.12} sw={5} color={BLUE} />
+        <Gap d="M 400 633 H 716" td={0.78} tw={0.12} sw={5} color={CYAN} />
+        <Gap
+          d="M 110 77 H 690 A 33 33 0 0 1 723 110 V 690 A 33 33 0 0 1 690 723 H 110 A 33 33 0 0 1 77 690 V 110 A 33 33 0 0 1 110 77 Z"
+          td={0.82}
+          tw={0.16}
+          sw={8}
+          color={RED}
+        />
       </g>
     </svg>
   );

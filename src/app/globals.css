@@ -313,39 +313,30 @@ body {
   stroke-linejoin: round;
 }
 
-/* the empty pipe, clearly there before it lights */
+/* the empty channel: visibly there as part of the floorplan */
 .chip-trace-base {
-  stroke: #3a3a3a;
-  stroke-width: 1.5;
+  stroke: #272727;
+  stroke-width: var(--sw, 5);
 }
 
-/* permanent grey routing fabric — texture that never lights */
-.chip-fabric path {
-  fill: none;
-  stroke: #333333;
-  stroke-width: 1.25;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-/* the fluid: draws along the pipe as scroll progresses.
-   Kept thinner and softer than the blocks so it doesn't overpower. */
+/* the flood: fills the gap as scroll progresses, slightly narrower
+   than the channel so the dark edges keep their depth */
 .chip-trace {
   stroke: var(--tc);
-  stroke-width: 1.5;
+  stroke-width: calc(var(--sw, 5) * 0.6);
   stroke-dasharray: 1;
   stroke-dashoffset: calc(1 - var(--tp));
-  opacity: calc(0.8 * var(--tp));
-  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--tc) 55%, transparent));
+  opacity: calc(0.75 * var(--tp));
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--tc) 50%, transparent));
 }
 
-/* light packets running along filled pathways */
+/* light packets running along flooded channels */
 .chip-trace-pulse {
   stroke: var(--tc);
-  stroke-width: 2;
-  stroke-dasharray: 0.06 0.19;
+  stroke-width: calc(var(--sw, 5) * 0.6);
+  stroke-dasharray: 0.04 0.21;
   animation: chip-pulse 2.4s linear infinite;
-  opacity: calc(0.45 * var(--tp));
+  opacity: calc(0.35 * var(--tp));
 }
 
 .chip-trace-group:nth-child(odd) .chip-trace-pulse {
