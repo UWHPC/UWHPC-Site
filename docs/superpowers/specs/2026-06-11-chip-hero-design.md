@@ -33,11 +33,23 @@ wakes. CTAs (Join the Team / Learn More) appear at the end of the sequence.
   faces hung off the bottom/right edges, so the silhouette is genuinely 3D at
   the start and the sides vanish naturally at bird's-eye.
 
+## Camera path
+
+All scroll-derived, always active (the sequence is scrubbed by the user's own
+scrolling, so it is not gated on prefers-reduced-motion):
+
+1. opens zoomed in (1.3x) over the CPU corner, tilted (rotateX 58deg) and
+   orbited (rotateZ -20deg)
+2. `--cam-pan` (p 0.02-0.42): pans across the die toward the GPU/IO side while
+   the orbit eases to -8deg
+3. `--cam-pull` (p 0.34-0.64): pulls back until the whole die is framed
+4. `--cam` (p 0.62-0.94): flattens to bird's-eye with a slight zoom-in
+
 ## Accessibility / robustness
 
-- `prefers-reduced-motion`: progress pins to 1 (fully lit, bird's-eye), the
-  runway collapses to a normal stacked static hero (title, chip, CTAs), pulse
-  animations are killed by the global reduced-motion rule.
+- `prefers-reduced-motion`: only self-running effects (trace pulses, blink
+  dot) are frozen by the global reduced-motion rule; the scroll-scrubbed
+  sequence still works since the user controls it.
 - SSR first paint is the dim p=0 state; no hydration-sensitive markup.
 - CTAs are `visibility: hidden` until the end phase so invisible buttons can't
   be focused/clicked over the chip.

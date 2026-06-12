@@ -13,13 +13,13 @@ import { Fiducial } from "@/components/ui";
  * animation derives from it in CSS.
  */
 export default function Hero() {
-  const { ref, reduced } = useScrollProgress<HTMLElement>();
+  const ref = useScrollProgress<HTMLElement>();
 
   return (
     <section
       ref={ref}
-      className={`chip-stage relative ${reduced ? "chip-stage-reduced h-auto" : "h-[320vh]"}`}
-      data-end={reduced ? "true" : "false"}
+      className="chip-stage relative h-[320vh]"
+      data-end="false"
     >
       <div className="chip-sticky sticky top-0 flex h-screen flex-col items-center justify-center overflow-hidden pt-16">
         <div className="blueprint-grid pointer-events-none absolute inset-0 mx-auto max-w-6xl border-line md:border-x" />
