@@ -118,10 +118,12 @@ body {
   --m: 0;
   /* content phase windows */
   --cue: clamp(0, calc((var(--p) - 0.05) / 0.1), 1); /* scroll hint fades out */
+  --fade: clamp(0, calc((var(--p) - 0.02) / 0.3), 1); /* scene fades up from black */
   --edge: clamp(0, calc((var(--p) - 0.04) / 0.22), 1); /* edge sweeps the die alone */
   --amb: clamp(0, calc((var(--p) - 0.15) / 0.5), 1); /* ambient glow grows */
-  --title: clamp(0, calc((var(--p) - 0.88) / 0.1), 1); /* headline fades IN at birds-eye */
-  --endcap: clamp(0, calc((var(--p) - 0.95) / 0.05), 1); /* CTAs resolve */
+  --title: clamp(0, calc((var(--p) - 0.8) / 0.08), 1); /* headline fades IN at birds-eye */
+  --endcap: clamp(0, calc((var(--p) - 0.84) / 0.06), 1); /* CTAs resolve */
+  /* everything settles by ~0.9 — the rest of the runway is a still dwell */
 }
 
 .chip-title {
@@ -145,15 +147,26 @@ body {
 
 .chip-ambience {
   background: radial-gradient(circle, rgb(205 57 60 / 0.11), transparent 65%);
-  opacity: calc(0.08 + 0.92 * var(--amb));
+  opacity: calc(var(--fade) * (0.08 + 0.92 * var(--amb)));
   transform: translate(-50%, -50%) scale(calc(0.8 + 0.5 * var(--amb)));
+}
+
+/* the whole scene fades up from near-black as scrolling begins
+   (opacity goes on the faces, not the preserve-3d container) */
+.chip-svg,
+.chip-side {
+  opacity: calc(0.4 + 0.6 * var(--fade));
+}
+
+.chip-stage .blueprint-grid {
+  opacity: calc(0.1 + 0.9 * var(--fade));
 }
 
 /* --- the 3D assembly ---------------------------------------------- */
 
 .chip-scene {
   position: relative;
-  perspective: 1200px;
+  perspective: 1000px;
 }
 
 /*
@@ -163,19 +176,19 @@ body {
  * into the final bird's-eye, where it freezes for the flood finale.
  *
  *          tx     ty    scale  rotX   rotZ
- *  open    28%    20%   2.00   66deg  -22deg
+ *  open    34%    24%   2.30   72deg  -30deg
  *  birds    0%     8%   0.95    0deg    0deg
  */
 .chip-die3d {
   transform-style: preserve-3d;
   transform: translate3d(
-      calc(28% * (1 - var(--m))),
-      calc(20% * (1 - var(--m)) + 8% * var(--m)),
+      calc(34% * (1 - var(--m))),
+      calc(24% * (1 - var(--m)) + 8% * var(--m)),
       0
     )
-    rotateX(calc(66deg * (1 - var(--m))))
-    rotateZ(calc(-22deg * (1 - var(--m))))
-    scale(calc(0.95 + 1.05 * (1 - var(--m))));
+    rotateX(calc(72deg * (1 - var(--m))))
+    rotateZ(calc(-30deg * (1 - var(--m))))
+    scale(calc(0.95 + 1.35 * (1 - var(--m))));
   will-change: transform;
 }
 
@@ -214,13 +227,13 @@ body {
 
 .chip-shadow {
   position: absolute;
-  left: 6%;
-  right: 6%;
-  bottom: -7%;
-  height: 14%;
-  background: radial-gradient(ellipse, rgb(0 0 0 / 0.65), transparent 70%);
-  filter: blur(12px);
-  opacity: calc(0.8 * (1 - var(--m)));
+  left: 2%;
+  right: 2%;
+  bottom: -9%;
+  height: 18%;
+  background: radial-gradient(ellipse, rgb(0 0 0 / 0.85), transparent 72%);
+  filter: blur(16px);
+  opacity: calc(0.95 * (1 - var(--m)));
 }
 
 /* --- die artwork phases -------------------------------------------- */

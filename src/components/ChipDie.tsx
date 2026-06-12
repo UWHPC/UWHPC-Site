@@ -54,7 +54,7 @@ function Gap({
   );
 }
 
-const COPPER = "#e08a4a";
+const COPPER = "#dd6e4f";
 const RED = "#e0494d";
 
 function vLines(x0: number, y0: number, y1: number, step: number, count: number) {
@@ -308,16 +308,16 @@ export default function ChipDie() {
 
         {/* FINALE (long bird's-eye freeze): the main channels flood
             one by one, ending with the perimeter moat */}
-        <Gap d="M 386 84 V 716" td={0.68} tw={0.2} sw={9} color={RED} />
-        <Gap d="M 84 503 H 372" td={0.71} tw={0.16} sw={5} color={COPPER} />
-        <Gap d="M 400 503 H 716" td={0.73} tw={0.16} sw={5} color={COPPER} />
-        <Gap d="M 84 613 H 372" td={0.74} tw={0.16} sw={5} color={COPPER} />
-        <Gap d="M 84 666 H 372" td={0.76} tw={0.15} sw={5} color={COPPER} />
-        <Gap d="M 400 633 H 716" td={0.78} tw={0.15} sw={5} color={COPPER} />
+        <Gap d="M 386 84 V 716" td={0.68} tw={0.12} sw={9} color={RED} />
+        <Gap d="M 84 503 H 372" td={0.7} tw={0.11} sw={5} color={COPPER} />
+        <Gap d="M 400 503 H 716" td={0.715} tw={0.11} sw={5} color={COPPER} />
+        <Gap d="M 84 613 H 372" td={0.73} tw={0.11} sw={5} color={COPPER} />
+        <Gap d="M 84 666 H 372" td={0.745} tw={0.11} sw={5} color={COPPER} />
+        <Gap d="M 400 633 H 716" td={0.76} tw={0.11} sw={5} color={COPPER} />
         <Gap
           d="M 110 77 H 690 A 33 33 0 0 1 723 110 V 690 A 33 33 0 0 1 690 723 H 110 A 33 33 0 0 1 77 690 V 110 A 33 33 0 0 1 110 77 Z"
-          td={0.8}
-          tw={0.2}
+          td={0.77}
+          tw={0.12}
           sw={8}
           color={RED}
         />

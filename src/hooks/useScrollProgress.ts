@@ -38,7 +38,7 @@ export function useScrollProgress<T extends HTMLElement = HTMLDivElement>() {
         "--m",
         ease(clamp01((p - SWOOP_START) / (SWOOP_END - SWOOP_START))).toFixed(4)
       );
-      el.dataset.end = p > 0.92 ? "true" : "false";
+      el.dataset.end = p > 0.82 ? "true" : "false";
     };
 
     const targetP = () => {

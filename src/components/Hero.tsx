@@ -18,7 +18,7 @@ export default function Hero() {
   return (
     <section
       ref={ref}
-      className="chip-stage relative h-[480vh]"
+      className="chip-stage relative h-[560vh]"
       data-end="false"
     >
       <div className="chip-sticky sticky top-0 flex h-screen flex-col items-center justify-center overflow-hidden pt-16">
