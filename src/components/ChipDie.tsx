@@ -7,11 +7,11 @@ import type { CSSProperties, ReactNode } from "react";
  * `--d`/`--w` — while pathways fill with color past `--td`/`--tw`.
  * Styling: globals.css "Chip hero".
  *
- * Timeline (camera holds in useScrollProgress MOVES):
- *   HOLD A  0.16-0.28  badge, then cores crisscross, lines spill out
- *   HOLD B  0.36-0.46  GPU blooms, SRAM macros scatter
- *   HOLD C  0.54-0.60  media/memory/bricks sweep
- *   FINALE  0.68-1.00  bird's-eye freeze, fabric stitches together
+ * Timeline (one continuous camera swoop, p 0.05-0.70):
+ *   0.145+  badge, then cores crisscross, streets flood behind them
+ *   0.36+   GPU blooms, SRAM macros scatter
+ *   0.54+   media/memory/bricks sweep
+ *   0.68+   bird's-eye freeze: main channels flood, moat ring closes
  */
 
 function varStyle(vars: Record<string, string | number>) {
@@ -127,18 +127,6 @@ function eUnitShape(x: number, y: number) {
 }
 
 export default function ChipDie() {
-  const padsTop: ReactNode[] = [];
-  const padsBottom: ReactNode[] = [];
-  const padsLeft: ReactNode[] = [];
-  const padsRight: ReactNode[] = [];
-  for (let i = 0; i < 12; i++) {
-    const along = 118 + i * 48;
-    padsTop.push(<rect key={i} x={along} y={48} width={20} height={12} rx={2} />);
-    padsBottom.push(<rect key={i} x={along} y={740} width={20} height={12} rx={2} />);
-    padsLeft.push(<rect key={i} x={48} y={along} width={12} height={20} rx={2} />);
-    padsRight.push(<rect key={i} x={740} y={along} width={12} height={20} rx={2} />);
-  }
-
   // GPU: 5x3 repeated shader units
   const gpuUnits: ReactNode[] = [];
   [408, 469, 530, 591, 652].forEach((x) => {
@@ -207,42 +195,35 @@ export default function ChipDie() {
         </radialGradient>
       </defs>
 
-      <g className="chip-pads">
-        {padsTop}
-        {padsBottom}
-        {padsLeft}
-        {padsRight}
-      </g>
-
       <rect className="chip-die-base" x={70} y={70} width={660} height={660} rx={14} fill="url(#chip-die-grad)" />
       <rect className="chip-die-edge" pathLength={1} x={70} y={70} width={660} height={660} rx={14} />
 
       {/* ---- left half ---- */}
       {/* badge block first: the brand mark wakes the die */}
-      <Block d={0.145} shape={badgeShape()} />
+      <Block d={0.145} w={0.1} shape={badgeShape()} />
 
-      {/* HOLD A: performance cores pop crisscross 1-3-2-4 */}
+      {/* performance cores pop crisscross 1-3-2-4 */}
       <Block d={0.16} shape={pCoreShape(84)} />
       <Block d={0.2} shape={pCoreShape(158)} />
       <Block d={0.18} shape={pCoreShape(232)} />
       <Block d={0.22} shape={pCoreShape(306)} />
 
       {/* efficiency units: checkerboard scatter */}
-      <Block d={0.24} w={0.04} shape={eUnitShape(84, 506)} />
-      <Block d={0.26} w={0.04} shape={eUnitShape(182, 506)} />
-      <Block d={0.28} w={0.04} shape={eUnitShape(280, 506)} />
-      <Block d={0.27} w={0.04} shape={eUnitShape(84, 561)} />
-      <Block d={0.25} w={0.04} shape={eUnitShape(182, 561)} />
-      <Block d={0.29} w={0.04} shape={eUnitShape(280, 561)} />
+      <Block d={0.24} w={0.06} shape={eUnitShape(84, 506)} />
+      <Block d={0.26} w={0.06} shape={eUnitShape(182, 506)} />
+      <Block d={0.28} w={0.06} shape={eUnitShape(280, 506)} />
+      <Block d={0.27} w={0.06} shape={eUnitShape(84, 561)} />
+      <Block d={0.25} w={0.06} shape={eUnitShape(182, 561)} />
+      <Block d={0.29} w={0.06} shape={eUnitShape(280, 561)} />
 
-      {/* HOLD C: memory bricks sweep awake */}
-      <Block d={0.56} w={0.07} shape={<>{memCells}</>} />
+      {/* memory bricks sweep awake */}
+      <Block d={0.56} w={0.09} shape={<>{memCells}</>} />
 
       {/* ---- right half ---- */}
-      {/* HOLD B: GPU blooms slowly */}
+      {/* GPU blooms slowly */}
       <Block
         d={0.36}
-        w={0.09}
+        w={0.12}
         shape={
           <>
             <rect x={400} y={84} width={316} height={330} rx={3} />
@@ -256,10 +237,10 @@ export default function ChipDie() {
       <Block d={0.435} shape={sramMacro(616)} />
       <Block d={0.455} shape={sramMacro(400)} />
 
-      {/* HOLD C: media engine ladder */}
+      {/* media engine ladder */}
       <Block
         d={0.54}
-        w={0.06}
+        w={0.08}
         shape={
           <>
             <rect x={400} y={506} width={180} height={124} rx={3} />
@@ -272,12 +253,12 @@ export default function ChipDie() {
       />
 
       {/* brick PHY column */}
-      <Block d={0.575} w={0.05} shape={<>{bricks}</>} />
+      <Block d={0.575} w={0.07} shape={<>{bricks}</>} />
 
       {/* bottom strips */}
       <Block
         d={0.59}
-        w={0.05}
+        w={0.07}
         shape={
           <>
             <rect x={400} y={636} width={150} height={80} rx={2} />
@@ -287,7 +268,7 @@ export default function ChipDie() {
       />
       <Block
         d={0.605}
-        w={0.05}
+        w={0.07}
         shape={
           <>
             <rect x={558} y={636} width={158} height={80} rx={2} />
@@ -303,41 +284,41 @@ export default function ChipDie() {
           No individual connectors — the streets and channels of the
           floorplan itself light up after their neighbouring blocks. */}
       <g className="chip-traces">
-        {/* HOLD A: badge channel, then the streets between cores (1-3-2) */}
-        <Gap d="M 84 214 H 372" td={0.17} tw={0.1} sw={8} color={BLUE} />
-        <Gap d="M 154 220 V 500" td={0.19} tw={0.08} color={CYAN} />
-        <Gap d="M 302 220 V 500" td={0.21} tw={0.08} color={CYAN} />
-        <Gap d="M 228 220 V 500" td={0.23} tw={0.08} color={BLUE} />
+        {/* badge channel, then the streets between cores (1-3-2) */}
+        <Gap d="M 84 214 H 372" td={0.17} tw={0.13} sw={8} color={BLUE} />
+        <Gap d="M 154 220 V 500" td={0.19} tw={0.11} color={CYAN} />
+        <Gap d="M 302 220 V 500" td={0.21} tw={0.11} color={CYAN} />
+        <Gap d="M 228 220 V 500" td={0.23} tw={0.11} color={BLUE} />
         {/* streets around the e-units */}
-        <Gap d="M 178 506 V 610" td={0.27} tw={0.07} color={VIOLET} />
-        <Gap d="M 276 506 V 610" td={0.285} tw={0.07} color={CYAN} />
-        <Gap d="M 84 558 H 372" td={0.3} tw={0.07} color={BLUE} />
+        <Gap d="M 178 506 V 610" td={0.27} tw={0.1} color={VIOLET} />
+        <Gap d="M 276 506 V 610" td={0.285} tw={0.1} color={CYAN} />
+        <Gap d="M 84 558 H 372" td={0.3} tw={0.1} color={BLUE} />
 
-        {/* HOLD B: the channel under the GPU sweeps, then SRAM streets */}
-        <Gap d="M 400 417 H 716" td={0.4} tw={0.1} color={CYAN} />
-        <Gap d="M 504 420 V 500" td={0.445} tw={0.07} color={BLUE} />
-        <Gap d="M 612 420 V 500" td={0.465} tw={0.07} color={VIOLET} />
+        {/* the channel under the GPU sweeps, then SRAM streets */}
+        <Gap d="M 400 417 H 716" td={0.4} tw={0.14} color={CYAN} />
+        <Gap d="M 504 420 V 500" td={0.445} tw={0.1} color={BLUE} />
+        <Gap d="M 612 420 V 500" td={0.465} tw={0.1} color={VIOLET} />
 
-        {/* HOLD C: streets around media, bricks, memory */}
-        <Gap d="M 584 506 V 630" td={0.575} tw={0.07} color={CYAN} />
-        <Gap d="M 652 506 V 630" td={0.59} tw={0.07} color={BLUE} />
-        <Gap d="M 154 616 V 716" td={0.58} tw={0.07} color={BLUE} />
-        <Gap d="M 228 616 V 716" td={0.59} tw={0.07} color={CYAN} />
-        <Gap d="M 302 616 V 716" td={0.6} tw={0.07} color={VIOLET} />
-        <Gap d="M 554 636 V 716" td={0.615} tw={0.07} color={CYAN} />
+        {/* streets around media, bricks, memory */}
+        <Gap d="M 584 506 V 630" td={0.575} tw={0.1} color={CYAN} />
+        <Gap d="M 652 506 V 630" td={0.59} tw={0.1} color={BLUE} />
+        <Gap d="M 154 616 V 716" td={0.58} tw={0.1} color={BLUE} />
+        <Gap d="M 228 616 V 716" td={0.59} tw={0.1} color={CYAN} />
+        <Gap d="M 302 616 V 716" td={0.6} tw={0.1} color={VIOLET} />
+        <Gap d="M 554 636 V 716" td={0.615} tw={0.1} color={CYAN} />
 
         {/* FINALE (long bird's-eye freeze): the main channels flood
             one by one, ending with the perimeter moat */}
-        <Gap d="M 386 84 V 716" td={0.68} tw={0.16} sw={9} color={RED} />
-        <Gap d="M 84 503 H 372" td={0.71} tw={0.13} sw={5} color={CYAN} />
-        <Gap d="M 400 503 H 716" td={0.73} tw={0.13} sw={5} color={BLUE} />
-        <Gap d="M 84 613 H 372" td={0.74} tw={0.13} sw={5} color={VIOLET} />
-        <Gap d="M 84 666 H 372" td={0.76} tw={0.12} sw={5} color={BLUE} />
-        <Gap d="M 400 633 H 716" td={0.78} tw={0.12} sw={5} color={CYAN} />
+        <Gap d="M 386 84 V 716" td={0.68} tw={0.2} sw={9} color={RED} />
+        <Gap d="M 84 503 H 372" td={0.71} tw={0.16} sw={5} color={CYAN} />
+        <Gap d="M 400 503 H 716" td={0.73} tw={0.16} sw={5} color={BLUE} />
+        <Gap d="M 84 613 H 372" td={0.74} tw={0.16} sw={5} color={VIOLET} />
+        <Gap d="M 84 666 H 372" td={0.76} tw={0.15} sw={5} color={BLUE} />
+        <Gap d="M 400 633 H 716" td={0.78} tw={0.15} sw={5} color={CYAN} />
         <Gap
           d="M 110 77 H 690 A 33 33 0 0 1 723 110 V 690 A 33 33 0 0 1 690 723 H 110 A 33 33 0 0 1 77 690 V 110 A 33 33 0 0 1 110 77 Z"
-          td={0.82}
-          tw={0.16}
+          td={0.8}
+          tw={0.2}
           sw={8}
           color={RED}
         />

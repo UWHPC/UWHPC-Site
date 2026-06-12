@@ -113,15 +113,12 @@ body {
 
 .chip-stage {
   --p: 0;
-  /* eased camera-move segments, written by useScrollProgress;
-     the gaps between them are HOLDs where the camera freezes */
-  --m1: 0; /* glide in over the CPU cluster   (p 0.08-0.20) */
-  --m2: 0; /* pan across to the GPU side      (p 0.34-0.44) */
-  --m3: 0; /* pull back, half-flatten         (p 0.56-0.66) */
-  --m4: 0; /* settle into bird's-eye          (p 0.74-0.84) */
+  /* the single camera swoop's eased progress (p 0.05-0.70),
+     written by useScrollProgress */
+  --m: 0;
   /* content phase windows */
-  --title: clamp(0, calc((var(--p) - 0.03) / 0.09), 1); /* headline fades OUT */
-  --edge: clamp(0, calc((var(--p) - 0.06) / 0.1), 1); /* die edge traces in */
+  --title: clamp(0, calc((var(--p) - 0.03) / 0.12), 1); /* headline fades OUT */
+  --edge: clamp(0, calc((var(--p) - 0.06) / 0.3), 1); /* die edge traces in, slowly */
   --amb: clamp(0, calc((var(--p) - 0.15) / 0.5), 1); /* ambient glow grows */
   --endcap: clamp(0, calc((var(--p) - 0.95) / 0.05), 1); /* CTAs resolve */
 }
@@ -158,33 +155,25 @@ body {
 }
 
 /*
- * Camera rig: five poses interpolated by the eased move segments.
- * Each parameter is pose0 plus per-move deltas, so during HOLDs
- * (all --m frozen) the camera is perfectly still.
+ * Camera rig: ONE continuous swoop. The view opens low and close
+ * over the badge/CPU corner and arcs in a single smootherstep-eased
+ * motion — panning across the die while pulling up and flattening —
+ * into the final bird's-eye, where it freezes for the flood finale.
  *
- *            tx     ty    scale  rotX   rotZ
- *  P0 open   4%     6%    1.25   58deg  -16deg
- *  P1 CPU    24%    18%   1.80   54deg  -10deg
- *  P2 GPU   -22%    10%   1.75   52deg   -4deg
- *  P3 pull   0%     2%    1.00   30deg   -2deg
- *  P4 birds  0%     0%    1.08    0deg    0deg
+ *          tx     ty    scale  rotX   rotZ
+ *  open    22%    16%   1.70   58deg  -14deg
+ *  birds    0%     0%   1.08    0deg    0deg
  */
 .chip-die3d {
   transform-style: preserve-3d;
   transform: translate3d(
-      calc(4% + 20% * var(--m1) - 46% * var(--m2) + 22% * var(--m3)),
-      calc(6% + 12% * var(--m1) - 8% * var(--m2) - 8% * var(--m3) - 2% * var(--m4)),
+      calc(22% * (1 - var(--m))),
+      calc(16% * (1 - var(--m))),
       0
     )
-    rotateX(
-      calc(58deg - 4deg * var(--m1) - 2deg * var(--m2) - 22deg * var(--m3) - 30deg * var(--m4))
-    )
-    rotateZ(
-      calc(-16deg + 6deg * var(--m1) + 6deg * var(--m2) + 2deg * var(--m3) + 2deg * var(--m4))
-    )
-    scale(
-      calc(1.25 + 0.55 * var(--m1) - 0.05 * var(--m2) - 0.75 * var(--m3) + 0.08 * var(--m4))
-    );
+    rotateX(calc(58deg * (1 - var(--m))))
+    rotateZ(calc(-14deg * (1 - var(--m))))
+    scale(calc(1.08 + 0.62 * (1 - var(--m))));
   will-change: transform;
 }
 
@@ -229,14 +218,10 @@ body {
   height: 14%;
   background: radial-gradient(ellipse, rgb(0 0 0 / 0.65), transparent 70%);
   filter: blur(12px);
-  opacity: calc(0.8 - 0.4 * var(--m3) - 0.4 * var(--m4));
+  opacity: calc(0.8 * (1 - var(--m)));
 }
 
 /* --- die artwork phases -------------------------------------------- */
-
-.chip-pads rect {
-  fill: color-mix(in srgb, #c8c8c8 calc(var(--edge) * 60%), #242424);
-}
 
 .chip-die-base {
   stroke: #2e2e2e;
@@ -253,9 +238,9 @@ body {
   filter: drop-shadow(0 0 8px rgb(205 57 60 / 0.75));
 }
 
-/* per-block pop: --d start offset, --w window (snappy by default) */
+/* per-block pop: --d start offset, --w window */
 .chip-block {
-  --bp: clamp(0, calc((var(--p) - var(--d)) / var(--w, 0.06)), 1);
+  --bp: clamp(0, calc((var(--p) - var(--d)) / var(--w, 0.08)), 1);
 }
 
 /* dim grey skeleton: every outline faintly visible from the start */

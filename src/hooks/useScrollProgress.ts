@@ -5,11 +5,10 @@ import { useEffect, useRef } from "react";
 /**
  * Drives the chip-hero choreography. Raw scroll progress through the
  * runway is smoothed with an exponential damper (camera inertia) and
- * written to the section as `--p`. The camera path is segmented into
- * four MOVE windows separated by HOLDs; each move's eased local
- * progress is written as `--m1..--m4` so the CSS camera transform can
- * interpolate between fixed poses while everything else (blocks,
- * pathways) keys off `--p` directly.
+ * written to the section as `--p`. The camera is ONE continuous swoop:
+ * its eased progress over [SWOOP_START, SWOOP_END] is written as `--m`,
+ * after which the view is frozen at bird's-eye while the remaining
+ * scroll floods the channel network.
  *
  * The sequence is scrubbed by the user's own scrolling, so it runs
  * regardless of prefers-reduced-motion; reduced motion only disables
@@ -17,17 +16,11 @@ import { useEffect, useRef } from "react";
  * self-running pulse effects.
  */
 
-/** [start, end] of each camera MOVE in progress space; gaps are HOLDs.
-    The camera is done by 0.68 — the entire last third of the runway
-    is the frozen bird's-eye while the network finishes connecting. */
-const MOVES: [number, number][] = [
-  [0.06, 0.16], // A: glide in over the CPU cluster
-  [0.28, 0.36], // B: pan across to the GPU side
-  [0.46, 0.54], // C: pull back, half-flatten
-  [0.6, 0.68], // D: settle into bird's-eye
-];
+const SWOOP_START = 0.05;
+const SWOOP_END = 0.7;
 
-const smoothstep = (t: number) => t * t * (3 - 2 * t);
+/** smootherstep — zero first and second derivatives at the ends. */
+const ease = (t: number) => t * t * t * (t * (t * 6 - 15) + 10);
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 
 export function useScrollProgress<T extends HTMLElement = HTMLDivElement>() {
@@ -41,12 +34,10 @@ export function useScrollProgress<T extends HTMLElement = HTMLDivElement>() {
 
     const apply = (p: number) => {
       el.style.setProperty("--p", p.toFixed(4));
-      MOVES.forEach(([a, b], i) => {
-        el.style.setProperty(
-          `--m${i + 1}`,
-          smoothstep(clamp01((p - a) / (b - a))).toFixed(4)
-        );
-      });
+      el.style.setProperty(
+        "--m",
+        ease(clamp01((p - SWOOP_START) / (SWOOP_END - SWOOP_START))).toFixed(4)
+      );
       el.dataset.end = p > 0.92 ? "true" : "false";
     };
 
@@ -63,7 +54,7 @@ export function useScrollProgress<T extends HTMLElement = HTMLDivElement>() {
 
     const tick = () => {
       raf = 0;
-      current += (target - current) * 0.16;
+      current += (target - current) * 0.11;
       if (Math.abs(target - current) < 0.0006) current = target;
       apply(current);
       if (current !== target) raf = requestAnimationFrame(tick);
