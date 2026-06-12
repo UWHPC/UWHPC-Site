@@ -112,12 +112,8 @@ function badgeShape() {
       <line x1={158} y1={122} x2={158} y2={170} />
       <line x1={224} y1={122} x2={224} y2={170} />
 
-      {/* bus-endpoint nodes */}
-      <circle cx={110} cy={122} r={4} />
-      <circle cx={88} cy={146} r={4} />
-      <circle cx={110} cy={170} r={4} />
 
-      {/* chip package */}
+{/* chip package */}
       <rect x={238} y={94} width={118} height={100} rx={8} />
 
       {/* top pin row */}
@@ -383,11 +379,11 @@ export default function ChipDie() {
         <Gap d="M 84 666 H 372" td={0.705} tw={0.09} sw={5} color={COPPER} />
         <Gap d="M 400 633 H 716" td={0.72} tw={0.09} sw={5} color={COPPER} />
         <Gap
-          d="M 110 77 H 690 A 33 33 0 0 1 723 110 V 690 A 33 33 0 0 1 690 723 H 110 A 33 33 0 0 1 77 690 V 110 A 33 33 0 0 1 110 77 Z"
+          d="M 84 77 H 716 A 7 7 0 0 1 723 84 V 716 A 7 7 0 0 1 716 723 H 84 A 7 7 0 0 1 77 716 V 84 A 7 7 0 0 1 84 77 Z"
           td={0.72}
           tw={0.11}
           sw={8}
-          color={RED}
+          color={COPPER}
         />
       </g>
     </svg>
