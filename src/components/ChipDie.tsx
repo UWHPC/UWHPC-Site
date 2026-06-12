@@ -13,18 +13,31 @@ function varStyle(vars: Record<string, string | number>) {
 }
 
 /** Renders the same geometry twice: a dim grey base and a lit overlay. */
-function Block({ d, shape }: { d: number; shape: ReactNode }) {
+function Block({ d, w, shape }: { d: number; w?: number; shape: ReactNode }) {
   return (
-    <g className="chip-block" style={varStyle({ "--d": d })}>
+    <g className="chip-block" style={varStyle(w ? { "--d": d, "--w": w } : { "--d": d })}>
       <g className="chip-block-base">{shape}</g>
       <g className="chip-block-lit">{shape}</g>
     </g>
   );
 }
 
-function Trace({ d, td, color }: { d: string; td: number; color: string }) {
+function Trace({
+  d,
+  td,
+  tw,
+  color,
+}: {
+  d: string;
+  td: number;
+  tw?: number;
+  color: string;
+}) {
   return (
-    <g className="chip-trace-group" style={varStyle({ "--td": td, "--tc": color })}>
+    <g
+      className="chip-trace-group"
+      style={varStyle(tw ? { "--td": td, "--tc": color, "--tw": tw } : { "--td": td, "--tc": color })}
+    >
       <path className="chip-trace-base" d={d} />
       <path className="chip-trace" pathLength={1} d={d} />
       <path className="chip-trace-pulse" pathLength={1} d={d} />
@@ -123,21 +136,23 @@ export default function ChipDie() {
       <rect className="chip-die-edge" pathLength={1} x={70} y={70} width={660} height={660} rx={14} />
 
       {/* ---- left half ---- */}
-      {/* performance cores */}
-      <Block d={0.26} shape={pCore(110)} />
-      <Block d={0.29} shape={pCore(182)} />
-      <Block d={0.32} shape={pCore(254)} />
-      <Block d={0.35} shape={pCore(326)} />
+      {/* HOLD A (p 0.20-0.34, camera frozen over the cluster):
+          performance cores pop in crisscross order 1-3-2-4,
+          then efficiency cores in a different scatter */}
+      <Block d={0.2} shape={pCore(110)} />
+      <Block d={0.25} shape={pCore(182)} />
+      <Block d={0.225} shape={pCore(254)} />
+      <Block d={0.275} shape={pCore(326)} />
 
-      {/* efficiency cores */}
-      <Block d={0.38} shape={eCore(110)} />
-      <Block d={0.4} shape={eCore(182)} />
-      <Block d={0.42} shape={eCore(254)} />
-      <Block d={0.44} shape={eCore(326)} />
+      <Block d={0.297} w={0.05} shape={eCore(110)} />
+      <Block d={0.321} w={0.05} shape={eCore(182)} />
+      <Block d={0.309} w={0.05} shape={eCore(254)} />
+      <Block d={0.285} w={0.05} shape={eCore(326)} />
 
-      {/* memory array: dense striped grid */}
+      {/* HOLD C (p 0.66-0.74): memory array sweeps awake */}
       <Block
-        d={0.5}
+        d={0.66}
+        w={0.08}
         shape={
           <>
             <rect x={110} y={460} width={278} height={230} rx={3} />
@@ -148,9 +163,10 @@ export default function ChipDie() {
       />
 
       {/* ---- right half ---- */}
-      {/* GPU: tall columns with slot bands */}
+      {/* HOLD B (p 0.44-0.56): GPU wakes first, slower bloom */}
       <Block
-        d={0.42}
+        d={0.44}
+        w={0.09}
         shape={
           <>
             <rect x={406} y={110} width={284} height={280} rx={3} />
@@ -162,9 +178,9 @@ export default function ChipDie() {
         }
       />
 
-      {/* small logic blocks */}
+      {/* small logic blocks pop scattered: right, left, wide */}
       <Block
-        d={0.52}
+        d={0.515}
         shape={
           <>
             <rect x={406} y={406} width={134} height={74} rx={3} />
@@ -175,7 +191,7 @@ export default function ChipDie() {
         }
       />
       <Block
-        d={0.55}
+        d={0.49}
         shape={
           <>
             <rect x={550} y={406} width={140} height={74} rx={3} />
@@ -185,7 +201,7 @@ export default function ChipDie() {
         }
       />
       <Block
-        d={0.58}
+        d={0.54}
         shape={
           <>
             <rect x={406} y={490} width={284} height={70} rx={3} />
@@ -197,9 +213,9 @@ export default function ChipDie() {
         }
       />
 
-      {/* bottom-right striped block */}
+      {/* bottom-right striped block: second beat of HOLD C */}
       <Block
-        d={0.62}
+        d={0.69}
         shape={
           <>
             <rect x={406} y={575} width={284} height={115} rx={3} />
@@ -210,54 +226,51 @@ export default function ChipDie() {
         }
       />
 
-      {/* ---- pathways: grey lines that fill like fluid ---- */}
+      {/* ---- pathways: grey pipes that fill like fluid ----
+          Each line starts AT its source block and flows outward the
+          beat after that block lights. The long network runs complete
+          during the bird's-eye freeze (p 0.84-1). */}
       <g className="chip-traces">
-        {/* central spine first */}
-        <Trace d="M 397 120 V 685" td={0.35} color={RED} />
+        {/* HOLD A: lines spill out of each core as it lights (1-3-2-4) */}
+        <Trace d="M 141 300 V 375" td={0.225} tw={0.1} color={CYAN} />
+        <Trace d="M 285 305 V 370" td={0.25} tw={0.1} color={BLUE} />
+        <Trace d="M 213 290 V 380" td={0.275} tw={0.1} color={CYAN} />
+        <Trace d="M 357 295 V 385" td={0.3} tw={0.1} color={VIOLET} />
 
-        {/* p-cores -> e-cores */}
-        <Trace d="M 141 300 V 375" td={0.36} color={CYAN} />
-        <Trace d="M 213 290 V 380" td={0.4} color={BLUE} />
-        <Trace d="M 285 305 V 370" td={0.44} color={CYAN} />
-        <Trace d="M 357 295 V 385" td={0.48} color={VIOLET} />
+        {/* HOLD B: GPU reaches back to the cores, then down into logic */}
+        <Trace d="M 440 160 H 360" td={0.465} tw={0.1} color={CYAN} />
+        <Trace d="M 440 240 H 360" td={0.49} tw={0.1} color={BLUE} />
+        <Trace d="M 460 350 V 440" td={0.5} tw={0.1} color={CYAN} />
+        <Trace d="M 520 360 V 430" td={0.52} tw={0.1} color={BLUE} />
+        <Trace d="M 580 340 V 445" td={0.535} tw={0.1} color={VIOLET} />
+        <Trace d="M 640 355 V 435" td={0.55} tw={0.1} color={CYAN} />
 
-        {/* e-cores -> memory array */}
-        <Trace d="M 141 425 V 480" td={0.52} color={BLUE} />
-        <Trace d="M 213 415 V 495" td={0.56} color={CYAN} />
-        <Trace d="M 285 430 V 475" td={0.6} color={VIOLET} />
-        <Trace d="M 357 420 V 500" td={0.64} color={BLUE} />
+        {/* HOLD C: memory reaches up to the e-cores, IO reaches up to logic */}
+        <Trace d="M 141 480 V 425" td={0.67} tw={0.09} color={BLUE} />
+        <Trace d="M 213 495 V 415" td={0.685} tw={0.09} color={CYAN} />
+        <Trace d="M 285 475 V 430" td={0.7} tw={0.09} color={VIOLET} />
+        <Trace d="M 357 500 V 420" td={0.715} tw={0.09} color={BLUE} />
+        <Trace d="M 450 600 V 540" td={0.7} tw={0.09} color={BLUE} />
+        <Trace d="M 540 595 V 545" td={0.72} tw={0.09} color={CYAN} />
+        <Trace d="M 620 605 V 540" td={0.735} tw={0.09} color={VIOLET} />
 
-        {/* channel runs */}
-        <Trace d="M 118 337.5 H 380" td={0.41} color={VIOLET} />
-        <Trace d="M 118 452.5 H 380" td={0.49} color={CYAN} />
-        <Trace d="M 412 398 H 684" td={0.53} color={CYAN} />
-        <Trace d="M 412 567.5 H 684" td={0.68} color={BLUE} />
+        {/* FINALE (bird's-eye freeze): the fabric stitches together */}
+        <Trace d="M 397 120 V 685" td={0.84} tw={0.14} color={RED} />
+        <Trace d="M 118 337.5 H 380" td={0.85} tw={0.12} color={VIOLET} />
+        <Trace d="M 412 398 H 684" td={0.86} tw={0.12} color={CYAN} />
+        <Trace d="M 118 452.5 H 380" td={0.87} tw={0.12} color={CYAN} />
+        <Trace d="M 412 567.5 H 684" td={0.88} tw={0.12} color={BLUE} />
+        <Trace d="M 240 337.5 H 397 V 398 H 430" td={0.86} tw={0.13} color={CYAN} />
+        <Trace d="M 300 452.5 H 397 V 567.5 H 440" td={0.87} tw={0.13} color={BLUE} />
+        <Trace d="M 397 500 H 450" td={0.89} tw={0.11} color={VIOLET} />
 
-        {/* left <-> spine <-> right */}
-        <Trace d="M 240 337.5 H 397 V 398 H 430" td={0.38} color={CYAN} />
-        <Trace d="M 300 452.5 H 397 V 567.5 H 440" td={0.5} color={BLUE} />
-        <Trace d="M 360 160 H 440" td={0.42} color={CYAN} />
-        <Trace d="M 360 240 H 440" td={0.46} color={BLUE} />
-        <Trace d="M 397 500 H 450" td={0.58} color={VIOLET} />
-
-        {/* GPU -> small blocks */}
-        <Trace d="M 460 350 V 440" td={0.47} color={CYAN} />
-        <Trace d="M 520 360 V 430" td={0.51} color={BLUE} />
-        <Trace d="M 580 340 V 445" td={0.55} color={VIOLET} />
-        <Trace d="M 640 355 V 435" td={0.59} color={CYAN} />
-
-        {/* small blocks -> bottom-right */}
-        <Trace d="M 450 540 V 600" td={0.62} color={BLUE} />
-        <Trace d="M 540 545 V 595" td={0.66} color={CYAN} />
-        <Trace d="M 620 540 V 605" td={0.7} color={VIOLET} />
-
-        {/* edge taps */}
-        <Trace d="M 110 200 H 74" td={0.72} color={RED} />
-        <Trace d="M 690 230 H 726" td={0.74} color={CYAN} />
-        <Trace d="M 180 690 V 726" td={0.76} color={BLUE} />
-        <Trace d="M 540 690 V 726" td={0.78} color={VIOLET} />
-        <Trace d="M 110 600 H 74" td={0.8} color={CYAN} />
-        <Trace d="M 690 620 H 726" td={0.82} color={BLUE} />
+        {/* edge taps land last */}
+        <Trace d="M 110 200 H 74" td={0.88} tw={0.1} color={RED} />
+        <Trace d="M 690 230 H 726" td={0.89} tw={0.1} color={CYAN} />
+        <Trace d="M 180 690 V 726" td={0.9} tw={0.1} color={BLUE} />
+        <Trace d="M 540 690 V 726" td={0.9} tw={0.1} color={VIOLET} />
+        <Trace d="M 110 600 H 74" td={0.89} tw={0.1} color={CYAN} />
+        <Trace d="M 690 620 H 726" td={0.88} tw={0.1} color={BLUE} />
       </g>
     </svg>
   );

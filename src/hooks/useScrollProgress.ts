@@ -3,16 +3,31 @@
 import { useEffect, useRef } from "react";
 
 /**
- * Drives a scroll-linked animation over a tall "runway" section.
- * Writes progress (0..1 through the section) to the element as a
- * `--p` custom property once per animation frame, so all visual
- * work stays in CSS. Also mirrors a coarse end-of-runway flag to
- * `data-end` so CSS can toggle visibility/interactivity.
+ * Drives the chip-hero choreography. Raw scroll progress through the
+ * runway is smoothed with an exponential damper (camera inertia) and
+ * written to the section as `--p`. The camera path is segmented into
+ * four MOVE windows separated by HOLDs; each move's eased local
+ * progress is written as `--m1..--m4` so the CSS camera transform can
+ * interpolate between fixed poses while everything else (blocks,
+ * pathways) keys off `--p` directly.
  *
  * The sequence is scrubbed by the user's own scrolling, so it runs
- * regardless of prefers-reduced-motion; only self-running effects
- * (trace pulses, blink) are reduced via the global media query.
+ * regardless of prefers-reduced-motion; reduced motion only disables
+ * the inertia smoothing (instant tracking) and, globally, the
+ * self-running pulse effects.
  */
+
+/** [start, end] of each camera MOVE in progress space; gaps are HOLDs. */
+const MOVES: [number, number][] = [
+  [0.08, 0.2], // A: glide in over the CPU cluster
+  [0.34, 0.44], // B: pan across to the GPU side
+  [0.56, 0.66], // C: pull back, half-flatten
+  [0.74, 0.84], // D: settle into bird's-eye
+];
+
+const smoothstep = (t: number) => t * t * (3 - 2 * t);
+const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+
 export function useScrollProgress<T extends HTMLElement = HTMLDivElement>() {
   const ref = useRef<T>(null);
 
@@ -20,25 +35,53 @@ export function useScrollProgress<T extends HTMLElement = HTMLDivElement>() {
     const el = ref.current;
     if (!el) return;
 
-    let raf = 0;
-    const update = () => {
-      raf = 0;
-      const rect = el.getBoundingClientRect();
-      const total = rect.height - window.innerHeight;
-      const p = total > 0 ? Math.min(1, Math.max(0, -rect.top / total)) : 1;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    const apply = (p: number) => {
       el.style.setProperty("--p", p.toFixed(4));
-      el.dataset.end = p > 0.86 ? "true" : "false";
-    };
-    const schedule = () => {
-      if (!raf) raf = requestAnimationFrame(update);
+      MOVES.forEach(([a, b], i) => {
+        el.style.setProperty(
+          `--m${i + 1}`,
+          smoothstep(clamp01((p - a) / (b - a))).toFixed(4)
+        );
+      });
+      el.dataset.end = p > 0.9 ? "true" : "false";
     };
 
-    update();
-    window.addEventListener("scroll", schedule, { passive: true });
-    window.addEventListener("resize", schedule, { passive: true });
+    const targetP = () => {
+      const rect = el.getBoundingClientRect();
+      const total = rect.height - window.innerHeight;
+      return total > 0 ? clamp01(-rect.top / total) : 1;
+    };
+
+    let target = targetP();
+    let current = target;
+    let raf = 0;
+    apply(current);
+
+    const tick = () => {
+      raf = 0;
+      current += (target - current) * 0.16;
+      if (Math.abs(target - current) < 0.0006) current = target;
+      apply(current);
+      if (current !== target) raf = requestAnimationFrame(tick);
+    };
+
+    const onScroll = () => {
+      target = targetP();
+      if (reduced.matches) {
+        current = target;
+        apply(current);
+        return;
+      }
+      if (!raf) raf = requestAnimationFrame(tick);
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
     return () => {
-      window.removeEventListener("scroll", schedule);
-      window.removeEventListener("resize", schedule);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
       if (raf) cancelAnimationFrame(raf);
     };
   }, []);
