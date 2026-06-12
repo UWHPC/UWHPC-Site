@@ -5,11 +5,11 @@ import Image from "next/image";
 import Link from "next/link";
 
 const links = [
-  { label: "Projects", href: "#projects" },
-  { label: "Team", href: "#team" },
-  { label: "Blog", href: "#blog" },
-  { label: "Contact", href: "#contact" },
-  { label: "Join", href: "#join" },
+  { label: "Projects", href: "/projects" },
+  { label: "Team", href: "/team" },
+  { label: "Blog", href: "/blog" },
+  { label: "Contact", href: "/contact" },
+  { label: "Join", href: "/join" },
 ];
 
 export default function Nav() {
@@ -69,24 +69,24 @@ export default function Nav() {
           }`}
         >
           {links.map((l) =>
-            l.href === "#join" ? (
-              <a
+            l.href === "/join" ? (
+              <Link
                 key={l.href}
                 href={l.href}
                 onClick={() => setOpen(false)}
                 className="bg-accent px-4 py-2 text-center font-mono text-xs tracking-[0.15em] uppercase text-white transition-colors hover:bg-accent-bright focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
               >
                 Get Involved
-              </a>
+              </Link>
             ) : (
-              <a
+              <Link
                 key={l.href}
                 href={l.href}
                 onClick={() => setOpen(false)}
                 className="link-trace font-mono text-xs tracking-[0.15em] uppercase text-ink-muted transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
               >
                 {l.label}
-              </a>
+              </Link>
             )
           )}
         </div>
