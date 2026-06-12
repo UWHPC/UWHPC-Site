@@ -18,7 +18,7 @@ export default function Hero() {
   return (
     <section
       ref={ref}
-      className="chip-stage relative h-[560vh]"
+      className="chip-stage relative h-[700vh]"
       data-end="false"
     >
       <div className="chip-sticky sticky top-0 flex h-screen flex-col items-center justify-center overflow-hidden pt-16">
@@ -31,12 +31,8 @@ export default function Hero() {
 
         {/* headline — hidden until the bird's-eye finale */}
         <div className="chip-title pointer-events-none absolute inset-x-0 top-[10vh] z-10 px-6 text-center">
-          <div className="mx-auto mb-5 flex items-center justify-center gap-3 font-mono text-xs tracking-[0.2em] uppercase text-ink-muted">
-            <span className="h-1.5 w-1.5 bg-accent animate-blink" />
-            University of Waterloo
-          </div>
-          <h1 className="mx-auto mb-6 max-w-4xl text-4xl font-bold tracking-tight font-stretch-expanded leading-[0.98] sm:text-6xl lg:text-7xl">
-            UW <span className="text-accent">High Performance</span> Computing
+          <h1 className="mx-auto mb-6 text-5xl font-bold tracking-tight font-stretch-expanded leading-[0.98] sm:text-6xl lg:text-7xl">
+            UW<span className="text-accent">HPC</span>
           </h1>
           <p className="mx-auto max-w-lg text-base font-light text-ink-muted sm:text-lg">
             A student design team at the University of Waterloo pushing the
@@ -51,7 +47,6 @@ export default function Hero() {
             <div className="chip-side chip-side-front" />
             <div className="chip-side chip-side-right" />
           </div>
-          <div className="chip-shadow" />
         </div>
 
         {/* CTAs resolve at bird's-eye */}

@@ -17,7 +17,7 @@ import { useEffect, useRef } from "react";
  */
 
 const SWOOP_START = 0.05;
-const SWOOP_END = 0.7;
+const SWOOP_END = 0.64;
 
 /** smootherstep — zero first and second derivatives at the ends. */
 const ease = (t: number) => t * t * t * (t * (t * 6 - 15) + 10);
@@ -38,7 +38,7 @@ export function useScrollProgress<T extends HTMLElement = HTMLDivElement>() {
         "--m",
         ease(clamp01((p - SWOOP_START) / (SWOOP_END - SWOOP_START))).toFixed(4)
       );
-      el.dataset.end = p > 0.82 ? "true" : "false";
+      el.dataset.end = p > 0.74 ? "true" : "false";
     };
 
     const targetP = () => {

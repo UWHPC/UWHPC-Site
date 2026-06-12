@@ -121,9 +121,9 @@ body {
   --fade: clamp(0, calc((var(--p) - 0.02) / 0.3), 1); /* scene fades up from black */
   --edge: clamp(0, calc((var(--p) - 0.04) / 0.22), 1); /* edge sweeps the die alone */
   --amb: clamp(0, calc((var(--p) - 0.15) / 0.5), 1); /* ambient glow grows */
-  --title: clamp(0, calc((var(--p) - 0.8) / 0.08), 1); /* headline fades IN at birds-eye */
-  --endcap: clamp(0, calc((var(--p) - 0.84) / 0.06), 1); /* CTAs resolve */
-  /* everything settles by ~0.9 — the rest of the runway is a still dwell */
+  --title: clamp(0, calc((var(--p) - 0.72) / 0.07), 1); /* headline fades IN at birds-eye */
+  --endcap: clamp(0, calc((var(--p) - 0.76) / 0.06), 1); /* CTAs resolve */
+  /* everything settles by ~0.83 — the rest of the runway is a long still dwell */
 }
 
 .chip-title {
@@ -155,7 +155,7 @@ body {
    (opacity goes on the faces, not the preserve-3d container) */
 .chip-svg,
 .chip-side {
-  opacity: calc(0.4 + 0.6 * var(--fade));
+  opacity: calc(0.22 + 0.78 * var(--fade));
 }
 
 .chip-stage .blueprint-grid {
@@ -223,17 +223,6 @@ body {
   transform-origin: left;
   transform: rotateY(90deg);
   background: linear-gradient(to right, #232323, #0e0e0e);
-}
-
-.chip-shadow {
-  position: absolute;
-  left: 2%;
-  right: 2%;
-  bottom: -9%;
-  height: 18%;
-  background: radial-gradient(ellipse, rgb(0 0 0 / 0.85), transparent 72%);
-  filter: blur(16px);
-  opacity: calc(0.95 * (1 - var(--m)));
 }
 
 /* --- die artwork phases -------------------------------------------- */
