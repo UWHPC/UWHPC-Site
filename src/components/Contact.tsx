@@ -36,8 +36,8 @@ const channels: Channel[] = [
   },
   {
     label: "Discord",
-    value: "discord.gg/uwhpc",
-    href: "https://discord.gg/S2fRgkqcDF",
+    value: "discord.gg/jUYuzNqV",
+    href: "https://discord.gg/jUYuzNqV",
     external: true,
     icon: (
       <svg {...iconProps} aria-hidden="true">
