@@ -1,51 +1,83 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-bg: #121212;
-  --color-bg-elevated: #181818;
-  --color-bg-card: #1e1e1e;
-  --color-text: #e8e8e8;
-  --color-text-muted: #888;
-  --color-accent: #c43a3a;
-  --color-accent-light: #d95555;
-  --color-border: #262626;
-  --font-sans: var(--font-inter);
+  --color-bg: #111111;
+  --color-bg-raised: #181818;
+  --color-bg-panel: #1d1d1d;
+  --color-ink: #e8e8e8;
+  --color-ink-muted: #9a9a9a;
+  --color-ink-faint: #6b6b6b;
+  --color-accent: #cd393c;
+  --color-accent-bright: #e0494d;
+  --color-line: #272727;
+  --color-line-strong: #3d3d3d;
+  --font-sans: var(--font-archivo);
+  --font-mono: var(--font-fragment-mono);
 }
 
 html {
   scroll-behavior: smooth;
-  overflow-x: hidden;
-  scrollbar-width: none;
+  scroll-padding-top: 5.5rem;
 }
 
-html::-webkit-scrollbar {
-  display: none;
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 body {
   background: var(--color-bg);
-  color: var(--color-text);
+  color: var(--color-ink);
   font-family: var(--font-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
 ::selection {
-  background: rgba(196, 58, 58, 0.3);
+  background: rgba(205, 57, 60, 0.35);
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-strong) transparent;
 }
 
-@utility animate-float {
-  animation: float 6s ease-in-out infinite;
+/* Faint graph-paper grid used inside the hero sheet */
+@utility blueprint-grid {
+  background-image: linear-gradient(
+      to right,
+      rgb(255 255 255 / 0.035) 1px,
+      transparent 1px
+    ),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.035) 1px, transparent 1px);
+  background-size: 56px 56px;
 }
 
-@keyframes fade-in-up {
+/* Trace-draw underline, echoing the logo's circuit traces */
+@utility link-trace {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 1px;
+  background-repeat: no-repeat;
+  background-position: left calc(100% - 0.1em);
+  transition: background-size 0.3s ease;
+
+  &:hover {
+    background-size: 100% 1px;
+  }
+}
+
+@keyframes rise {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(14px);
   }
   to {
     opacity: 1;
@@ -53,25 +85,20 @@ body {
   }
 }
 
-@utility animate-fade-in-up {
-  animation: fade-in-up 0.6s ease-out both;
+@utility animate-rise {
+  animation: rise 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) both;
 }
 
-@keyframes pulse-glow {
-  0%, 100% { opacity: 0.07; transform: translate(-50%, -50%) scale(1); }
-  50% { opacity: 0.12; transform: translate(-50%, -50%) scale(1.05); }
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.15;
+  }
 }
 
-@utility animate-pulse-glow {
-  animation: pulse-glow 8s ease-in-out infinite;
-}
-
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-@utility animate-shimmer {
-  background-size: 200% 100%;
-  animation: shimmer 3s linear infinite;
+@utility animate-blink {
+  animation: blink 1.8s ease-in-out infinite;
 }

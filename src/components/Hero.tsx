@@ -1,66 +1,74 @@
-"use client";
-
 import Image from "next/image";
-import { useFadeIn } from "@/hooks/useFadeIn";
+import { Container, Fiducial } from "@/components/ui";
 
 export default function Hero() {
-  const headingRef = useFadeIn(200);
-  const subtextRef = useFadeIn(400);
-  const buttonsRef = useFadeIn(600);
-
   return (
-    <section className="relative flex min-h-screen flex-col items-center justify-center px-6 pt-24 pb-16 text-center">
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle, rgba(255,255,255,0.13) 1px, transparent 1px)",
-          backgroundSize: "24px 24px",
-        }}
-      />
-      <div className="pointer-events-none absolute top-0 left-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/[0.07] blur-3xl animate-pulse-glow" />
+    <section className="relative pt-16">
+      <Container className="blueprint-grid relative flex min-h-[calc(100vh-4rem)] flex-col justify-center py-20">
+        <Fiducial className="bottom-4 left-4 hidden md:block" />
+        <Fiducial className="bottom-4 right-4 hidden md:block" />
 
-      <Image
-        src="/transparent-logo-dark.png"
-        alt="UWHPC Logo"
-        width={351}
-        height={222}
-        className="mb-8 h-auto w-[190px] animate-float"
-        priority
-        unoptimized
-      />
+        <div className="grid items-center gap-12 md:grid-cols-12">
+          <div className="md:col-span-7">
+            <div
+              className="animate-rise mb-6 flex items-center gap-3 font-mono text-xs tracking-[0.2em] uppercase text-ink-muted"
+              style={{ animationDelay: "0.05s" }}
+            >
+              <span className="h-1.5 w-1.5 bg-accent animate-blink" />
+              University of Waterloo
+            </div>
 
-      <div ref={headingRef} className="opacity-0 translate-y-5 transition-all duration-700 ease-out">
-        <h1 className="mb-5 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-          UW <span className="text-accent">High Performance</span>
-          <br />
-          Computing
-        </h1>
-      </div>
+            <h1
+              className="animate-rise mb-7 text-5xl font-bold tracking-tight font-stretch-expanded leading-[0.98] sm:text-6xl lg:text-7xl"
+              style={{ animationDelay: "0.15s" }}
+            >
+              UW <span className="text-accent">High Performance</span>{" "}
+              Computing
+            </h1>
 
-      <div ref={subtextRef} className="opacity-0 translate-y-5 transition-all duration-700 ease-out">
-        <p className="mb-10 max-w-lg text-lg font-light text-text-muted">
-          A student design team at the University of Waterloo pushing the
-          boundaries of parallel and high-performance computing.
-        </p>
-      </div>
+            <p
+              className="animate-rise mb-10 max-w-lg text-lg font-light text-ink-muted"
+              style={{ animationDelay: "0.25s" }}
+            >
+              A student design team at the University of Waterloo pushing the
+              boundaries of parallel and high-performance computing.
+            </p>
 
-      <div ref={buttonsRef} className="opacity-0 translate-y-5 transition-all duration-700 ease-out">
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <a
-            href="#join"
-            className="rounded-lg bg-accent px-7 py-3 font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-accent-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            <div
+              className="animate-rise flex flex-col gap-3 sm:flex-row"
+              style={{ animationDelay: "0.35s" }}
+            >
+              <a
+                href="#join"
+                className="bg-accent px-7 py-3.5 text-center font-mono text-xs tracking-[0.15em] uppercase text-white transition-colors hover:bg-accent-bright focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              >
+                Join the Team
+              </a>
+              <a
+                href="#projects"
+                className="border border-line-strong px-7 py-3.5 text-center font-mono text-xs tracking-[0.15em] uppercase text-ink transition-colors hover:border-ink-muted hover:bg-bg-raised focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              >
+                Learn More
+              </a>
+            </div>
+          </div>
+
+          <div
+            className="animate-rise order-first md:order-none md:col-span-5"
+            style={{ animationDelay: "0.2s" }}
           >
-            Join the Team
-          </a>
-          <a
-            href="#projects"
-            className="rounded-lg border border-border px-7 py-3 font-medium text-text transition-all hover:-translate-y-0.5 hover:border-text-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-          >
-            Learn More
-          </a>
+            <Image
+              src="/logo-mark-dark.svg"
+              alt="UWHPC logo — a microchip with speed trails"
+              width={387}
+              height={234}
+              className="w-44 md:w-full md:max-w-[420px] md:justify-self-end"
+              priority
+              unoptimized
+            />
+          </div>
         </div>
-      </div>
+      </Container>
     </section>
   );
 }

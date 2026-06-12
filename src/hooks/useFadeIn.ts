@@ -15,11 +15,11 @@ export function useFadeIn<T extends HTMLElement = HTMLDivElement>(delay: number 
           if (delay > 0) {
             setTimeout(() => {
               el.classList.add("opacity-100", "translate-y-0");
-              el.classList.remove("opacity-0", "translate-y-5");
+              el.classList.remove("opacity-0", "translate-y-3");
             }, delay);
           } else {
             el.classList.add("opacity-100", "translate-y-0");
-            el.classList.remove("opacity-0", "translate-y-5");
+            el.classList.remove("opacity-0", "translate-y-3");
           }
           observer.disconnect();
         }

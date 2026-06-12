@@ -1,6 +1,7 @@
 "use client";
 
 import { useFadeIn } from "@/hooks/useFadeIn";
+import { Container, SectionHeader } from "@/components/ui";
 
 const areas = [
     {
@@ -17,46 +18,48 @@ const areas = [
     },
 ];
 
-function FadeCard({ children, index }: { children: React.ReactNode; index: number }) {
+function FocusColumn({
+    area,
+    index,
+}: {
+    area: (typeof areas)[number];
+    index: number;
+}) {
     const ref = useFadeIn(index * 100);
 
     return (
         <div
             ref={ref}
-            className="opacity-0 translate-y-5 transition-all duration-500 ease-out rounded-xl border-l-2 border border-border border-l-accent/40 bg-bg-card p-6 hover:border-accent hover:border-l-accent hover:-translate-y-0.5"
+            className="opacity-0 translate-y-3 transition-all duration-500 ease-out group py-8 md:py-2 md:px-8 md:first:pl-0 md:last:pr-0"
         >
-            {children}
+            <span className="mb-5 block font-mono text-2xl text-line-strong transition-colors group-hover:text-accent">
+                {String(index + 1).padStart(2, "0")}
+            </span>
+            <h3 className="mb-3 text-lg font-semibold tracking-tight">
+                {area.title}
+            </h3>
+            <p className="text-sm/6 font-light text-ink-muted">{area.desc}</p>
         </div>
     );
 }
 
 export default function Focus() {
     return (
-        <section id="focus" className="px-6 py-24">
-            <div className="mx-auto max-w-5xl">
-                <span className="mb-3 block text-xs font-semibold uppercase tracking-widest text-accent">
-                    What We Do
-                </span>
-                <h2 className="mb-2 text-3xl font-bold tracking-tight sm:text-4xl">
-                    Focus Areas
-                </h2>
-                <p className="mb-10 max-w-md font-light text-text-muted">
-                    We tackle challenging problems across the HPC stack, from hardware to
-                    algorithms.
-                </p>
+        <section id="focus" className="border-t border-line">
+            <Container className="py-24">
+                <SectionHeader
+                    index="02"
+                    kicker="What We Do"
+                    title="Focus Areas"
+                    blurb="We tackle challenging problems across the HPC stack, from hardware to algorithms."
+                />
 
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid divide-y divide-line md:grid-cols-3 md:divide-x md:divide-y-0">
                     {areas.map((a, i) => (
-                        <FadeCard key={a.title} index={i}>
-                            <span className="mb-3 block font-mono text-xs font-semibold text-accent">
-                                {String(i + 1).padStart(2, "0")}
-                            </span>
-                            <h3 className="mb-2 text-lg font-semibold">{a.title}</h3>
-                            <p className="text-sm/6 font-light text-text-muted">{a.desc}</p>
-                        </FadeCard>
+                        <FocusColumn key={a.title} area={a} index={i} />
                     ))}
                 </div>
-            </div>
+            </Container>
         </section>
     );
 }

@@ -1,19 +1,20 @@
 "use client";
 
 import { useFadeIn } from "@/hooks/useFadeIn";
+import { Container, SectionHeader } from "@/components/ui";
 
 const projects = [
   {
     title: "Variational Monte Carlo",
     description:
-      "A Monte Carlo engine for simulating the homogeneous electron gas. Implements a Slater\u2013Jastrow trial wavefunction and Metropolis sampling for electron configurations.",
+      "A Monte Carlo engine for simulating the homogeneous electron gas. Implements a Slater–Jastrow trial wavefunction and Metropolis sampling for electron configurations.",
     tags: ["C++", "Monte Carlo", "Quantum"],
     status: "In Progress",
     href: "https://github.com/UWHPC/Variational-Monte-Carlo",
   },
 ];
 
-function ProjectCard({
+function ProjectRow({
   project,
   index,
 }: {
@@ -25,33 +26,44 @@ function ProjectCard({
 
   const content = (
     <>
-      <div className="mb-3 flex items-center justify-between">
-        <span className="font-mono text-xs font-semibold text-accent">
-          {String(index + 1).padStart(2, "0")}
-        </span>
-        <span className="rounded-full border border-border px-2.5 py-0.5 text-xs text-text-muted">
-          {project.status}
-        </span>
+      <span className="font-mono text-xs text-accent md:col-span-1">
+        {String(index + 1).padStart(2, "0")}
+      </span>
+
+      <div className="md:col-span-6">
+        <h3 className="mb-2 text-xl font-semibold tracking-tight">
+          {project.title}
+        </h3>
+        <p className="max-w-prose text-sm/6 font-light text-ink-muted">
+          {project.description}
+        </p>
+        <div className="mt-3 font-mono text-xs text-ink-faint md:hidden">
+          {project.tags.join(" / ")}
+        </div>
       </div>
-      <h3 className="mb-2 text-lg font-semibold">{project.title}</h3>
-      <p className="mb-4 text-sm/6 font-light text-text-muted">
-        {project.description}
-      </p>
-      <div className="flex flex-wrap gap-2">
-        {project.tags.map((tag) => (
+
+      <div className="hidden font-mono text-xs text-ink-faint md:block md:col-span-3">
+        {project.tags.join(" / ")}
+      </div>
+
+      <div className="flex items-center gap-4 md:col-span-2 md:justify-end">
+        <span className="font-mono text-xs text-ink-muted">
+          [{project.status}]
+        </span>
+        {project.href && (
           <span
-            key={tag}
-            className="rounded-md bg-bg-elevated px-2 py-0.5 text-xs text-text-muted"
+            aria-hidden="true"
+            className="font-mono text-sm text-ink-faint transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-accent"
           >
-            {tag}
+            ↗
           </span>
-        ))}
+        )}
       </div>
     </>
   );
 
   const className =
-    "opacity-0 translate-y-5 transition-all duration-500 ease-out group rounded-xl border border-border bg-bg-card p-6 hover:border-accent hover:-translate-y-0.5";
+    "opacity-0 translate-y-3 transition-all duration-500 ease-out group grid gap-3 border-t border-line py-7 md:grid-cols-12 md:items-baseline md:gap-4 hover:bg-bg-raised";
 
   if (project.href) {
     return (
@@ -60,7 +72,7 @@ function ProjectCard({
         href={project.href}
         target="_blank"
         rel="noopener noreferrer"
-        className={`block ${className}`}
+        className={className}
       >
         {content}
       </a>
@@ -76,24 +88,21 @@ function ProjectCard({
 
 export default function Projects() {
   return (
-    <section id="projects" className="bg-bg-elevated px-6 py-24">
-      <div className="mx-auto max-w-5xl">
-        <span className="mb-3 block text-xs font-semibold uppercase tracking-widest text-accent">
-          Our Work
-        </span>
-        <h2 className="mb-2 text-3xl font-bold tracking-tight sm:text-4xl">
-          Projects
-        </h2>
-        <p className="mb-10 max-w-md font-light text-text-muted">
-          What we&apos;re building and experimenting with.
-        </p>
+    <section id="projects" className="border-t border-line">
+      <Container className="py-24">
+        <SectionHeader
+          index="01"
+          kicker="Our Work"
+          title="Projects"
+          blurb="What we're building and experimenting with."
+        />
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="border-b border-line">
           {projects.map((p, i) => (
-            <ProjectCard key={i} project={p} index={i} />
+            <ProjectRow key={p.title} project={p} index={i} />
           ))}
         </div>
-      </div>
+      </Container>
     </section>
   );
 }

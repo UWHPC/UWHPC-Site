@@ -1,6 +1,7 @@
 "use client";
 
 import { useFadeIn } from "@/hooks/useFadeIn";
+import { Container, SectionHeader } from "@/components/ui";
 
 const stats = [
   { value: "HPC", label: "Core Focus" },
@@ -9,7 +10,7 @@ const stats = [
   { value: "++", label: "Student Led" },
 ];
 
-function StatCard({
+function StatCell({
   stat,
   index,
 }: {
@@ -21,10 +22,10 @@ function StatCard({
   return (
     <div
       ref={ref}
-      className="opacity-0 translate-y-5 transition-all duration-500 ease-out rounded-xl border border-border bg-bg-card p-5"
+      className="opacity-0 translate-y-3 transition-all duration-500 ease-out border border-line p-5"
     >
-      <div className="mb-1 text-2xl font-bold text-accent">{stat.value}</div>
-      <div className="text-sm text-text-muted">{stat.label}</div>
+      <div className="mb-1 font-mono text-2xl text-accent">{stat.value}</div>
+      <div className="font-mono text-xs text-ink-muted">{stat.label}</div>
     </div>
   );
 }
@@ -33,21 +34,16 @@ export default function About() {
   const descRef = useFadeIn(100);
 
   return (
-    <section id="about" className="px-6 py-24">
-      <div className="mx-auto max-w-5xl">
-        <span className="mb-3 block text-xs font-semibold uppercase tracking-widest text-accent">
-          About Us
-        </span>
-        {/* <h2 className="mb-10 text-3xl font-bold tracking-tight sm:text-4xl">
-          Building the future of computation
-        </h2> */}
+    <section id="about" className="border-t border-line">
+      <Container className="py-24">
+        <SectionHeader index="00" kicker="About Us" title="About" />
 
         <div className="grid items-center gap-12 md:grid-cols-2">
           <div
             ref={descRef}
-            className="opacity-0 translate-y-5 transition-all duration-500 ease-out"
+            className="opacity-0 translate-y-3 transition-all duration-500 ease-out"
           >
-            <p className="text-base/7 font-light text-text-muted">
+            <p className="text-base/7 font-light text-ink-muted">
               We build clusters, crush benchmarks, and compete - UWHPC is
               Waterloo&apos;s team for students who want to push hardware and
               code to their absolute limits.
@@ -56,11 +52,11 @@ export default function About() {
 
           <div className="grid grid-cols-2 gap-4">
             {stats.map((s, i) => (
-              <StatCard key={s.label} stat={s} index={i} />
+              <StatCell key={s.label} stat={s} index={i} />
             ))}
           </div>
         </div>
-      </div>
+      </Container>
     </section>
   );
 }

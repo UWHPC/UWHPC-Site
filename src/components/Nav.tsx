@@ -1,11 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
 
 const links = [
   { label: "Projects", href: "#projects" },
-  { label: "Focus Areas", href: "#focus" },
-  // { label: "Team", href: "/team" },
+  { label: "Team", href: "#team" },
+  { label: "Blog", href: "#blog" },
+  { label: "Contact", href: "#contact" },
   { label: "Join", href: "#join" },
 ];
 
@@ -13,23 +16,35 @@ export default function Nav() {
   const [open, setOpen] = useState(false);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-bg/85 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-        <a
+    <nav className="fixed top-0 left-0 right-0 z-50 border-b border-line bg-bg/90 backdrop-blur-md">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between border-line px-6 md:border-x md:px-10">
+        <Link
           href="/"
           onClick={(e) => {
-            e.preventDefault();
-            window.scrollTo({ top: 0, behavior: "smooth" });
-            window.history.pushState(null, "", "/");
+            if (window.location.pathname === "/") {
+              e.preventDefault();
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }
           }}
-          className="text-3xl font-bold tracking-tight focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          className="flex items-center gap-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
         >
-          <span className="text-text">UW</span><span className="ml-1 text-accent">HPC</span>
-        </a>
+          <Image
+            src="/logo-mark-dark.svg"
+            alt=""
+            width={387}
+            height={234}
+            className="h-7 w-auto"
+            priority
+            unoptimized
+          />
+          <span className="text-lg font-bold tracking-tight font-stretch-expanded">
+            UW<span className="text-accent">HPC</span>
+          </span>
+        </Link>
 
         <button
           onClick={() => setOpen(!open)}
-          className="text-text-muted md:hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          className="text-ink-muted md:hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           aria-label="Toggle menu"
         >
           <svg
@@ -49,25 +64,31 @@ export default function Nav() {
         </button>
 
         <div
-          className={`absolute top-full left-0 right-0 flex-col gap-4 border-b border-border bg-bg-elevated px-6 py-5 transition-all duration-300 ease-out md:relative md:top-auto md:flex md:flex-row md:items-center md:gap-8 md:border-0 md:bg-transparent md:p-0 md:opacity-100 md:max-h-none ${open
-            ? "flex opacity-100 max-h-96"
-            : "hidden opacity-0 max-h-0 md:flex"
-            }`}
+          className={`absolute top-full left-0 right-0 flex-col gap-5 border-b border-line bg-bg px-6 py-6 md:relative md:top-auto md:flex md:flex-row md:items-center md:gap-7 md:border-0 md:bg-transparent md:p-0 ${
+            open ? "flex" : "hidden md:flex"
+          }`}
         >
-          {links.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              onClick={() => setOpen(false)}
-              className={
-                l.href === "#join"
-                  ? "rounded-lg bg-accent px-4 py-2 text-center text-sm font-medium text-white transition-colors hover:bg-accent-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-                  : "text-sm text-text-muted transition-colors hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-              }
-            >
-              {l.href === "#join" ? "Get Involved" : l.label}
-            </a>
-          ))}
+          {links.map((l) =>
+            l.href === "#join" ? (
+              <a
+                key={l.href}
+                href={l.href}
+                onClick={() => setOpen(false)}
+                className="bg-accent px-4 py-2 text-center font-mono text-xs tracking-[0.15em] uppercase text-white transition-colors hover:bg-accent-bright focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              >
+                Get Involved
+              </a>
+            ) : (
+              <a
+                key={l.href}
+                href={l.href}
+                onClick={() => setOpen(false)}
+                className="link-trace font-mono text-xs tracking-[0.15em] uppercase text-ink-muted transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              >
+                {l.label}
+              </a>
+            )
+          )}
         </div>
       </div>
     </nav>

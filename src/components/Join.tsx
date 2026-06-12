@@ -1,30 +1,31 @@
 "use client";
 
 import { useFadeIn } from "@/hooks/useFadeIn";
+import { Container, SectionHeader, Pins, Fiducial } from "@/components/ui";
 
 export default function Join() {
-  const cardRef = useFadeIn(100);
+  const bannerRef = useFadeIn(100);
 
   return (
-    <section id="join" className="px-6 py-12">
-      <div className="mx-auto max-w-5xl">
-        <span className="mb-3 block text-xs font-semibold uppercase tracking-widest text-accent">
-          Get Involved
-        </span>
-        <h2 className="mb-10 text-3xl font-bold tracking-tight sm:text-4xl">
-          Join UWHPC
-        </h2>
+    <section id="join" className="border-t border-line">
+      <Container className="py-24">
+        <SectionHeader index="06" kicker="Get Involved" title="Join UWHPC" />
 
         <div
-          ref={cardRef}
-          className="opacity-0 translate-y-5 transition-all duration-700 ease-out relative overflow-hidden rounded-2xl border border-border bg-bg-card p-10 text-center sm:p-14"
+          ref={bannerRef}
+          className="opacity-0 translate-y-3 transition-all duration-700 ease-out relative border border-line-strong bg-bg-panel p-10 text-center sm:p-16"
         >
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent to-transparent animate-shimmer" />
+          <Fiducial className="top-3 left-3" />
+          <Fiducial className="top-3 right-3" />
+          <Fiducial className="bottom-3 left-3" />
+          <Fiducial className="bottom-3 right-3" />
+          <Pins className="absolute -top-[7px] left-1/2 -translate-x-1/2" />
+          <Pins className="absolute -bottom-[7px] left-1/2 -translate-x-1/2" />
 
-          <h3 className="mb-3 text-xl font-semibold sm:text-2xl">
+          <h3 className="mb-3 text-xl font-semibold tracking-tight sm:text-2xl">
             We&apos;re always looking for driven people
           </h3>
-          <p className="mx-auto mb-8 max-w-md font-light text-text-muted">
+          <p className="mx-auto mb-9 max-w-md font-light text-ink-muted">
             Whether you&apos;re experienced in HPC or just curious about
             high-performance systems, there&apos;s a place for you on our team.
           </p>
@@ -32,7 +33,7 @@ export default function Join() {
           <div className="flex flex-wrap justify-center gap-3">
             <a
               href="mailto:info@uwhpc.com"
-              className="rounded-lg bg-accent px-6 py-3 font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-accent-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className="bg-accent px-7 py-3.5 font-mono text-xs tracking-[0.15em] uppercase text-white transition-colors hover:bg-accent-bright focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
               Contact Us
             </a>
@@ -40,22 +41,22 @@ export default function Join() {
               href="https://discord.gg/S2fRgkqcDF"
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-lg border border-border px-6 py-3 font-medium text-text transition-all hover:-translate-y-0.5 hover:border-text-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className="border border-line-strong px-7 py-3.5 font-mono text-xs tracking-[0.15em] uppercase text-ink transition-colors hover:border-ink-muted hover:bg-bg-raised focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
               Discord
             </a>
-            {/* 
+            {/*
             <a
               href="https://www.instagram.com/"
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-lg border border-border px-6 py-3 font-medium text-text transition-all hover:-translate-y-0.5 hover:border-text-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className="border border-line-strong px-7 py-3.5 font-mono text-xs tracking-[0.15em] uppercase text-ink transition-colors hover:border-ink-muted hover:bg-bg-raised focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
               Instagram
             </a>*/}
           </div>
         </div>
-      </div>
+      </Container>
     </section>
   );
 }
