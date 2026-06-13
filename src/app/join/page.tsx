@@ -1,5 +1,4 @@
 import Nav from "@/components/Nav";
-import Footer from "@/components/Footer";
 import Join from "@/components/Join";
 
 export const metadata = {
@@ -15,7 +14,6 @@ export default function JoinPage() {
       <main className="pt-16">
         <Join />
       </main>
-      <Footer />
     </>
   );
 }

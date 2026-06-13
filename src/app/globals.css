@@ -128,7 +128,6 @@ body {
   --cue: clamp(0, calc((var(--p) - 0.05) / 0.1), 1); /* scroll hint fades out */
   --fade: clamp(0, calc((var(--p) - 0.02) / 0.3), 1); /* scene fades up from black */
   --edge: clamp(0, calc((var(--p) - 0.04) / 0.22), 1); /* edge sweeps the die alone */
-  --amb: clamp(0, calc((var(--p) - 0.15) / 0.5), 1); /* ambient glow grows */
   --title: clamp(0, calc((var(--p) - 0.72) / 0.07), 1); /* headline fades IN at birds-eye */
   --endcap: clamp(0, calc((var(--p) - 0.76) / 0.06), 1); /* CTAs resolve */
   /* everything settles by ~0.83 — the rest of the runway is a long still dwell */
@@ -153,12 +152,6 @@ body {
   visibility: hidden;
 }
 
-.chip-ambience {
-  background: radial-gradient(circle, rgb(205 57 60 / 0.11), transparent 65%);
-  opacity: calc(var(--fade) * (0.08 + 0.92 * var(--amb)));
-  transform: translate(-50%, -50%) scale(calc(0.8 + 0.5 * var(--amb)));
-}
-
 /* the whole scene fades up from near-black as scrolling begins
    (opacity goes on the faces, not the preserve-3d container) */
 .chip-svg,
@@ -167,7 +160,7 @@ body {
 }
 
 .chip-stage .blueprint-grid {
-  opacity: calc(0.1 + 0.9 * var(--fade));
+  opacity: var(--title);
 }
 
 /* --- the 3D assembly ---------------------------------------------- */
@@ -343,4 +336,3 @@ body {
     stroke-dashoffset: -0.25;
   }
 }
-

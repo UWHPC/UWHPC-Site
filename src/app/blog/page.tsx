@@ -1,5 +1,4 @@
 import Nav from "@/components/Nav";
-import Footer from "@/components/Footer";
 import Blog from "@/components/Blog";
 
 export const metadata = {
@@ -14,7 +13,6 @@ export default function BlogPage() {
       <main className="pt-16">
         <Blog />
       </main>
-      <Footer />
     </>
   );
 }

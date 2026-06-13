@@ -1,5 +1,4 @@
 import Nav from "@/components/Nav";
-import Footer from "@/components/Footer";
 import Projects from "@/components/Projects";
 import Focus from "@/components/Focus";
 
@@ -17,7 +16,6 @@ export default function ProjectsPage() {
         <Projects />
         <Focus />
       </main>
-      <Footer />
     </>
   );
 }

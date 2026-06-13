@@ -56,7 +56,6 @@ function Gap({
 }
 
 const COPPER = "#dd6e4f";
-const RED = "#e0494d";
 
 function vLines(x0: number, y0: number, y1: number, step: number, count: number) {
   return Array.from({ length: count }, (_, i) => (

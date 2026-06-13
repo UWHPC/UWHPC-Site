@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Nav from "@/components/Nav";
-import Footer from "@/components/Footer";
 import { Container, Pins } from "@/components/ui";
 
 export const metadata = {
@@ -90,7 +89,6 @@ export default function TeamPage() {
           </div>
         </Container>
       </main>
-      <Footer />
     </>
   );
 }

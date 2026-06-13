@@ -7,7 +7,7 @@ import { Fiducial } from "@/components/ui";
 
 /**
  * Scroll-driven hero: a dim, slightly isometric processor die that
- * wakes up as you scroll — edges trace in, blocks glow, signal lines
+ * wakes up as you scroll — edges trace in, blocks light, signal lines
  * run between them — while the camera flattens to a bird's-eye view.
  * A tall runway section pins a full-screen stage; progress through
  * the runway is written to `--p` (see useScrollProgress) and all
@@ -26,9 +26,6 @@ export default function Hero() {
         <div className="blueprint-grid pointer-events-none absolute inset-0 mx-auto max-w-6xl border-line md:border-x" />
         <Fiducial className="bottom-4 left-1/2 ml-[-36rem] hidden xl:block" />
         <Fiducial className="bottom-4 left-1/2 ml-[35.25rem] hidden xl:block" />
-
-        {/* growing red ambience behind the die */}
-        <div className="chip-ambience pointer-events-none absolute top-1/2 left-1/2 h-[70vmin] w-[70vmin] -translate-x-1/2 -translate-y-1/2 rounded-full" />
 
         {/* headline — hidden until the bird's-eye finale */}
         <div className="chip-title pointer-events-none absolute inset-x-0 top-[16vh] z-10 px-6 text-center">
