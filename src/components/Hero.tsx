@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useScrollProgress } from "@/hooks/useScrollProgress";
 import ChipDie from "@/components/ChipDie";
-import { Fiducial } from "@/components/ui";
 
 /**
  * Scroll-driven hero: a dim, slightly isometric processor die that
@@ -24,8 +23,6 @@ export default function Hero() {
     >
       <div className="chip-sticky sticky top-0 flex h-screen flex-col items-center justify-center overflow-hidden pt-16">
         <div className="blueprint-grid pointer-events-none absolute inset-0 mx-auto max-w-6xl border-line md:border-x" />
-        <Fiducial className="bottom-4 left-1/2 ml-[-36rem] hidden xl:block" />
-        <Fiducial className="bottom-4 left-1/2 ml-[35.25rem] hidden xl:block" />
 
         {/* headline — hidden until the bird's-eye finale */}
         <div className="chip-title pointer-events-none absolute inset-x-0 top-[16vh] z-10 px-6 text-center">

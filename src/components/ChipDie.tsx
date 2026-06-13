@@ -112,52 +112,57 @@ function badgeShape() {
       <line x1={224} y1={122} x2={224} y2={170} />
 
 
-{/* chip package */}
-      <rect x={238} y={94} width={118} height={100} rx={8} />
+      {/* chip package */}
+      <rect x={240} y={96} width={112} height={96} rx={6} />
+      <rect className="chip-cell" x={247} y={103} width={98} height={82} rx={4} />
 
-      {/* top pin row */}
-      {[248, 263, 278, 293, 308, 323, 338].map((x) => (
-        <rect key={`tp${x}`} className="chip-cell" x={x} y={94} width={11} height={6} rx={1} />
+      {/* package pads */}
+      {[256, 272, 288, 304, 320, 336].map((x) => (
+        <g key={`tp${x}`}>
+          <line x1={x} y1={96} x2={x} y2={84} />
+          <line x1={x - 4} y1={84} x2={x + 4} y2={84} />
+        </g>
       ))}
-      {/* bottom pin row */}
-      {[248, 263, 278, 293, 308, 323, 338].map((x) => (
-        <rect key={`bp${x}`} className="chip-cell" x={x} y={188} width={11} height={6} rx={1} />
+      {[256, 272, 288, 304, 320, 336].map((x) => (
+        <g key={`bp${x}`}>
+          <line x1={x} y1={192} x2={x} y2={204} />
+          <line x1={x - 4} y1={204} x2={x + 4} y2={204} />
+        </g>
       ))}
-      {/* right pin column */}
-      {[104, 118, 132, 146, 160, 174].map((y) => (
-        <rect key={`rp${y}`} className="chip-cell" x={356} y={y} width={6} height={11} rx={1} />
+      {[112, 128, 144, 160, 176].map((y) => (
+        <rect key={`lp${y}`} className="chip-cell" x={240} y={y} width={7} height={9} rx={1} />
+      ))}
+      {[112, 128, 144, 160, 176].map((y) => (
+        <rect key={`rp${y}`} className="chip-cell" x={345} y={y} width={7} height={9} rx={1} />
       ))}
 
-      {/* die area */}
-      <rect className="chip-cell" x={250} y={106} width={94} height={76} rx={4} />
+      {/* inset die and macro cells */}
+      <rect className="chip-cell" x={256} y={112} width={80} height={62} rx={3} />
+      <rect className="chip-cell" x={262} y={118} width={29} height={20} rx={1} />
+      <rect className="chip-cell" x={301} y={118} width={29} height={20} rx={1} />
+      <rect className="chip-cell" x={262} y={148} width={29} height={20} rx={1} />
+      <rect className="chip-cell" x={301} y={148} width={29} height={20} rx={1} />
 
-      {/* internal cross */}
-      <line x1={297} y1={106} x2={297} y2={182} />
-      <line x1={250} y1={144} x2={344} y2={144} />
+      {/* central buses and routing channels */}
+      <line x1={256} y1={143} x2={336} y2={143} />
+      <line x1={296} y1={112} x2={296} y2={174} />
+      <line x1={291} y1={128} x2={301} y2={128} />
+      <line x1={291} y1={158} x2={301} y2={158} />
+      <line x1={276} y1={138} x2={276} y2={148} />
+      <line x1={316} y1={138} x2={316} y2={148} />
+      <line x1={247} y1={143} x2={256} y2={143} />
+      <line x1={336} y1={143} x2={345} y2={143} />
 
-      {/* four quadrant cells */}
-      <rect className="chip-cell" x={254} y={110} width={39} height={30} rx={2} />
-      <rect className="chip-cell" x={301} y={110} width={39} height={30} rx={2} />
-      <rect className="chip-cell" x={254} y={148} width={39} height={30} rx={2} />
-      <rect className="chip-cell" x={301} y={148} width={39} height={30} rx={2} />
-
-      {/* quadrant detail: vertical ticks top-left */}
-      <line x1={261} y1={114} x2={261} y2={136} />
-      <line x1={269} y1={114} x2={269} y2={136} />
-      <line x1={277} y1={114} x2={277} y2={136} />
-      <line x1={285} y1={114} x2={285} y2={136} />
-      {/* top-right: horizontal ticks */}
-      <line x1={305} y1={118} x2={336} y2={118} />
-      <line x1={305} y1={126} x2={336} y2={126} />
-      <line x1={305} y1={134} x2={336} y2={134} />
-      {/* bottom-left: vertical ticks */}
-      <line x1={261} y1={152} x2={261} y2={174} />
-      <line x1={269} y1={152} x2={269} y2={174} />
-      <line x1={277} y1={152} x2={277} y2={174} />
-      <line x1={285} y1={152} x2={285} y2={174} />
-      {/* bottom-right: sub-cell */}
-      <rect className="chip-cell" x={307} y={152} width={29} height={11} rx={1} />
-      <rect className="chip-cell" x={307} y={167} width={29} height={11} rx={1} />
+      {/* dense local routing */}
+      {vLines(268, 122, 134, 6, 3)}
+      {hLines(123, 306, 326, 6, 3)}
+      {hLines(153, 267, 287, 6, 3)}
+      {[307, 318].map((x) => (
+        <rect key={`via${x}`} className="chip-cell" x={x} y={153} width={6} height={6} rx={1} />
+      ))}
+      {[267, 278].map((x) => (
+        <rect key={`via-b${x}`} className="chip-cell" x={x} y={161} width={6} height={6} rx={1} />
+      ))}
     </>
   );
 }
