@@ -26,7 +26,6 @@ body:has(.chip-stage) .chip-nav {
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 5.5rem;
-  scrollbar-gutter: stable;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -55,8 +54,11 @@ body {
 }
 
 * {
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-line-strong) transparent;
+  scrollbar-width: none;
+}
+
+*::-webkit-scrollbar {
+  display: none;
 }
 
 /* Faint graph-paper grid used inside the hero sheet */
