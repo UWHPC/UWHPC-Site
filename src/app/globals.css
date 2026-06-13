@@ -26,6 +26,7 @@ body:has(.chip-stage) .chip-nav {
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 5.5rem;
+  scrollbar-gutter: stable;
 }
 
 @media (prefers-reduced-motion: reduce) {
