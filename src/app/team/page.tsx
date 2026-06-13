@@ -63,27 +63,36 @@ export default function TeamPage() {
             {team.map((member, i) => (
               <div
                 key={i}
-                className="group relative border border-line bg-bg-panel p-6 transition-colors hover:border-line-strong"
+                className="group relative min-h-72 border border-line bg-bg-panel p-5 transition-colors hover:border-line-strong"
               >
-                <Pins className="absolute -top-[7px] left-6" />
-                <Pins className="absolute -bottom-[7px] right-6" />
+                <Pins className="absolute -top-[7px] left-5" />
+                <Pins className="absolute -bottom-[7px] right-5" />
 
-                <div className="mb-5 flex h-20 w-20 items-center justify-center border border-line">
+                <div className="mb-5 flex items-center justify-between border-b border-line pb-4 font-mono text-[0.65rem] tracking-[0.2em] text-ink-faint">
+                  <span>MEMBER</span>
+                  <span>{String(i + 1).padStart(2, "0")}</span>
+                </div>
+
+                <div className="mb-8 flex aspect-[4/3] items-center justify-center border border-line bg-bg">
                   <Image
                     src={member.image}
                     alt={member.name}
                     width={387}
                     height={234}
-                    className="h-9 w-auto opacity-35 transition-opacity group-hover:opacity-60"
+                    className="h-12 w-auto opacity-35 transition-opacity group-hover:opacity-60"
                     unoptimized
                   />
                 </div>
-                <h3 className="text-lg font-semibold tracking-tight">
-                  {member.name}
-                </h3>
-                <p className="mt-1 font-mono text-xs text-ink-muted">
-                  {member.role}
-                </p>
+
+                <div className="mt-auto">
+                  <h3 className="text-xl font-semibold tracking-tight">
+                    {member.name}
+                  </h3>
+                  <p className="mt-2 font-mono text-xs tracking-[0.08em] text-ink-muted">
+                    {member.role}
+                  </p>
+                  <div className="mt-6 h-px w-full bg-line transition-colors group-hover:bg-line-strong" />
+                </div>
               </div>
             ))}
           </div>
