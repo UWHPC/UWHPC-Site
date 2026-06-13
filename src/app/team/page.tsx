@@ -21,17 +21,18 @@ const team = [
     imageClassName: "object-cover object-[50%_28%]",
   },
   {
+    name: "Shpat Sahiti",
+    role: "Software Developer",
+    image: "/team/shpat.png",
+    imageClassName: "object-cover object-center",
+  },
+  {
     name: "Alyan Salamat",
     role: "Software Developer",
     image: "/logo-mark-dark.svg",
   },
   {
     name: "Julian Salvador",
-    role: "Software Developer",
-    image: "/logo-mark-dark.svg",
-  },
-  {
-    name: "Shpat Sahiti",
     role: "Software Developer",
     image: "/logo-mark-dark.svg",
   },
