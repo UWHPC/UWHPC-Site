@@ -29,12 +29,14 @@ const team = [
   {
     name: "Alyan Salamat",
     role: "Software Developer",
-    image: "/logo-mark-dark.svg",
+    image: "/team/alyan.png",
+    imageClassName: "object-cover object-[50%_22%]",
   },
   {
     name: "Julian Salvador",
     role: "Software Developer",
-    image: "/logo-mark-dark.svg",
+    image: "/team/julian.png",
+    imageClassName: "object-cover object-center",
   },
 ];
 
