@@ -61,8 +61,8 @@ export default function Hero() {
         </div>
 
         {/* scroll cue */}
-        <div className="chip-cue pointer-events-none absolute bottom-6 left-1/2 -translate-x-1/2 font-mono text-xs tracking-[0.3em] uppercase text-ink-faint">
-          [ Scroll ]
+        <div className="chip-cue pointer-events-none absolute bottom-6 left-1/2 -translate-x-1/2 font-mono text-sm tracking-[0.3em] uppercase text-ink-muted">
+          <span className="inline-block animate-cue-bounce">[ Scroll ]</span>
         </div>
       </div>
     </section>

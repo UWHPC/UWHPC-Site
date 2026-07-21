@@ -114,6 +114,20 @@ body {
   animation: blink 1.8s ease-in-out infinite;
 }
 
+@keyframes cue-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(6px);
+  }
+}
+
+@utility animate-cue-bounce {
+  animation: cue-bounce 1.6s cubic-bezier(0.5, 0.05, 0.5, 0.95) infinite;
+}
+
 /* ------------------------------------------------------------------ */
 /* Chip hero                                                          */
 /* A scroll-driven processor die. The runway section (.chip-stage)    */
@@ -143,7 +157,7 @@ body {
 }
 
 .chip-cue {
-  opacity: calc(0.9 * (1 - var(--cue)));
+  opacity: calc(1 - var(--cue));
 }
 
 .chip-endcap {
