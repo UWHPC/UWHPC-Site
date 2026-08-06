@@ -17,7 +17,7 @@ const team = [
   {
     name: "Karl Keshavarzi",
     role: "Founder",
-    image: "/team/karl.jpg",
+    image: "/team/karl.png",
     imageClassName: "object-cover object-[50%_28%]",
   },
   {
