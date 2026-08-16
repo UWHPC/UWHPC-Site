@@ -3,13 +3,18 @@
 import { useFadeIn } from "@/hooks/useFadeIn";
 import { Container, SectionHeader, Pins, Fiducial } from "@/components/ui";
 
-export default function Join() {
+export default function Join({ as = "h2" }: { as?: "h1" | "h2" }) {
   const bannerRef = useFadeIn(100);
 
   return (
     <section id="join" className="border-t border-line">
       <Container className="py-24">
-        <SectionHeader index="06" kicker="Get Involved" title="Join UWHPC" />
+        <SectionHeader
+          index="06"
+          as={as}
+          kicker="Get Involved"
+          title="Join UWHPC"
+        />
 
         <div
           ref={bannerRef}

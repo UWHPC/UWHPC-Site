@@ -27,11 +27,17 @@ export function SectionHeader({
   kicker,
   title,
   blurb,
+  as: Heading = "h2",
 }: {
   index: string;
   kicker: string;
   title: string;
   blurb?: string;
+  /**
+   * `h1` when this section is the page's primary subject, `h2` otherwise.
+   * Styling is identical either way — this only sets document semantics.
+   */
+  as?: "h1" | "h2";
 }) {
   return (
     <div className="mb-14 grid gap-6 md:grid-cols-12 md:items-end">
@@ -40,9 +46,9 @@ export function SectionHeader({
           <span className="text-accent">{index}</span>
           <span className="text-ink-faint">/ {kicker}</span>
         </div>
-        <h2 className="text-3xl font-bold tracking-tight uppercase font-stretch-expanded sm:text-4xl">
+        <Heading className="text-3xl font-bold tracking-tight uppercase font-stretch-expanded sm:text-4xl">
           {title}
-        </h2>
+        </Heading>
       </div>
       {blurb && (
         <p className="font-light text-ink-muted md:col-span-5 md:justify-self-end md:text-right">

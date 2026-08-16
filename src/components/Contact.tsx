@@ -110,12 +110,13 @@ function Row({ channel, index }: { channel: Channel; index: number }) {
   );
 }
 
-export default function Contact() {
+export default function Contact({ as = "h2" }: { as?: "h1" | "h2" }) {
   return (
     <section id="contact" className="border-t border-line">
       <Container className="py-24">
         <SectionHeader
           index="05"
+          as={as}
           kicker="Get in Touch"
           title="Contact"
           blurb="Reach out through whichever channel works best for you."

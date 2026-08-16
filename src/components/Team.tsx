@@ -3,19 +3,15 @@
 import Image from "next/image";
 import { useFadeIn } from "@/hooks/useFadeIn";
 import { Container, SectionHeader, Pins } from "@/components/ui";
+import { TEAM, type TeamMember } from "@/lib/site";
 
-const preview = [
-  { name: "First Last", role: "Team Lead", image: "/logo-mark-dark.svg" },
-  { name: "First Last", role: "Hardware Lead", image: "/logo-mark-dark.svg" },
-  { name: "First Last", role: "Software Lead", image: "/logo-mark-dark.svg" },
-  { name: "First Last", role: "Systems Lead", image: "/logo-mark-dark.svg" },
-];
+const preview: TeamMember[] = TEAM.slice(0, 4);
 
 function MemberCard({
   member,
   index,
 }: {
-  member: (typeof preview)[number];
+  member: TeamMember;
   index: number;
 }) {
   const ref = useFadeIn<HTMLDivElement>(index * 100);

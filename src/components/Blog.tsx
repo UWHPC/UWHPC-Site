@@ -68,12 +68,13 @@ function PostRow({
   );
 }
 
-export default function Blog() {
+export default function Blog({ as = "h2" }: { as?: "h1" | "h2" }) {
   return (
     <section id="blog" className="border-t border-line">
       <Container className="py-24">
         <SectionHeader
           index="04"
+          as={as}
           kicker="Latest"
           title="Blog"
           blurb="Notes, deep-dives, and post-mortems from the team."

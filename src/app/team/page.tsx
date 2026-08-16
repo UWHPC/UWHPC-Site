@@ -1,44 +1,16 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Nav from "@/components/Nav";
+import Footer from "@/components/Footer";
 import { Container, Pins } from "@/components/ui";
+import { TEAM, pageMetadata } from "@/lib/site";
 
-export const metadata = {
-  title: "Team - UWHPC",
-  description: "Meet the UWHPC team.",
-};
-
-const team = [
-  {
-    name: "James Redekopp",
-    role: "Founder",
-    image: "/team/james1.jpg",
-    imageClassName: "object-cover object-[50%_28%]",
-  },
-  {
-    name: "Karl Keshavarzi",
-    role: "Founder",
-    image: "/team/karl.png",
-    imageClassName: "object-cover object-[50%_28%]",
-  },
-  {
-    name: "Shpat Sahiti",
-    role: "Software Developer",
-    image: "/team/shpat.png",
-    imageClassName: "object-cover object-center",
-  },
-  {
-    name: "Alyan Salamat",
-    role: "Software Developer",
-    image: "/team/alyan.png",
-    imageClassName: "object-cover object-[50%_22%]",
-  },
-  {
-    name: "Julian Salvador",
-    role: "Software Developer",
-    image: "/team/julian.png",
-    imageClassName: "object-cover object-center",
-  },
-];
+export const metadata: Metadata = pageMetadata({
+  title: "Team",
+  description:
+    "Meet the students behind UWHPC, the UW High Performance Computing design team at the University of Waterloo's Sedra Student Design Centre.",
+  path: "/team",
+});
 
 export default function TeamPage() {
   return (
@@ -60,12 +32,12 @@ export default function TeamPage() {
           </div>
 
           <div className="grid justify-items-center gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {team.map((member, i) => {
+            {TEAM.map((member, i) => {
               const isPlaceholder = member.image.endsWith(".svg");
 
               return (
                 <div
-                  key={i}
+                  key={member.name}
                   className="group relative flex w-full max-w-[21rem] flex-col border border-line bg-bg-panel p-6 transition-colors hover:border-line-strong"
                 >
                   <Pins className="absolute -top-[7px] left-6" />
@@ -98,9 +70,9 @@ export default function TeamPage() {
                   </div>
 
                   <div className="mt-auto">
-                    <h3 className="text-xl font-semibold tracking-tight">
+                    <h2 className="text-xl font-semibold tracking-tight">
                       {member.name}
-                    </h3>
+                    </h2>
                     <p className="mt-2 font-mono text-xs tracking-[0.08em] text-ink-muted">
                       {member.role}
                     </p>
@@ -112,6 +84,7 @@ export default function TeamPage() {
           </div>
         </Container>
       </main>
+      <Footer />
     </>
   );
 }

@@ -2,23 +2,13 @@
 
 import { useFadeIn } from "@/hooks/useFadeIn";
 import { Container, SectionHeader } from "@/components/ui";
-
-const projects = [
-  {
-    title: "Variational Monte Carlo",
-    description:
-      "A Monte Carlo engine for simulating the homogeneous electron gas. Implements a Slater–Jastrow trial wavefunction and Metropolis sampling for electron configurations.",
-    tags: ["C++", "Monte Carlo", "Quantum"],
-    status: "In Progress",
-    href: "https://github.com/UWHPC/Variational-Monte-Carlo",
-  },
-];
+import { PROJECTS, type Project } from "@/lib/site";
 
 function ProjectRow({
   project,
   index,
 }: {
-  project: (typeof projects)[number];
+  project: Project;
   index: number;
 }) {
   const divRef = useFadeIn<HTMLDivElement>(index * 100);
@@ -86,19 +76,20 @@ function ProjectRow({
   );
 }
 
-export default function Projects() {
+export default function Projects({ as = "h2" }: { as?: "h1" | "h2" }) {
   return (
     <section id="projects" className="border-t border-line">
       <Container className="py-24">
         <SectionHeader
           index="01"
+          as={as}
           kicker="Our Work"
           title="Projects"
           blurb="What we're building and experimenting with."
         />
 
         <div className="border-b border-line">
-          {projects.map((p, i) => (
+          {PROJECTS.map((p, i) => (
             <ProjectRow key={p.title} project={p} index={i} />
           ))}
         </div>
