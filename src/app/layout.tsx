@@ -62,9 +62,11 @@ export const metadata: Metadata = {
     url: SITE_URL,
     images: [
       {
+        // Actual dimensions of the file. A 1.91:1 image (1200x630) would
+        // preview better on X and LinkedIn — see notes in the README.
         url: "/banner-dark.png",
-        width: 1200,
-        height: 630,
+        width: 512,
+        height: 512,
         alt: HOME_TITLE,
       },
     ],
