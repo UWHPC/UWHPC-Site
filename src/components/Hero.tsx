@@ -46,12 +46,14 @@ export default function Hero() {
 
         {/* CTAs resolve at bird's-eye */}
         <div className="chip-endcap absolute inset-x-0 bottom-[8vh] z-10 flex flex-col items-center gap-3 px-6 sm:flex-row sm:justify-center">
-          <Link
-            href="/join"
+          <a
+            href="https://docs.uwhpc.com/onboarding/"
+            target="_blank"
+            rel="noopener noreferrer"
             className="w-full bg-accent px-7 py-3.5 text-center font-mono text-xs tracking-[0.15em] uppercase text-white transition-colors hover:bg-accent-bright focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:w-auto"
           >
-            Join the Team
-          </Link>
+            Apply Now
+          </a>
           <Link
             href="/projects"
             className="w-full border border-line-strong bg-bg/70 px-7 py-3.5 text-center font-mono text-xs tracking-[0.15em] uppercase text-ink backdrop-blur-sm transition-colors hover:border-ink-muted hover:bg-bg-raised focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:w-auto"
