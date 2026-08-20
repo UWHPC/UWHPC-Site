@@ -38,6 +38,15 @@ function gapStyle(item: Gap) {
   return varStyle({
     "--tc": item.color,
     ...(item.sw ? { "--sw": item.sw } : {}),
+    "--chip-range-start": `${item.td * 100}%`,
+    "--chip-range-end": `${(item.td + (item.tw ?? 0.12)) * 100}%`,
+  });
+}
+
+function regionStyle(item: Region) {
+  return varStyle({
+    "--chip-range-start": `${item.d * 100}%`,
+    "--chip-range-end": `${(item.d + (item.w ?? 0.08)) * 100}%`,
   });
 }
 
@@ -332,12 +341,19 @@ export default function ChipDie() {
   ];
 
   return (
-    <svg
-      viewBox="0 0 800 800"
-      className="chip-svg"
-      role="img"
-      aria-label="Stylized processor die lighting up: blocks glow and signal pathways fill like fluid"
-    >
+    <>
+      <canvas
+        className="chip-base-canvas chip-face"
+        width={800}
+        height={800}
+        aria-hidden="true"
+      />
+      <svg
+        viewBox="0 0 800 800"
+        className="chip-svg chip-face"
+        role="img"
+        aria-label="Stylized processor die lighting up: blocks glow and signal pathways fill like fluid"
+      >
       <defs>
         <radialGradient id="chip-die-grad" cx="50%" cy="42%" r="75%">
           <stop offset="0%" stopColor="#141414" />
@@ -365,6 +381,7 @@ export default function ChipDie() {
             className="chip-block-lit"
             data-chip-start={region.d}
             data-chip-duration={region.w ?? 0.08}
+            style={regionStyle(region)}
           >
             {region.shape}
           </g>
@@ -406,6 +423,7 @@ export default function ChipDie() {
           ))}
         </g>
       </g>
-    </svg>
+      </svg>
+    </>
   );
 }

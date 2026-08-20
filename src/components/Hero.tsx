@@ -20,7 +20,9 @@ export default function Hero() {
       className="chip-stage relative h-[300vh]"
       data-end="false"
       data-pulses="false"
-      data-scrolling="false"
+      data-low-power="false"
+      data-native-scroll="false"
+      data-canvas-ready="false"
     >
       <div className="chip-sticky sticky top-0 flex h-screen flex-col items-center justify-center overflow-hidden pt-16">
         <div className="blueprint-grid pointer-events-none absolute inset-0 mx-auto max-w-6xl border-line md:border-x" />
