@@ -1,7 +1,20 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  async redirects() {
+    return [
+      {
+        source: "/onboarding",
+        destination: "https://docs.uwhpc.com/onboarding/",
+        permanent: false,
+      },
+      {
+        source: "/apply",
+        destination: "https://docs.uwhpc.com/onboarding/",
+        permanent: false,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
