@@ -4,11 +4,9 @@ import { useEffect, useRef } from "react";
 
 /**
  * Drives the chip-hero choreography. Raw scroll progress through the
- * runway is smoothed with an exponential damper (camera inertia) and
- * written to the section as `--p`. The camera is ONE continuous swoop:
- * its eased progress over [SWOOP_START, SWOOP_END] is written as `--m`,
- * after which the view is frozen at bird's-eye while the remaining
- * scroll floods the channel network.
+ * runway is smoothed with an exponential damper (camera inertia), then
+ * applied directly to the few active layers. This avoids cascading a
+ * changing custom property through the full SVG on every frame.
  *
  * The sequence is scrubbed by the user's own scrolling, so it runs
  * regardless of prefers-reduced-motion; reduced motion only disables
@@ -18,10 +16,28 @@ import { useEffect, useRef } from "react";
 
 const SWOOP_START = 0.05;
 const SWOOP_END = 0.64;
+const TITLE_START = 0.68;
+const TITLE_END = 0.84;
+const ENDCAP_START = 0.75;
+const ENDCAP_END = 0.89;
+const PULSE_START = 0.24;
+
+/* Matches the old 0.11-per-frame feel at 60 Hz, but remains consistent
+   on 90/120/144 Hz displays and after an interrupted frame. */
+const DAMPING = 7;
+const SETTLE_EPSILON = 0.0006;
 
 /** smootherstep — zero first and second derivatives at the ends. */
 const ease = (t: number) => t * t * t * (t * (t * 6 - 15) + 10);
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+const phase = (p: number, start: number, duration: number) =>
+  clamp01((p - start) / duration);
+
+type AnimatedTarget = {
+  element: SVGElement;
+  start: number;
+  duration: number;
+};
 
 export function useScrollProgress<T extends HTMLElement = HTMLDivElement>() {
   const ref = useRef<T>(null);
@@ -31,42 +47,229 @@ export function useScrollProgress<T extends HTMLElement = HTMLDivElement>() {
     if (!el) return;
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const nav = document.querySelector<HTMLElement>(".chip-nav");
+    const scene = el.querySelector<HTMLElement>(".chip-die3d");
+    const titleElement = el.querySelector<HTMLElement>(".chip-title");
+    const endcapElement = el.querySelector<HTMLElement>(".chip-endcap");
+    const cueElement = el.querySelector<HTMLElement>(".chip-cue");
+    const gridElement = el.querySelector<HTMLElement>(".blueprint-grid");
+    const svgElement = el.querySelector<SVGSVGElement>(".chip-svg");
+    const canvasElement = el.querySelector<HTMLCanvasElement>(".chip-base-canvas");
+    const faceElements = el.querySelectorAll<HTMLElement | SVGElement>(".chip-face");
+    const sideElements = el.querySelectorAll<HTMLElement>(".chip-side");
+    const edgeElement = el.querySelector<SVGElement>(".chip-die-edge");
+    const edgeGlowElement = el.querySelector<SVGElement>(".chip-die-edge-glow");
+
+    const targets = (selector: string): AnimatedTarget[] =>
+      Array.from(el.querySelectorAll<SVGElement>(selector), (element) => ({
+        element,
+        start: Number(element.dataset.chipStart),
+        duration: Number(element.dataset.chipDuration),
+      }));
+
+    const blockTargets = targets(".chip-block-lit");
+    const traceTargets = targets(".chip-trace");
+    const pulseTargets = targets(".chip-trace-pulse");
+
+    const setStyle = (
+      element: HTMLElement | SVGElement | null,
+      property: string,
+      value: string
+    ) => {
+      if (element && element.style.getPropertyValue(property) !== value) {
+        element.style.setProperty(property, value);
+      }
+    };
+
+    const nativeScroll = CSS.supports(
+      "animation-timeline",
+      "scroll(root block)"
+    );
+    const mobileDetail = window.matchMedia("(max-width: 640px)");
+    const connection = (
+      navigator as Navigator & { connection?: { saveData?: boolean } }
+    ).connection;
+    const lowPower =
+      reduced.matches ||
+      mobileDetail.matches ||
+      (navigator.hardwareConcurrency > 0 && navigator.hardwareConcurrency <= 4) ||
+      connection?.saveData === true;
+
+    el.dataset.nativeScroll = String(nativeScroll);
+    el.dataset.lowPower = String(lowPower);
+
+    let canvasUrl = "";
+    let disposed = false;
+
+    const rasterizeBaseLayer = () => {
+      if (!svgElement || !canvasElement) return;
+
+      const clone = svgElement.cloneNode(true) as SVGSVGElement;
+      clone
+        .querySelectorAll(
+          ".chip-blocks-lit, .chip-traces-lit, .chip-traces-pulses, .chip-die-edge, .chip-die-edge-glow"
+        )
+        .forEach((node) => node.remove());
+      clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+      clone.removeAttribute("class");
+      clone.removeAttribute("role");
+      clone.removeAttribute("aria-label");
+
+      const embeddedStyle = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "style"
+      );
+      embeddedStyle.textContent = `
+        .chip-die-base { stroke: #262626; stroke-width: 1.5; }
+        .chip-block-base rect:not(.chip-cell) { fill: rgb(255 255 255 / 0.004); stroke: #232323; stroke-width: 1.25; }
+        .chip-block-base .chip-cell { fill: none; stroke: #1e1e1e; stroke-width: 1; }
+        .chip-block-base line { stroke: #1d1d1d; stroke-width: 1; }
+        .chip-trace-base { fill: none; stroke: #222222; stroke-width: var(--sw, 5); stroke-linecap: round; stroke-linejoin: round; }
+      `;
+      clone.prepend(embeddedStyle);
+
+      const cssWidth = canvasElement.getBoundingClientRect().width || 400;
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, lowPower ? 1.5 : 2);
+      const resolution = lowPower
+        ? 640
+        : Math.max(800, Math.min(1080, Math.round(cssWidth * pixelRatio)));
+      canvasElement.width = resolution;
+      canvasElement.height = resolution;
+
+      const source = new XMLSerializer().serializeToString(clone);
+      canvasUrl = URL.createObjectURL(
+        new Blob([source], { type: "image/svg+xml;charset=utf-8" })
+      );
+      const image = new Image();
+      image.onload = () => {
+        if (disposed) return;
+        const context = canvasElement.getContext("2d", { alpha: true });
+        context?.clearRect(0, 0, resolution, resolution);
+        context?.drawImage(image, 0, 0, resolution, resolution);
+        el.dataset.canvasReady = "true";
+        URL.revokeObjectURL(canvasUrl);
+        canvasUrl = "";
+      };
+      image.onerror = () => {
+        URL.revokeObjectURL(canvasUrl);
+        canvasUrl = "";
+      };
+      image.src = canvasUrl;
+    };
+
+    let runwayStart = 0;
+    let runwayLength = 1;
+    let endVisible = false;
+    let pulsesActive = false;
 
     const apply = (p: number) => {
-      el.style.setProperty("--p", p.toFixed(4));
-      el.style.setProperty(
-        "--m",
-        ease(clamp01((p - SWOOP_START) / (SWOOP_END - SWOOP_START))).toFixed(4)
+      const title = ease(
+        phase(p, TITLE_START, TITLE_END - TITLE_START)
       );
-      el.dataset.end = p > 0.74 ? "true" : "false";
-      // Expose key progress values on :root so Nav (outside chip-stage) can read them
-      document.documentElement.style.setProperty(
-        "--chip-fade",
-        clamp01((p - 0.02) / 0.3).toFixed(4)
+      const endcap = ease(
+        phase(p, ENDCAP_START, ENDCAP_END - ENDCAP_START)
       );
-      document.documentElement.style.setProperty(
-        "--chip-title",
-        clamp01((p - 0.72) / 0.07).toFixed(4)
-      );
+      const motion = ease(phase(p, SWOOP_START, SWOOP_END - SWOOP_START));
+      const fade = phase(p, 0.02, 0.3);
+      const edge = phase(p, 0.04, 0.22);
+      const cue = phase(p, 0.05, 0.1);
+
+      if (!nativeScroll) {
+        setStyle(
+          scene,
+          "transform",
+          `translate3d(${(8 * (1 - motion)).toFixed(3)}%, ${(14 - 6 * motion).toFixed(3)}%, 0) rotateX(${(70 * (1 - motion)).toFixed(3)}deg) rotateZ(${(-18 * (1 - motion)).toFixed(3)}deg) scale(${(2.1 - 1.15 * motion).toFixed(4)})`
+        );
+        setStyle(titleElement, "opacity", title.toFixed(4));
+        setStyle(
+          titleElement,
+          "transform",
+          `translate3d(0, ${(18 * (1 - title)).toFixed(3)}px, 0)`
+        );
+        setStyle(endcapElement, "opacity", endcap.toFixed(4));
+        setStyle(
+          endcapElement,
+          "transform",
+          `translate3d(0, ${(20 * (1 - endcap)).toFixed(3)}px, 0)`
+        );
+        setStyle(cueElement, "opacity", (1 - cue).toFixed(4));
+        setStyle(gridElement, "opacity", title.toFixed(4));
+        setStyle(nav, "opacity", title.toFixed(4));
+
+        const faceOpacity = (0.22 + 0.78 * fade).toFixed(4);
+        faceElements.forEach((face) => setStyle(face, "opacity", faceOpacity));
+        sideElements.forEach((side) => setStyle(side, "opacity", faceOpacity));
+        setStyle(edgeElement, "stroke-dashoffset", (1 - edge).toFixed(4));
+        setStyle(edgeElement, "opacity", (0.08 + 0.92 * edge).toFixed(4));
+        setStyle(edgeGlowElement, "stroke-dashoffset", (1 - edge).toFixed(4));
+        setStyle(edgeGlowElement, "opacity", (0.02 + 0.18 * edge).toFixed(4));
+
+        blockTargets.forEach(({ element, start, duration }) => {
+          setStyle(element, "opacity", phase(p, start, duration).toFixed(4));
+        });
+        traceTargets.forEach(({ element, start, duration }) => {
+          const progress = phase(p, start, duration);
+          setStyle(element, "stroke-dashoffset", (1 - progress).toFixed(4));
+          setStyle(element, "opacity", (0.75 * progress).toFixed(4));
+        });
+        if (!lowPower) {
+          pulseTargets.forEach(({ element, start, duration }) => {
+            setStyle(element, "opacity", (0.35 * phase(p, start, duration)).toFixed(4));
+          });
+        }
+      }
+
+      const nextEndVisible = endcap > 0.02;
+      if (nextEndVisible !== endVisible) {
+        endVisible = nextEndVisible;
+        el.dataset.end = String(endVisible);
+      }
+
+      const nextPulsesActive = p >= PULSE_START;
+      if (nextPulsesActive !== pulsesActive) {
+        pulsesActive = nextPulsesActive;
+        el.dataset.pulses = String(pulsesActive);
+      }
     };
 
     const targetP = () => {
-      const rect = el.getBoundingClientRect();
-      const total = rect.height - window.innerHeight;
-      return total > 0 ? clamp01(-rect.top / total) : 1;
+      return clamp01((window.scrollY - runwayStart) / runwayLength);
     };
+
+    const measureRunway = () => {
+      const rect = el.getBoundingClientRect();
+      runwayStart = rect.top + window.scrollY;
+      runwayLength = Math.max(1, rect.height - window.innerHeight);
+    };
+
+    measureRunway();
+    rasterizeBaseLayer();
 
     let target = targetP();
     let current = target;
     let raf = 0;
+    let measureRaf = 0;
+    let lastTime = performance.now();
     apply(current);
 
-    const tick = () => {
+    const tick = (now: number) => {
       raf = 0;
-      current += (target - current) * 0.11;
-      if (Math.abs(target - current) < 0.0006) current = target;
+      const deltaSeconds = Math.min(0.05, Math.max(0, (now - lastTime) / 1000));
+      const damping = 1 - Math.exp(-DAMPING * deltaSeconds);
+      lastTime = now;
+
+      current += (target - current) * damping;
+      if (Math.abs(target - current) < SETTLE_EPSILON) current = target;
       apply(current);
-      if (current !== target) raf = requestAnimationFrame(tick);
+      if (current !== target) {
+        raf = requestAnimationFrame(tick);
+      }
+    };
+
+    const requestTick = () => {
+      if (raf) return;
+      lastTime = performance.now();
+      raf = requestAnimationFrame(tick);
     };
 
     const onScroll = () => {
@@ -76,15 +279,42 @@ export function useScrollProgress<T extends HTMLElement = HTMLDivElement>() {
         apply(current);
         return;
       }
-      if (!raf) raf = requestAnimationFrame(tick);
+      requestTick();
+    };
+
+    const onResize = () => {
+      if (measureRaf) return;
+      measureRaf = requestAnimationFrame(() => {
+        measureRaf = 0;
+        measureRunway();
+        onScroll();
+      });
+    };
+
+    const onMotionPreferenceChange = () => {
+      if (!reduced.matches) return;
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+      current = target;
+      apply(current);
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll, { passive: true });
+    window.addEventListener("resize", onResize, { passive: true });
+    reduced.addEventListener("change", onMotionPreferenceChange);
+    const resizeObserver = new ResizeObserver(onResize);
+    resizeObserver.observe(el);
+
     return () => {
+      disposed = true;
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      window.removeEventListener("resize", onResize);
+      reduced.removeEventListener("change", onMotionPreferenceChange);
+      resizeObserver.disconnect();
       if (raf) cancelAnimationFrame(raf);
+      if (measureRaf) cancelAnimationFrame(measureRaf);
+      nav?.style.removeProperty("opacity");
+      if (canvasUrl) URL.revokeObjectURL(canvasUrl);
     };
   }, []);
 

@@ -15,12 +15,10 @@
   --font-mono: var(--font-fragment-mono);
 }
 
-/* The nav is fully visible by default on every page. Only on the
-   chip-hero home page (which contains .chip-stage) does it start hidden
-   and fade in at the bird's-eye finale, driven by --chip-title written
-   to :root by useScrollProgress. */
+/* The nav is fully visible by default on every page. On the chip-hero home
+   page it starts hidden and reads locally scoped progress from the hero. */
 body:has(.chip-stage) .chip-nav {
-  opacity: var(--chip-title, 0);
+  opacity: 0;
 }
 
 html {
@@ -130,39 +128,25 @@ body {
 
 /* ------------------------------------------------------------------ */
 /* Chip hero                                                          */
-/* A scroll-driven processor die. The runway section (.chip-stage)    */
-/* receives --p (0..1 scroll progress) from useScrollProgress; every  */
-/* phase below derives from it with calc()/clamp() so all animation   */
-/* work stays on the compositor.                                      */
+/* A scroll-driven processor die. useScrollProgress updates only the  */
+/* active layer styles so progress does not cascade through the SVG.  */
 /* ------------------------------------------------------------------ */
 
-.chip-stage {
-  --p: 0;
-  /* the single camera swoop's eased progress (p 0.05-0.70),
-     written by useScrollProgress */
-  --m: 0;
-  /* content phase windows */
-  --cue: clamp(0, calc((var(--p) - 0.05) / 0.1), 1); /* scroll hint fades out */
-  --fade: clamp(0, calc((var(--p) - 0.02) / 0.3), 1); /* scene fades up from black */
-  --edge: clamp(0, calc((var(--p) - 0.04) / 0.22), 1); /* edge sweeps the die alone */
-  --title: clamp(0, calc((var(--p) - 0.72) / 0.07), 1); /* headline fades IN at birds-eye */
-  --endcap: clamp(0, calc((var(--p) - 0.76) / 0.06), 1); /* CTAs resolve */
-  /* everything settles by ~0.83 — the rest of the runway is a long still dwell */
-}
-
 .chip-title {
-  opacity: var(--title);
-  transform: translateY(calc((1 - var(--title)) * 18px));
+  opacity: 0;
+  transform: translate3d(0, 18px, 0);
   text-shadow: 0 2px 24px rgb(0 0 0 / 0.85);
+  will-change: transform, opacity;
 }
 
 .chip-cue {
-  opacity: calc(1 - var(--cue));
+  opacity: 1;
 }
 
 .chip-endcap {
-  opacity: var(--endcap);
-  transform: translateY(calc((1 - var(--endcap)) * 20px));
+  opacity: 0;
+  transform: translate3d(0, 20px, 0);
+  will-change: transform, opacity;
 }
 
 .chip-stage[data-end="false"] .chip-endcap {
@@ -171,13 +155,13 @@ body {
 
 /* the whole scene fades up from near-black as scrolling begins
    (opacity goes on the faces, not the preserve-3d container) */
-.chip-svg,
+.chip-face,
 .chip-side {
-  opacity: calc(0.22 + 0.78 * var(--fade));
+  opacity: 0.22;
 }
 
 .chip-stage .blueprint-grid {
-  opacity: var(--title);
+  opacity: 0;
 }
 
 /* --- the 3D assembly ---------------------------------------------- */
@@ -197,14 +181,8 @@ body {
  */
 .chip-die3d {
   transform-style: preserve-3d;
-  transform: translate3d(
-      calc(8% * (1 - var(--m))),
-      calc(14% * (1 - var(--m)) + 8% * var(--m)),
-      0
-    )
-    rotateX(calc(70deg * (1 - var(--m))))
-    rotateZ(calc(-18deg * (1 - var(--m))))
-    scale(calc(0.95 + 1.15 * (1 - var(--m))));
+  transform: translate3d(8%, 14%, 0) rotateX(70deg) rotateZ(-18deg)
+    scale(2.1);
   will-change: transform;
 }
 
@@ -213,6 +191,24 @@ body {
   inset: 0;
   width: 100%;
   height: 100%;
+}
+
+.chip-base-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  visibility: hidden;
+}
+
+.chip-stage[data-canvas-ready="true"] .chip-base-canvas {
+  visibility: visible;
+}
+
+.chip-stage[data-canvas-ready="true"] .chip-die-base,
+.chip-stage[data-canvas-ready="true"] .chip-blocks-base,
+.chip-stage[data-canvas-ready="true"] .chip-traces-base {
+  display: none;
 }
 
 /* die sides: thin faces hung off the die's bottom and right edges
@@ -248,67 +244,69 @@ body {
   stroke-width: 1.5;
 }
 
-.chip-die-edge {
+.chip-die-edge,
+.chip-die-edge-glow {
   fill: none;
   stroke: #e0494d;
-  stroke-width: 2;
   stroke-dasharray: 1;
-  stroke-dashoffset: calc(1 - var(--edge));
-  opacity: calc(0.08 + 0.92 * var(--edge));
-  filter: drop-shadow(0 0 8px rgb(205 57 60 / 0.75));
+  stroke-dashoffset: 1;
 }
 
-/* per-block pop: --d start offset, --w window */
-.chip-block {
-  --bp: clamp(0, calc((var(--p) - var(--d)) / var(--w, 0.08)), 1);
+.chip-die-edge {
+  stroke-width: 2;
+  opacity: 0.08;
+}
+
+.chip-die-edge-glow {
+  stroke: rgb(205 57 60 / 0.28);
+  stroke-width: 7;
+  opacity: 0.02;
+}
+
+/* Both materialized region layers inherit their palette from their group. */
+.chip-block-base rect:not(.chip-cell),
+.chip-block-lit rect:not(.chip-cell) {
+  fill: var(--chip-panel-fill);
+  stroke: var(--chip-panel-stroke);
+  stroke-width: var(--chip-panel-width);
+}
+
+.chip-block-base .chip-cell,
+.chip-block-lit .chip-cell {
+  fill: var(--chip-cell-fill);
+  stroke: var(--chip-cell-stroke);
+  stroke-width: 1;
+}
+
+.chip-block-base line,
+.chip-block-lit line {
+  stroke: var(--chip-line-stroke);
+  stroke-width: 1;
 }
 
 /* dim grey skeleton: barely-there structure in the dark */
-.chip-block-base rect:not(.chip-cell) {
-  fill: rgb(255 255 255 / 0.004);
-  stroke: #232323;
-  stroke-width: 1.25;
+.chip-block-base {
+  --chip-panel-fill: rgb(255 255 255 / 0.004);
+  --chip-panel-stroke: #232323;
+  --chip-panel-width: 1.25;
+  --chip-cell-fill: none;
+  --chip-cell-stroke: #1e1e1e;
+  --chip-line-stroke: #1d1d1d;
 }
 
-.chip-block-base .chip-cell {
-  fill: none;
-  stroke: #1e1e1e;
-  stroke-width: 1;
-}
-
-.chip-block-base line {
-  stroke: #1d1d1d;
-  stroke-width: 1;
-}
-
-/* ember tint as the block wakes — moody but clearly the lead voice */
+/* Ember tint as the block wakes. The brighter strokes retain the glow-like
+   contrast without allocating a large animated SVG filter surface. */
 .chip-block-lit {
-  opacity: var(--bp);
-  filter: drop-shadow(0 0 10px rgb(205 57 60 / 0.55));
-}
-
-.chip-block-lit rect:not(.chip-cell) {
-  fill: rgb(205 57 60 / 0.08);
-  stroke: rgb(232 85 90 / 0.9);
-  stroke-width: 1.5;
-}
-
-.chip-block-lit .chip-cell {
-  fill: rgb(205 57 60 / 0.06);
-  stroke: rgb(224 73 77 / 0.45);
-  stroke-width: 1;
-}
-
-.chip-block-lit line {
-  stroke: rgb(224 73 77 / 0.38);
-  stroke-width: 1;
+  --chip-panel-fill: rgb(205 57 60 / 0.08);
+  --chip-panel-stroke: rgb(232 85 90 / 0.9);
+  --chip-panel-width: 1.5;
+  --chip-cell-fill: rgb(205 57 60 / 0.06);
+  --chip-cell-stroke: rgb(224 73 77 / 0.45);
+  --chip-line-stroke: rgb(224 73 77 / 0.38);
+  opacity: 0;
 }
 
 /* --- pathways: grey lines that fill like fluid ----------------------- */
-
-.chip-trace-group {
-  --tp: clamp(0, calc((var(--p) - var(--td)) / var(--tw, 0.12)), 1);
-}
 
 .chip-trace-base,
 .chip-trace,
@@ -330,26 +328,207 @@ body {
   stroke: var(--tc);
   stroke-width: calc(var(--sw, 5) * 0.6);
   stroke-dasharray: 1;
-  stroke-dashoffset: calc(1 - var(--tp));
-  opacity: calc(0.75 * var(--tp));
-  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--tc) 50%, transparent));
+  stroke-dashoffset: 1;
+  opacity: 0;
 }
 
-/* light packets running along flooded channels */
+/* Light packets share one paused animation. It starts only once the first
+   trace can be visible, instead of running every invisible path at load. */
+.chip-traces-pulses {
+  animation: chip-pulse 2.6s linear infinite paused;
+}
+
+.chip-stage[data-pulses="true"] .chip-traces-pulses {
+  animation-play-state: running;
+}
+
+.chip-stage[data-low-power="true"] .chip-traces-pulses {
+  display: none;
+}
+
 .chip-trace-pulse {
   stroke: var(--tc);
   stroke-width: calc(var(--sw, 5) * 0.6);
   stroke-dasharray: 0.04 0.21;
-  animation: chip-pulse 2.4s linear infinite;
-  opacity: calc(0.35 * var(--tp));
-}
-
-.chip-trace-group:nth-child(odd) .chip-trace-pulse {
-  animation-duration: 3.1s;
+  opacity: 0;
 }
 
 @keyframes chip-pulse {
   to {
     stroke-dashoffset: -0.25;
+  }
+}
+
+/* Native scroll timelines keep the compositor-friendly choreography off the
+   JavaScript frame loop. useScrollProgress supplies the fallback elsewhere. */
+@supports (animation-timeline: scroll(root block)) {
+  .chip-stage[data-native-scroll="true"] .chip-die3d {
+    animation: chip-camera-native cubic-bezier(0.65, 0, 0.35, 1) both;
+    animation-timeline: scroll(root block);
+    animation-range: 5% 64%;
+  }
+
+  .chip-stage[data-native-scroll="true"] .chip-title,
+  body:has(.chip-stage[data-native-scroll="true"]) .chip-nav {
+    animation: chip-title-native cubic-bezier(0.65, 0, 0.35, 1) both;
+    animation-timeline: scroll(root block);
+    animation-range: 68% 84%;
+  }
+
+  .chip-stage[data-native-scroll="true"] .chip-endcap {
+    animation: chip-endcap-native cubic-bezier(0.65, 0, 0.35, 1) both;
+    animation-timeline: scroll(root block);
+    animation-range: 75% 89%;
+  }
+
+  .chip-stage[data-native-scroll="true"] .chip-cue {
+    animation: chip-cue-native linear both;
+    animation-timeline: scroll(root block);
+    animation-range: 5% 15%;
+  }
+
+  .chip-stage[data-native-scroll="true"] .blueprint-grid {
+    animation: chip-opacity-native cubic-bezier(0.65, 0, 0.35, 1) both;
+    animation-timeline: scroll(root block);
+    animation-range: 68% 84%;
+  }
+
+  .chip-stage[data-native-scroll="true"] .chip-face,
+  .chip-stage[data-native-scroll="true"] .chip-side {
+    animation: chip-face-native linear both;
+    animation-timeline: scroll(root block);
+    animation-range: 2% 32%;
+  }
+
+  .chip-stage[data-native-scroll="true"] .chip-die-edge {
+    animation: chip-edge-native linear both;
+    animation-timeline: scroll(root block);
+    animation-range: 4% 26%;
+  }
+
+  .chip-stage[data-native-scroll="true"] .chip-die-edge-glow {
+    animation: chip-edge-glow-native linear both;
+    animation-timeline: scroll(root block);
+    animation-range: 4% 26%;
+  }
+
+  .chip-stage[data-native-scroll="true"] .chip-block-lit {
+    animation: chip-opacity-native linear both;
+    animation-timeline: scroll(root block);
+    animation-range: var(--chip-range-start) var(--chip-range-end);
+  }
+
+  .chip-stage[data-native-scroll="true"] .chip-trace {
+    animation: chip-trace-native linear both;
+    animation-timeline: scroll(root block);
+    animation-range: var(--chip-range-start) var(--chip-range-end);
+  }
+
+  .chip-stage[data-native-scroll="true"]:not([data-low-power="true"])
+    .chip-trace-pulse {
+    animation: chip-packet-native linear both;
+    animation-timeline: scroll(root block);
+    animation-range: var(--chip-range-start) var(--chip-range-end);
+  }
+}
+
+@keyframes chip-camera-native {
+  from {
+    transform: translate3d(8%, 14%, 0) rotateX(70deg) rotateZ(-18deg)
+      scale(2.1);
+  }
+  to {
+    transform: translate3d(0, 8%, 0) rotateX(0) rotateZ(0) scale(0.95);
+  }
+}
+
+@keyframes chip-title-native {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes chip-endcap-native {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes chip-cue-native {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes chip-opacity-native {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes chip-face-native {
+  from {
+    opacity: 0.22;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes chip-edge-native {
+  from {
+    opacity: 0.08;
+    stroke-dashoffset: 1;
+  }
+  to {
+    opacity: 1;
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes chip-edge-glow-native {
+  from {
+    opacity: 0.02;
+    stroke-dashoffset: 1;
+  }
+  to {
+    opacity: 0.2;
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes chip-trace-native {
+  from {
+    opacity: 0;
+    stroke-dashoffset: 1;
+  }
+  to {
+    opacity: 0.75;
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes chip-packet-native {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.35;
   }
 }
