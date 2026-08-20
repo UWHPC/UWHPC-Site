@@ -8,9 +8,8 @@ import ChipDie from "@/components/ChipDie";
  * Scroll-driven hero: a dim, slightly isometric processor die that
  * wakes up as you scroll — edges trace in, blocks light, signal lines
  * run between them — while the camera flattens to a bird's-eye view.
- * A tall runway section pins a full-screen stage; progress through
- * the runway is written to `--p` (see useScrollProgress) and all
- * animation derives from it in CSS.
+ * A tall runway section pins a full-screen stage; useScrollProgress
+ * drives the camera and lighting layers from progress through it.
  */
 export default function Hero() {
   const ref = useScrollProgress<HTMLElement>();
@@ -20,6 +19,8 @@ export default function Hero() {
       ref={ref}
       className="chip-stage relative h-[300vh]"
       data-end="false"
+      data-pulses="false"
+      data-scrolling="false"
     >
       <div className="chip-sticky sticky top-0 flex h-screen flex-col items-center justify-center overflow-hidden pt-16">
         <div className="blueprint-grid pointer-events-none absolute inset-0 mx-auto max-w-6xl border-line md:border-x" />
