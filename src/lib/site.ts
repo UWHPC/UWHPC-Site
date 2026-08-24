@@ -146,6 +146,12 @@ export const TEAM: TeamMember[] = [
     imageClassName: "object-cover object-[50%_28%]",
   },
   {
+    name: "Rita Bhowmik",
+    role: "Growth & Operations Director",
+    image: "/team/rita-bhowmik.png",
+    imageClassName: "object-cover object-center",
+  },
+  {
     name: "Shpat Sahiti",
     role: "Software Developer",
     image: "/team/shpat.png",
