@@ -8,6 +8,8 @@ const links = [
     href: "https://www.linkedin.com/company/uw-hpc/",
   },
   { label: "Discord", href: "https://discord.gg/Q54uuaWvhA" },
+  { label: "X", href: "https://x.com/uw_hpc" },
+  { label: "Instagram", href: "https://www.instagram.com/uw.hpc/" },
 ];
 
 export default function Footer() {
