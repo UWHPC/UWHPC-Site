@@ -7,6 +7,7 @@ const links = [
     label: "LinkedIn",
     href: "https://www.linkedin.com/company/uw-hpc/",
   },
+  { label: "Discord", href: "https://discord.gg/Q54uuaWvhA" },
 ];
 
 export default function Footer() {

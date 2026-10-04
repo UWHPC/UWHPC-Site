@@ -5,12 +5,12 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/onboarding",
-        destination: "https://docs.uwhpc.com/onboarding/",
+        destination: "/join",
         permanent: false,
       },
       {
         source: "/apply",
-        destination: "https://docs.uwhpc.com/onboarding/",
+        destination: "/join",
         permanent: false,
       },
     ];

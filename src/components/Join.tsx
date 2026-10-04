@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useFadeIn } from "@/hooks/useFadeIn";
 import { Container, SectionHeader, Pins, Fiducial } from "@/components/ui";
+import { SOCIAL_LINKS } from "@/lib/site";
 
 export default function Join({ as = "h2" }: { as?: "h1" | "h2" }) {
   const bannerRef = useFadeIn(100);
@@ -29,7 +30,7 @@ export default function Join({ as = "h2" }: { as?: "h1" | "h2" }) {
           <Pins className="absolute -bottom-[7px] left-1/2 -translate-x-1/2" />
 
           <div className="grid gap-10 sm:grid-cols-2 sm:gap-0">
-            {/* Students → onboarding */}
+            {/* Students → Discord */}
             <div className="flex flex-col items-center text-center sm:px-10">
               <span className="mb-4 font-mono text-[11px] tracking-[0.2em] uppercase text-ink-faint">
                 For Students
@@ -38,16 +39,16 @@ export default function Join({ as = "h2" }: { as?: "h1" | "h2" }) {
                 Ready to join?
               </h3>
               <p className="mb-8 max-w-xs font-light text-ink-muted">
-                New members start here. Our onboarding guide walks you through
-                everything you need to get up and running with the team.
+                New members start here. Join our Discord to meet the team, hear
+                about upcoming meetings, and find a project to get involved in.
               </p>
               <a
-                href="https://docs.uwhpc.com/onboarding/"
+                href={SOCIAL_LINKS.discord}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-auto bg-accent px-7 py-3.5 font-mono text-xs tracking-[0.15em] uppercase text-white transition-colors hover:bg-accent-bright focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
               >
-                Start Onboarding
+                Join our Discord
               </a>
             </div>
 
@@ -70,17 +71,6 @@ export default function Join({ as = "h2" }: { as?: "h1" | "h2" }) {
                 Get in Touch
               </Link>
             </div>
-          </div>
-
-          <div className="mt-10 border-t border-line pt-6 text-center">
-            <a
-              href="https://discord.gg/Q54uuaWvhA"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-mono text-xs tracking-[0.15em] uppercase text-ink-muted transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            >
-              Or join our Discord &rarr;
-            </a>
           </div>
         </div>
       </Container>
