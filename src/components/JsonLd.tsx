@@ -102,6 +102,7 @@ export const organizationSchema = {
     SOCIAL_LINKS.linkedin,
     SOCIAL_LINKS.instagram,
     SOCIAL_LINKS.x,
+    SOCIAL_LINKS.discord,
   ],
   member: TEAM.map((m) => ({
     "@type": "Person",

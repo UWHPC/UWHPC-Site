@@ -75,6 +75,7 @@ function body(): string {
     `- LinkedIn: ${SOCIAL_LINKS.linkedin}`,
     `- Instagram: ${SOCIAL_LINKS.instagram}`,
     `- X: ${SOCIAL_LINKS.x}`,
+    `- Discord: ${SOCIAL_LINKS.discord}`,
     `- Email: ${CONTACT_EMAIL}`,
     "",
   ].join("\n");
