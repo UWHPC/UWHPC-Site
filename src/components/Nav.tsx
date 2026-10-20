@@ -7,6 +7,7 @@ import Link from "next/link";
 const links = [
   { label: "Projects", href: "/projects" },
   { label: "Team", href: "/team" },
+  { label: "Sponsors", href: "/sponsors" },
   // Blog is hidden until it has real posts — see src/app/blog/page.tsx.
   { label: "Contact", href: "/contact" },
   { label: "Join", href: "/join" },

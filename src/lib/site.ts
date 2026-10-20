@@ -55,12 +55,46 @@ export type Project = {
 
 export const PROJECTS: Project[] = [
   {
+    title: "XPU",
+    description:
+      "A lightweight C++23 library providing a shared interface for memory management, math operations, data layouts, and execution across CPU and NVIDIA CUDA. It gives UWHPC projects a reusable performance foundation, with AMD HIP and SYCL backends on the roadmap.",
+    tags: ["C++", "CUDA", "Portability"],
+    status: "In Progress",
+    href: "https://github.com/UWHPC/xpu",
+  },
+  {
     title: "Variational Monte Carlo",
     description:
       "A Monte Carlo engine for simulating the homogeneous electron gas. Implements a Slater–Jastrow trial wavefunction and Metropolis sampling for electron configurations.",
     tags: ["C++", "Monte Carlo", "Quantum"],
     status: "In Progress",
     href: "https://github.com/UWHPC/Variational-Monte-Carlo",
+  },
+];
+
+export type SponsorTier = "Diamond" | "Gold" | "Silver" | "Bronze";
+
+/** Highest first. Tiers with no sponsors are skipped when rendering. */
+export const SPONSOR_TIERS: SponsorTier[] = ["Diamond", "Gold", "Silver", "Bronze"];
+
+export type Sponsor = {
+  name: string;
+  tier: SponsorTier;
+  /** White-on-transparent logo in /public/sponsors. */
+  logo: string;
+  logoWidth: number;
+  logoHeight: number;
+  href: string;
+};
+
+export const SPONSORS: Sponsor[] = [
+  {
+    name: "Jane Street",
+    tier: "Gold",
+    logo: "/sponsors/jane-street.png",
+    logoWidth: 529,
+    logoHeight: 146,
+    href: "https://www.janestreet.com",
   },
 ];
 

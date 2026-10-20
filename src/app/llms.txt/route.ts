@@ -8,6 +8,7 @@ import {
   SITE_NAME,
   SITE_URL,
   SOCIAL_LINKS,
+  SPONSORS,
   TEAM,
 } from "@/lib/site";
 
@@ -55,10 +56,15 @@ function body(): string {
     "",
     ...TEAM.map((m) => `- ${m.name} — ${m.role}`),
     "",
+    "## Sponsors",
+    "",
+    ...SPONSORS.map((s) => `- ${s.name} — ${s.tier} Sponsor`),
+    "",
     "## Pages",
     "",
     `- Projects: ${SITE_URL}/projects`,
     `- Team: ${SITE_URL}/team`,
+    `- Sponsors: ${SITE_URL}/sponsors`,
     `- Join the team: ${SITE_URL}/join`,
     `- Contact: ${SITE_URL}/contact`,
     "",
