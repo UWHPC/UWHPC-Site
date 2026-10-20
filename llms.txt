@@ -1,0 +1,30 @@
+# UWHPC (UW High Performance Computing)
+
+> UWHPC is an official student design team at the University of Waterloo specializing in high-performance computing, parallel programming, and low-level software optimization for computationally intensive workloads.
+
+## Overview
+
+UWHPC pushes the boundaries of software and hardware performance by building distributed systems, CUDA-accelerated engines, and parallel algorithms. Operating under the Sedra Student Design Centre (SDC) at Waterloo, the team serves as an incubator for engineers interested in systems architecture, low-latency execution, and high-performance computing.
+
+## Core Technical Focus
+
+- **Parallel Programming & GPU Computing:** CUDA, OpenMP, MPI, and multi-core CPU optimization.
+- **Low-Level Systems & Software Engineering:** Modern C++, memory management, cache-locality profiling, and hardware-software co-design.
+- **Distributed Systems:** Scalable multi-node processing architectures and high-throughput execution engines.
+
+## Key Projects & Software
+
+- **Variational Monte Carlo (VMC) Engines:** High-performance parallelized physics simulations built in CUDA C++.
+- **XPU Libraries:** Custom math and utility libraries designed for extreme compute efficiency.
+
+## Sponsors & Partners
+
+- **Gold Sponsor:** Jane Street[cite: 1]
+- **Institutional Backing:** Sedra Student Design Centre (SDC) at the University of Waterloo.
+
+## Links & Contact
+
+- **Website:** [https://www.uwhpc.com](https://www.uwhpc.com)
+- **Sponsorship & Inquiries:** info@uwhpc.com[cite: 1]
+- **Team & Leadership:** [https://www.uwhpc.com/team](https://www.uwhpc.com)
+- **Get Involved:** [https://www.uwhpc.com/get-involved](https://www.uwhpc.com)
