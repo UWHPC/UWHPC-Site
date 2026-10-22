@@ -75,7 +75,8 @@ export default function SponsorsPage() {
                         alt={s.name}
                         width={s.logoWidth}
                         height={s.logoHeight}
-                        className={`${tierStyle[tier].logo} w-auto max-w-full opacity-90 transition-opacity group-hover:opacity-100`}
+                        style={{ maxWidth: s.maxDisplayWidth }}
+                        className={`${tierStyle[tier].logo} w-full max-w-full object-contain opacity-90 transition-opacity group-hover:opacity-100`}
                       />
                       <span
                         aria-hidden="true"

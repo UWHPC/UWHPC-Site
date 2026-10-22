@@ -84,6 +84,7 @@ export type Sponsor = {
   logo: string;
   logoWidth: number;
   logoHeight: number;
+  maxDisplayWidth?: number;
   href: string;
 };
 
@@ -95,6 +96,15 @@ export const SPONSORS: Sponsor[] = [
     logoWidth: 529,
     logoHeight: 146,
     href: "https://www.janestreet.com",
+  },
+  {
+    name: "Citadel",
+    tier: "Gold",
+    logo: "/sponsors/citadel.svg",
+    logoWidth: 145,
+    logoHeight: 19,
+    maxDisplayWidth: 290,
+    href: "https://www.citadel.com/",
   },
 ];
 
