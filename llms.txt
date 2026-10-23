@@ -20,7 +20,6 @@ UWHPC pushes the boundaries of software and hardware performance by building dis
 ## Sponsors & Partners
 
 - **Gold Sponsor:** Jane Street[cite: 1]
-- **Gold Sponsor:** Citadel
 - **Institutional Backing:** Sedra Student Design Centre (SDC) at the University of Waterloo.
 
 ## Links & Contact
