@@ -151,6 +151,16 @@ body::after {
   visibility: hidden;
 }
 
+/* Skip link: on screen until the closing title and buttons take over. */
+.chip-skip {
+  transition: opacity 0.3s, visibility 0.3s;
+}
+
+.chip-stage[data-end="true"] .chip-skip {
+  opacity: 0;
+  visibility: hidden;
+}
+
 /* Opening statement: on screen at load, clears as the die powers on. */
 .chip-intro {
   opacity: 1;

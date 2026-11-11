@@ -1,6 +1,6 @@
 /// <reference types="bun" />
 import { expect, test } from "bun:test";
-import { stepProgress } from "./motion";
+import { seat, stepProgress } from "./motion";
 
 test("off-screen frames never render (final review: Important 1)", () => {
   expect(stepProgress({ current: 0.2, target: 0.21, dt: 0.016, visible: false }).render).toBe(false);
@@ -20,4 +20,25 @@ test("ordinary scrolling still eases", () => {
 
 test("settles exactly on the target", () => {
   expect(stepProgress({ current: 0.4999, target: 0.5, dt: 0.016, visible: true }).current).toBe(0.5);
+});
+
+test("seat: starts at rest, lands exactly, overshoots a little on the way in", () => {
+  expect(seat(0)).toBe(0);
+  expect(seat(1)).toBe(1);
+  expect(seat(-1)).toBe(0);
+  expect(seat(2)).toBe(1);
+  // eases out of rest
+  expect(seat(0.01)).toBeLessThan(0.01);
+  // a small overshoot (a part settling into place), never a bounce
+  let peak = 0;
+  for (let x = 0; x <= 1; x += 0.001) peak = Math.max(peak, seat(x));
+  expect(peak).toBeGreaterThan(1.015);
+  expect(peak).toBeLessThan(1.04);
+});
+
+test("idle: once settled the loop stops, while moving it keeps going", () => {
+  const settled = stepProgress({ current: 0.5, target: 0.5, dt: 0.016, visible: true });
+  expect(settled.render).toBe(true); // draws the final frame
+  expect(settled.idle).toBe(true);
+  expect(stepProgress({ current: 0.3, target: 0.32, dt: 0.016, visible: true }).idle).toBe(false);
 });

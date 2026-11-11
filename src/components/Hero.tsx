@@ -105,7 +105,7 @@ export default function Hero() {
                     className="group flex items-center gap-2.5 text-ink-faint transition-colors duration-300 data-active:text-ink"
                   >
                     <span className="h-1.5 w-1.5 bg-line-strong transition-colors duration-300 group-data-active:bg-accent" />
-                    <span className="md:w-16">{l.name}</span>
+                    <span className="shrink-0 md:w-24">{l.name}</span>
                     <span className="hidden tracking-normal normal-case text-ink-faint md:inline">
                       {l.note}
                     </span>
@@ -113,9 +113,16 @@ export default function Hero() {
                 ))}
               </ol>
             </div>
+          </div>
+        </div>
+
+        {/* skip link: there from the first frame on every screen, gone at the end;
+            under the nav on phones, beside the readout from sm up */}
+        <div className="chip-skip pointer-events-none absolute inset-x-0 top-20 z-20 sm:top-auto sm:bottom-0">
+          <div className="mx-auto flex max-w-6xl justify-end px-6 sm:pb-6 md:px-10 md:pb-8">
             <a
               href="#about"
-              className="pointer-events-auto hidden font-mono text-[11px] tracking-[0.14em] whitespace-nowrap uppercase text-ink-muted transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:block"
+              className="pointer-events-auto font-mono text-[11px] tracking-[0.14em] whitespace-nowrap uppercase text-ink-muted transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
               Skip intro ↓
             </a>

@@ -2,12 +2,13 @@ import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { PALETTE, clay, outline } from "./materials";
 import { buildBoard, buildCard, buildCasing } from "./models/gpu";
-import { cardPose, joinDrop, slotPose, HERO_SLOT } from "./poses";
+import { cardPose, joinDrop, slotPose, HERO_SLOT, SERVER_FLOOR_Y } from "./poses";
 import { buildServer, type ServerGroup } from "./models/server";
 import { buildMicro } from "./models/micro";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
-import { dieTextures } from "./textures";
+import { dieTextures, shadowTexture } from "./textures";
 import { cameraAt, progress, xrayAt } from "./timeline";
+import { seat } from "./motion";
 
 /**
  * The build-up hero's three.js scene. Models are built once; `update(p)`
@@ -35,13 +36,17 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
   scene.environment = env;
   scene.environmentIntensity = 0.35;
 
-  // clay lighting: one soft key, a cool rim, a broad fill
+  // clay lighting: one soft key, two cool rims from behind that pick the
+  // dark sides of the cards and chassis out of the background, a broad fill
   const key = new THREE.DirectionalLight("#ffffff", 2.0);
   key.position.set(-0.6, 1, 0.8);
   scene.add(key);
-  const rim = new THREE.DirectionalLight("#c9d6ff", 0.7);
+  const rim = new THREE.DirectionalLight("#c9d6ff", 1.5);
   rim.position.set(0.9, 0.5, -0.7);
   scene.add(rim);
+  const rim2 = new THREE.DirectionalLight("#d6dcf0", 0.9);
+  rim2.position.set(-1, 0.35, -0.6);
+  scene.add(rim2);
   scene.add(new THREE.HemisphereLight("#f2f2f5", "#1a1a1d", 1.1));
 
   const camera = new THREE.PerspectiveCamera(opts.mobile ? 48 : 34, 1, 0.05, 20000);
@@ -124,6 +129,25 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
     return { g, home };
   });
 
+  // contact shadows: soft dark pools under the lying card and the server
+  const shadowMap = tex(shadowTexture());
+  const shadow = (w: number, d: number) => {
+    const m = new THREE.Mesh(
+      new THREE.PlaneGeometry(w, d),
+      new THREE.MeshBasicMaterial({ map: shadowMap, transparent: true, depthWrite: false, toneMapped: false })
+    );
+    m.rotation.x = -Math.PI / 2;
+    m.renderOrder = -1;
+    scene.add(m);
+    return m;
+  };
+  const cardShadow = shadow(170, 360);
+  cardShadow.position.set(0, -9.5, -18);
+  const serverShadow = shadow(700, 1150);
+  serverShadow.position.set(0, SERVER_FLOOR_Y - 3, 0);
+  const cardShadowMat = cardShadow.material as THREE.MeshBasicMaterial;
+  const serverShadowMat = serverShadow.material as THREE.MeshBasicMaterial;
+
   const micro = buildMicro();
   scene.add(micro.group);
 
@@ -152,8 +176,7 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
     // casing parts fly in, one after another
     const c = progress(p, "casing");
     casing.forEach(({ obj, from, order }, i) => {
-      const raw = Math.min(1, Math.max(0, (c - order * 0.14) / 0.44));
-      const t = raw * raw * (3 - 2 * raw);
+      const t = seat((c - order * 0.14) / 0.44);
       obj.position.set(
         casingBase[i].x + from[0] * (1 - t),
         casingBase[i].y + from[1] * (1 - t),
@@ -167,6 +190,11 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
     card.position.set(...pose.position);
     card.rotation.set(...pose.rotation);
     const j = progress(p, "join");
+    const board = progress(p, "toBoard");
+    cardShadowMat.opacity = Math.min(board * 2, 1) * (1 - Math.min(1, j / 0.4));
+    cardShadow.visible = cardShadowMat.opacity > 0.01;
+    serverShadowMat.opacity = Math.min(1, j / 0.5);
+    serverShadow.visible = serverShadowMat.opacity > 0.01;
     others.forEach(({ g, k, home }) => {
       const t = joinDrop(j, k);
       g.position.set(home.x, home.y + 260 * (1 - t), home.z - 60 * (1 - t));
@@ -174,8 +202,7 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
     });
     const br = progress(p, "bridges");
     bridges.forEach(({ g, home }, i) => {
-      const raw = Math.min(1, Math.max(0, (br - i * 0.3) / 0.7));
-      const t = raw * raw * (3 - 2 * raw);
+      const t = seat((br - i * 0.3) / 0.7);
       g.position.set(home.x, home.y + 140 * (1 - t), home.z);
       g.visible = t > 0;
     });
@@ -184,8 +211,7 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
       const g = progress(p, key);
       list.forEach(({ obj, from }, i) => {
         // within a group, parts arrive one after another
-        const raw = Math.min(1, Math.max(0, (g - (i / list.length) * 0.5) / 0.5));
-        const t = raw * raw * (3 - 2 * raw);
+        const t = seat((g - (i / list.length) * 0.5) / 0.5);
         const base = serverBase.get(obj)!;
         obj.position.set(base.x + from[0] * (1 - t), base.y + from[1] * (1 - t), base.z + from[2] * (1 - t));
         obj.visible = t > 0;

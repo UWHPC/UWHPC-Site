@@ -227,3 +227,24 @@ export function pcbTexture() {
 }
 
 /* ---- datacentre floor ---------------------------------------------- */
+
+/**
+ * A soft contact shadow: dark in the middle, fading to nothing at the
+ * edge, with a faint lighter ring so objects read as resting on a floor
+ * rather than floating in the dark.
+ */
+export function shadowTexture(): HTMLCanvasElement {
+  const c = document.createElement("canvas");
+  c.width = c.height = 256;
+  const g = c.getContext("2d")!;
+  const r = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+  r.addColorStop(0, "rgba(0,0,0,0.7)");
+  r.addColorStop(0.3, "rgba(0,0,0,0.42)");
+  r.addColorStop(0.52, "rgba(0,0,0,0.08)");
+  r.addColorStop(0.62, "rgba(255,255,255,0.006)");
+  r.addColorStop(0.78, "rgba(255,255,255,0.012)");
+  r.addColorStop(1, "rgba(255,255,255,0)");
+  g.fillStyle = r;
+  g.fillRect(0, 0, 256, 256);
+  return c;
+}

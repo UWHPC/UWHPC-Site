@@ -39,3 +39,10 @@ test("every joining card lands fully in its slot by the end of join", () => {
   // later cards arrive after earlier ones
   expect(joinDrop(0.6, 0)).toBeGreaterThan(joinDrop(0.6, 6));
 });
+
+test("joining cards settle into their slots (a small overshoot, then exact)", () => {
+  let peak = 0;
+  for (let j = 0; j <= 1; j += 0.001) peak = Math.max(peak, joinDrop(j, 0));
+  expect(peak).toBeGreaterThan(1.01);
+  expect(joinDrop(1, 6)).toBe(1);
+});

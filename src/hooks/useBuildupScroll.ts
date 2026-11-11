@@ -95,6 +95,9 @@ export function useBuildupScroll<T extends HTMLElement = HTMLElement>() {
       if (!step.render) return; // off screen: no rendering until it's back
       applyOverlays(current);
       scene?.update(current, (now - t0) / 1000);
+      // settled: that was the last frame until the next scroll (the fans
+      // only spin while things move, which saves battery)
+      if (step.idle) return;
       raf = requestAnimationFrame(frame);
     };
     const start = () => {

@@ -1,3 +1,4 @@
+import { seat } from "./motion";
 import { progress, type Vec3 } from "./timeline";
 
 /**
@@ -39,9 +40,8 @@ export function cardPose(p: number): Pose {
 /**
  * How far joining card k (0 = nearest the hero) has dropped into its slot,
  * 0..1, at join progress j. The stagger fits inside the step, so the last
- * card (k = 6) lands at j = 0.96.
+ * card (k = 6) lands at j = 0.96. Each card seats with a small overshoot.
  */
 export function joinDrop(j: number, k: number): number {
-  const raw = Math.min(1, Math.max(0, (j - 0.3 - k * 0.06) / 0.3));
-  return raw * raw * (3 - 2 * raw);
+  return seat((j - 0.3 - k * 0.06) / 0.3);
 }
