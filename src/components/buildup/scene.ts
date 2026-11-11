@@ -202,10 +202,16 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
     });
     server.shellEdges.opacity = xr.edges;
 
+    // the keys are framed for landscape; a tall, narrow screen stands back
     const { position, target } = cameraAt(p);
-    camera.position.set(...position);
+    const fit = camera.aspect < 1 ? Math.min(1.9, 0.62 / camera.aspect + 0.3) : 1;
+    camera.position.set(
+      target[0] + (position[0] - target[0]) * fit,
+      target[1] + (position[1] - target[1]) * fit,
+      target[2] + (position[2] - target[2]) * fit
+    );
     camera.lookAt(...target);
-    const d = Math.hypot(position[0] - target[0], position[1] - target[1], position[2] - target[2]);
+    const d = camera.position.distanceTo(new THREE.Vector3(...target));
     camera.near = Math.max(0.05, d / 60);
     camera.far = d * 40 + 2000;
     camera.updateProjectionMatrix();
