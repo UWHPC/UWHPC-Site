@@ -21,6 +21,10 @@ const FLOOR = SERVER_FLOOR_Y;
 const TOP = FLOOR + H;
 const PSU_X = [130, 194];
 const POWER_Z = -147;
+const POWER_SOCKET_TOP = FLOOR + 70;
+const COMB_Y = POWER_SOCKET_TOP + 19;
+const COMB_Z = POWER_Z + 2;
+const LEAD_OFFSETS = [-21, -7, 7, 21];
 type Point = [number, number, number];
 
 const M = {
@@ -158,11 +162,35 @@ function buildPowerSupplies(psus: THREE.Group) {
   // The GPU leads plug into a power distribution board at the front of the supplies.
   part(psus, 126, 2, 26, M.steel, 162, FLOOR + 58, POWER_Z);
   part(psus, 119, 1.8, 22, M.pcb, 162, FLOOR + 60, POWER_Z, true);
-  const sockets: Point[] = PSU_X.flatMap((x) =>
-    Array.from({ length: 4 }, (_, i): Point => [x - 21 + i * 14, FLOOR + 61.8, POWER_Z])
-  );
+  const sockets: Point[] = PSU_X.flatMap((x) => LEAD_OFFSETS.map((offset): Point => [x + offset, FLOOR + 61.8, POWER_Z]));
   many(psus, 11, 8.2, 14, M.plug, sockets);
   many(psus, 8.5, 0.6, 11, M.recess, sockets.map(([x, y, z]) => [x, y + 8.2, z]));
+}
+
+function addCableCombs(power: THREE.Group) {
+  const comb = new THREE.Shape();
+  comb.moveTo(-27, -4);
+  comb.lineTo(-25, -6);
+  comb.lineTo(25, -6);
+  comb.lineTo(27, -4);
+  comb.lineTo(27, 4);
+  comb.lineTo(25, 6);
+  comb.lineTo(-25, 6);
+  comb.lineTo(-27, 4);
+  comb.closePath();
+  for (const offset of LEAD_OFFSETS) {
+    const hole = new THREE.Path();
+    hole.absarc(offset, 0, 3.6, 0, Math.PI * 2, true);
+    comb.holes.push(hole);
+  }
+  const geometry = new THREE.ExtrudeGeometry(comb, { depth: 2, bevelEnabled: false, curveSegments: 9 });
+  geometry.rotateX(-Math.PI / 2);
+  for (const x of PSU_X) {
+    const mesh = new THREE.Mesh(geometry, M.cableCollar);
+    mesh.position.set(x, COMB_Y - 1, COMB_Z);
+    power.add(mesh);
+    outline(mesh, 0.17);
+  }
 }
 
 function buildFanModels(rotors: THREE.Object3D[]) {
@@ -250,20 +278,20 @@ export function buildServer() {
     const pz = sz - 125;
     part(power, 10, 7.5, 20, M.plug, px, py, pz, true);
     const k = i % 4;
-    const tx = PSU_X[i < 4 ? 0 : 1] - 21 + k * 14;
-    const socketTop = FLOOR + 70;
-    part(power, 8, 4, 10, M.cableCollar, tx, socketTop, POWER_Z);
-    part(power, 5, 3, 5, M.plug, tx, socketTop + 4, POWER_Z);
+    const tx = PSU_X[i < 4 ? 0 : 1] + LEAD_OFFSETS[k];
+    part(power, 8, 4, 10, M.cableCollar, tx, POWER_SOCKET_TOP, POWER_Z);
+    part(power, 5, 3, 5, M.plug, tx, POWER_SOCKET_TOP + 4, POWER_Z);
     part(power, 7, 2, 8, M.cableCollar, px, py + 7.5, pz);
     const curve = new THREE.CatmullRomCurve3([
       new THREE.Vector3(px, py + 7, pz),
       new THREE.Vector3(px, py + 20, pz - 12),
       new THREE.Vector3((px + tx) / 2, py + 23 - k * 2, (pz + POWER_Z) / 2 - 5),
-      new THREE.Vector3(tx, socketTop + 19, POWER_Z + 2),
-      new THREE.Vector3(tx, socketTop + 7, POWER_Z),
+      new THREE.Vector3(tx, COMB_Y, COMB_Z),
+      new THREE.Vector3(tx, POWER_SOCKET_TOP + 7, POWER_Z),
     ]);
     power.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 40, 2.25, 7, false), M.cable));
   }
+  addCableCombs(power);
 
   /* chassis: floor, walls, front and rear panels (each from its own side) */
   const shellMat = (color = "#232428") => {
@@ -273,39 +301,46 @@ export function buildServer() {
   };
   const shellEdges = new THREE.LineBasicMaterial({ color: "#c8c8c8", transparent: true, opacity: 0.2, depthWrite: false });
   const shell: THREE.Mesh[] = [];
-  const panelPiece = (parent: THREE.Group, w: number, h: number, d: number, x: number, y: number, z: number) => {
+  const lidShell: THREE.Mesh[] = [];
+  const frameShell: THREE.Mesh[] = [];
+  const panelPiece = (parent: THREE.Group, w: number, h: number, d: number, x: number, y: number, z: number, panels = shell) => {
     const mesh = part(parent, w, h, d, shellMat(), x, y, z);
     const edges = new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry, 30), shellEdges);
     edges.renderOrder = 1;
     mesh.add(edges);
-    shell.push(mesh);
+    panels.push(mesh);
   };
-  const panel = (key: ServerGroup, from: Point, w: number, h: number, d: number, x: number, y: number, z: number) => {
+  const panel = (key: ServerGroup, from: Point, w: number, h: number, d: number, x: number, y: number, z: number, panels = shell) => {
     const g = group(key, from);
-    panelPiece(g, w, h, d, x, y, z);
+    panelPiece(g, w, h, d, x, y, z, panels);
     return g;
   };
   const floorG = group("chassis", [0, -160, 0]);
   shell.push(part(floorG, W, 2, D, shellMat("#19191c"), 0, FLOOR - 2, 0, true));
   const trim = shellMat("#45484f");
   const relief = shellMat("#141518");
+  const frameTrim = trim.clone();
+  const bezelRelief = relief.clone();
   for (const side of [-1, 1]) {
-    const wall = panel("chassis", [side * 170, 0, 0], 2, H, D, side * W / 2, FLOOR, 0);
-    shell.push(part(wall, 4, 5, D - 36, trim, side * (W / 2 - 3), TOP - 6, 0));
-    shell.push(many(wall, 1.6, 4.2, 7, trim, [-350, -220, -90, 90, 220, 350].map((z) => [side * (W / 2 + 1), FLOOR + 19, z])));
+    const panels = side > 0 ? shell : frameShell;
+    const wallTrim = side > 0 ? trim : frameTrim;
+    const wall = panel("chassis", [side * 170, 0, 0], 2, H, D, side * W / 2, FLOOR, 0, panels);
+    panels.push(part(wall, 4, 5, D - 36, wallTrim, side * (W / 2 - 3), TOP - 6, 0));
+    panels.push(many(wall, 1.6, 4.2, 7, wallTrim, [-350, -220, -90, 90, 220, 350].map((z) => [side * (W / 2 + 1), FLOOR + 19, z])));
+    frameShell.push(many(wall, 5, H - 4, 9, frameTrim, [-D / 2 + 9, D / 2 - 11].map((z) => [side * (W / 2 - 3), FLOOR + 2, z])));
   }
-  const front = panel("chassis", [0, 0, 220], W, H, 10, 0, FLOOR, D / 2 - 5);
+  const front = panel("chassis", [0, 0, 220], W, H, 10, 0, FLOOR, D / 2 - 5, frameShell);
   // front panel relief: intake vents and drive bays
   const frontZ = D / 2;
   const intake: Point[] = [];
   for (let row = 0; row < 12; row++) {
     for (let col = 0; col < 6; col++) intake.push([40 + col * 31, FLOOR + 27 + row * 10, frontZ + 0.7]);
   }
-  shell.push(many(front, 25, 3.1, 1.5, relief, intake));
+  frameShell.push(many(front, 25, 3.1, 1.5, bezelRelief, intake));
   const drives: Point[] = Array.from({ length: 4 }, (_, i) => [-190 + i * 46, FLOOR + 50, frontZ + 0.9]);
-  shell.push(many(front, 40, 70, 2, relief, drives));
-  shell.push(many(front, 28, 5, 3.4, trim, drives.map(([x, y, z]) => [x, y + 9, z + 1.2])));
-  shell.push(many(front, 22, 1.6, 1.1, relief, drives.map(([x, y, z]) => [x, y + 11, z + 3])));
+  frameShell.push(many(front, 40, 70, 2, bezelRelief, drives));
+  frameShell.push(many(front, 28, 5, 3.4, frameTrim, drives.map(([x, y, z]) => [x, y + 9, z + 1.2])));
+  frameShell.push(many(front, 22, 1.6, 1.1, bezelRelief, drives.map(([x, y, z]) => [x, y + 11, z + 3])));
 
   // status LEDs above the drive bays: one per GPU, then power (red). They
   // stay solid through the x-ray; the scene blinks them once the lid is on.
@@ -336,10 +371,11 @@ export function buildServer() {
   shell.push(part(rear, 26, 11, 1.6, relief, -68, FLOOR + 24, rearZ - 1.35));
 
   /* lid, last */
-  const lid = panel("lid", [0, 320, 0], W + 4, 2.4, D + 4, 0, TOP, 0);
-  shell.push(many(lid, 3.2, 1, D - 70, trim, [[-208, TOP + 2.4, 0], [208, TOP + 2.4, 0]]));
-  shell.push(part(lid, 52, 2.2, 14, relief, 0, TOP + 2.4, 278));
-  shell.push(part(lid, 37, 1.2, 5, trim, 0, TOP + 4.6, 278));
+  const lid = panel("lid", [0, 320, 0], W + 4, 2.4, D + 4, 0, TOP, 0, lidShell);
+  const lidTrim = trim.clone();
+  lidShell.push(many(lid, 3.2, 1, D - 70, lidTrim, [[-208, TOP + 2.4, 0], [208, TOP + 2.4, 0]]));
+  lidShell.push(part(lid, 52, 2.2, 14, relief.clone(), 0, TOP + 2.4, 278));
+  lidShell.push(part(lid, 37, 1.2, 5, lidTrim, 0, TOP + 4.6, 278));
 
-  return { parts, shell, shellEdges, rotors, leds };
+  return { parts, shell, lidShell, frameShell, shellEdges, rotors, leds };
 }

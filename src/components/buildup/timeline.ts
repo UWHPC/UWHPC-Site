@@ -37,8 +37,8 @@ export const STEPS: Record<Step, [number, number]> = {
   psus: [0.72, 0.76],
   chassis: [0.75, 0.81],
   lid: [0.8, 0.85],
-  xray: [0.85, 0.9],
-  title: [0.9, 0.97],
+  xray: [0.882, 0.945],
+  title: [0.95, 0.99],
 };
 
 /** Height of the hero's scroll runway, in viewport heights. */
@@ -69,7 +69,9 @@ export const CAMERA_KEYS: CameraKey[] = [
   { t: STEPS.casing[0], target: [0, -4, -13], offset: [184, 171, 223] },
   { t: 0.48, target: [0, 10, 0], offset: [250, 230, 300] },
   { t: 0.6, target: [0, -40, 40], offset: [420, 360, 520] },
-  { t: 0.85, target: [-30, -80, 90], offset: [700, 560, 860] },
+  { t: STEPS.lid[1], target: [-30, -80, 90], offset: [700, 560, 860] },
+  { t: STEPS.xray[0], target: [-30, -80, 90], offset: [700, 560, 860] },
+  { t: STEPS.xray[1], target: [-20, -58, 68], offset: [440, 665, 1040] },
   { t: 1.0, target: [-20, -58, 68], offset: [440, 665, 1040] },
 ];
 
@@ -129,18 +131,21 @@ export function overlaysAt(pRaw: number) {
   return {
     intro: 1 - ease(phase(p, 0.01, 0.05)),
     cue: 1 - phase(p, 0.02, 0.03),
-    hud: phase(p, 0.04, 0.04) * (1 - phase(p, 0.86, 0.03)),
+    hud: phase(p, 0.04, 0.04) * (1 - phase(p, STEPS.lid[1], 0.024)),
     title: progress(p, "title"),
-    endcap: ease(phase(p, 0.92, 0.06)),
+    endcap: ease(phase(p, 0.962, 0.033)),
   };
 }
 
 /* ---- x-ray ending ------------------------------------------------------- */
 
-/** Server shell opacity and its edge-line opacity: solid, then see-through. */
-export function xrayAt(pRaw: number): { shell: number; edges: number } {
-  const x = progress(clampP(pRaw), "xray");
-  return { shell: 1 - 0.9 * x, edges: 0.2 + 0.3 * x };
+/** The lid clears first, then the near wall, while the bezel and posts frame the interior. */
+export function xrayAt(p: number) {
+  const [start, end] = STEPS.xray;
+  const reveal = phase(p, start, end - start);
+  const lid = ease(phase(reveal, 0, 0.65));
+  const shell = ease(phase(reveal, 0.36, 0.64));
+  return { shell: 1 - 0.6 * shell, lid: 1 - 0.78 * lid, frame: 1 - 0.34 * shell, edges: 0.2 + 0.3 * ease(reveal) };
 }
 
 /**

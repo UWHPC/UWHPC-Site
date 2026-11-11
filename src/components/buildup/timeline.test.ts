@@ -77,11 +77,21 @@ test("overlays: content is visible at both ends", () => {
   expect(overlaysAt(1).hud).toBe(0);
 });
 
-test("x-ray: the shell stays solid until the lid is on, then turns see-through", () => {
-  expect(xrayAt(0.84)).toEqual({ shell: 1, edges: 0.2 });
-  const end = xrayAt(1);
-  expect(end.shell).toBeCloseTo(0.1, 6);
-  expect(end.edges).toBeCloseTo(0.5, 6);
+test("the closed server holds its frame before the lid and wall fade in sequence", () => {
+  const closed = STEPS.lid[1];
+  const [start, end] = STEPS.xray;
+  expect(start - closed).toBeGreaterThan(0.03);
+  expect(cameraAt((closed + start) / 2)).toEqual(cameraAt(closed));
+  expect(xrayAt(start)).toEqual({ shell: 1, lid: 1, frame: 1, edges: 0.2 });
+  const early = xrayAt(start + (end - start) * 0.3);
+  expect(early.lid).toBeLessThan(1);
+  expect(early.shell).toBe(1);
+  expect(overlaysAt(end).title).toBe(0);
+  const settled = xrayAt(1);
+  expect(settled.shell).toBeCloseTo(0.4, 6);
+  expect(settled.lid).toBeCloseTo(0.22, 6);
+  expect(settled.frame).toBeCloseTo(0.66, 6);
+  expect(settled.edges).toBeCloseTo(0.5, 6);
   expect(xrayAt(-1)).toEqual(xrayAt(0));
 });
 
@@ -103,7 +113,7 @@ test("ambient motion only where the scene moves on its own", () => {
 test("end drift: still until the title arrives, then a slow, small sway", () => {
   for (const t of [0, 3.7, 11, 40]) {
     expect(endDrift(0.5, t)).toBe(0);
-    expect(endDrift(0.9, t)).toBe(0); // title step starts here: no jump
+    expect(endDrift(STEPS.title[0], t)).toBe(0); // title step starts here: no jump
     expect(Math.abs(endDrift(1, t))).toBeLessThanOrEqual(0.07);
   }
   // it moves slowly: under 0.02 rad per second at most

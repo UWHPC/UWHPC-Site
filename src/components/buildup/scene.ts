@@ -162,6 +162,14 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
 
   // two 4-way NVLink bridges across the card tops (cards 0–3, 4–7)
   const bridgeMat = clay(PALETTE.deep);
+  const bridgeCover = clay("#42464f", { roughness: 0.53 });
+  const bridgeMetal = new THREE.MeshStandardMaterial({ color: "#727883", metalness: 0.46, roughness: 0.44 });
+  const bridgeFastener = new THREE.CylinderGeometry(2.25, 2.55, 0.8, 12);
+  const connectorMark = new THREE.BoxGeometry(6.5, 0.6, 1.6);
+  const connectorHousing = new RoundedBoxGeometry(13, 4.2, 29, 2, 0.85);
+  const connectorGasket = new RoundedBoxGeometry(14.4, 0.8, 30.5, 1, 0.32);
+  const gasketMat = clay("#101115", { roughness: 0.92 });
+  const bridgeStandoff = 3.8;
   const bridgeEdge = clay(PALETTE.red, { roughness: 0.6 });
   bridgeEdge.emissive.set(PALETTE.red);
   bridgeEdge.emissiveIntensity = 0;
@@ -170,13 +178,38 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
     const x1 = slotPose(first + 3).position[0] + 5.5;
     const top = slotPose(first).position[1] + 55.5;
     const g = new THREE.Group();
-    const body = new THREE.Mesh(new RoundedBoxGeometry(x1 - x0, 7, 80, 3, 2), bridgeMat);
+    const width = x1 - x0;
+    const body = new THREE.Mesh(new RoundedBoxGeometry(width, 7, 80, 3, 2), bridgeMat);
     g.add(body);
     outline(body, 0.25);
-    const edge = new THREE.Mesh(new RoundedBoxGeometry(x1 - x0 - 6, 1, 1.2, 2, 0.4), bridgeEdge);
+    const cover = new THREE.Mesh(new RoundedBoxGeometry(width - 10, 1.5, 59, 2, 0.65), bridgeCover);
+    cover.position.y = 4.05;
+    g.add(cover);
+    const ridge = new THREE.Mesh(new RoundedBoxGeometry(width - 26, 0.9, 3, 2, 0.35), bridgeMetal);
+    ridge.position.set(0, 4.95, -19);
+    g.add(ridge);
+    for (const x of [-width / 2 + 10, width / 2 - 10]) {
+      for (const z of [-23, 23]) {
+        const fastener = new THREE.Mesh(bridgeFastener, bridgeMetal);
+        fastener.position.set(x, 5.05, z);
+        g.add(fastener);
+      }
+    }
+    for (let i = 0; i < 4; i++) {
+      // The upright shroud's upper edge sits about 24 mm inboard of the PCB.
+      const x = slotPose(first + i).position[0] - (x0 + x1) / 2 - 23.7;
+      const mark = new THREE.Mesh(connectorMark, bridgeEdge);
+      mark.position.set(x, 4.95, 22);
+      const housing = new THREE.Mesh(connectorHousing, bridgeCover);
+      housing.position.set(x, -5.45, 11);
+      const gasket = new THREE.Mesh(connectorGasket, gasketMat);
+      gasket.position.set(x, -7.1, 11);
+      g.add(mark, housing, gasket);
+    }
+    const edge = new THREE.Mesh(new RoundedBoxGeometry(width - 6, 1, 1.2, 2, 0.4), bridgeEdge);
     edge.position.set(0, 3.6, 40);
     g.add(edge);
-    const home = new THREE.Vector3((x0 + x1) / 2, top + 3.5, 54);
+    const home = new THREE.Vector3((x0 + x1) / 2, top + 3.5 + bridgeStandoff, 54);
     g.position.copy(home);
     g.visible = false;
     scene.add(g);
@@ -218,7 +251,10 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
       scene.add(obj);
     })
   );
-  const shellMats = server.shell.map((m) => m.material as THREE.MeshStandardMaterial);
+  const panelMaterials = (meshes: THREE.Mesh[]) => new Set(meshes.map((m) => m.material as THREE.MeshStandardMaterial));
+  const shellMats = panelMaterials(server.shell);
+  const lidMats = panelMaterials(server.lidShell);
+  const frameMats = panelMaterials(server.frameShell);
   const ledBase = server.leds.map((m) => m.color.clone());
 
   /* ---- per frame ------------------------------------------------------- */
@@ -293,10 +329,12 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
 
     // the closed server turns see-through so the eight GPUs stay in view
     const xr = xrayAt(p);
-    shellMats.forEach((m) => {
-      m.opacity = xr.shell;
-      m.depthWrite = xr.shell > 0.99;
-    });
+    for (const [materials, opacity] of [[shellMats, xr.shell], [lidMats, xr.lid], [frameMats, xr.frame]] as const) {
+      for (const material of materials) {
+        material.opacity = opacity;
+        material.depthWrite = opacity > 0.99;
+      }
+    }
     server.shellEdges.opacity = xr.edges;
     bridgeEdge.emissiveIntensity = 0.65 * progress(p, "xray");
 
@@ -305,8 +343,8 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
     const portraitFit = camera.aspect < 1 ? Math.min(2.35, 0.62 / camera.aspect + 0.3) : 1;
     // The angled chassis is widest on screen just before the camera swings front-on.
     const narrow = 1 - THREE.MathUtils.smoothstep(camera.aspect, 0.5, 0.78);
-    const wideChassis = THREE.MathUtils.smoothstep(p, STEPS.chassis[0], STEPS.xray[0]) *
-      (1 - THREE.MathUtils.smoothstep(p, STEPS.xray[0], 1));
+    const wideChassis = THREE.MathUtils.smoothstep(p, STEPS.chassis[0], STEPS.lid[1]) *
+      (1 - THREE.MathUtils.smoothstep(p, STEPS.xray[0], STEPS.xray[1]));
     const fit = portraitFit * (1 + 0.16 * narrow * wideChassis);
     // at the end, a slow sway around the server
     const yaw = endDrift(p, time);

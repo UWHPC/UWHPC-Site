@@ -289,6 +289,7 @@ const C = {
   fins: clay("#3d3f45", { roughness: 0.7 }),
   shroud: clay(PALETTE.body, { roughness: 0.78 }),
   skirt: clay(PALETTE.deep),
+  rail: new THREE.MeshStandardMaterial({ color: "#626670", metalness: 0.42, roughness: 0.55 }),
   backplate: clay("#18191c"),
   bracket: clay("#141517"),
   vent: clay("#0b0b0c"),
@@ -380,6 +381,16 @@ export function buildCasing(): CasingPart[] {
   accent.position.set(HALF_W - 4.6, SHROUD_TOP - 3.4, BOARD_Z);
   accent.rotation.z = -Math.PI / 4;
   shroud.add(accent);
+
+  // A segmented service rail stays visible on the upper edge in the rack.
+  many(shroud, 0.65, 4.8, 70, C.rail, [[HALF_W + 0.55, 21.4, -106], [HALF_W + 0.55, 21.4, 68]]);
+  const slots: [number, number, number][] = [-106, 68].flatMap((center) =>
+    Array.from({ length: 7 }, (_, i): [number, number, number] => [HALF_W + 0.92, 22.55, center - 24 + i * 8])
+  );
+  many(shroud, 0.22, 2.4, 4.2, C.vent, slots, 0);
+  many(shroud, 3.4, 0.65, 183, C.rail, [[-39, SHROUD_TOP, BOARD_Z], [39, SHROUD_TOP, BOARD_Z]]);
+  // The end of the fin stack has two retaining bars across the intake.
+  many(shroud, 110, 1.25, 2.6, C.rail, [9, 25].map((y) => [0, y, BOARD_MIN_Z + CARD.length - 2]));
   add(shroud, [0, 190, 0], 3);
 
   // PCIe bracket at the rear end, with vent slots and the mounting tab
