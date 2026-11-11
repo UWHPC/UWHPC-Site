@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import type { BuildupScene } from "@/components/buildup/scene";
+import { stepProgress } from "@/components/buildup/motion";
 import { LEVELS, clampP, levelAt, overlaysAt } from "@/components/buildup/timeline";
 
 /**
@@ -11,8 +12,6 @@ import { LEVELS, clampP, levelAt, overlaysAt } from "@/components/buildup/timeli
  * headline never waits on it; if WebGL or the import fails the overlays
  * still work and `data-scene-ready` becomes "failed".
  */
-
-const DAMPING = 6; // per second
 
 export function useBuildupScroll<T extends HTMLElement = HTMLElement>() {
   const ref = useRef<T>(null);
@@ -96,11 +95,12 @@ export function useBuildupScroll<T extends HTMLElement = HTMLElement>() {
       raf = 0;
       const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
       last = now;
-      current += (target - current) * (1 - Math.exp(-DAMPING * dt));
-      if (Math.abs(target - current) < 0.0002) current = target;
+      const step = stepProgress({ current, target, dt, visible });
+      current = step.current;
+      if (!step.render) return; // off screen: no rendering until it's back
       applyOverlays(current);
       scene?.update(current, (now - t0) / 1000);
-      if (visible) raf = requestAnimationFrame(frame);
+      raf = requestAnimationFrame(frame);
     };
     const start = () => {
       if (!raf) {
@@ -111,7 +111,7 @@ export function useBuildupScroll<T extends HTMLElement = HTMLElement>() {
 
     const onScroll = () => {
       target = targetP();
-      start();
+      if (visible) start();
     };
     const onResize = () => {
       measure();
@@ -121,7 +121,11 @@ export function useBuildupScroll<T extends HTMLElement = HTMLElement>() {
 
     const io = new IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting;
-      if (visible) start();
+      if (visible) {
+        target = targetP();
+        current = target; // come back on the right frame, not a replay
+        start();
+      }
     });
     io.observe(el);
     window.addEventListener("scroll", onScroll, { passive: true });
