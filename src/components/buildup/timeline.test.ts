@@ -1,6 +1,6 @@
 /// <reference types="bun" />
 import { expect, test } from "bun:test";
-import { CAMERA_KEYS, LEVELS, cameraAt, levelAt, overlaysAt, progress, xrayAt } from "./timeline";
+import { CAMERA_KEYS, LEVELS, ambientAt, cameraAt, levelAt, overlaysAt, progress, xrayAt } from "./timeline";
 
 const dist = (a: number[], b: number[]) => Math.hypot(...a.map((v, i) => v - b[i]));
 
@@ -75,4 +75,19 @@ test("x-ray: the shell stays solid until the lid is on, then turns see-through",
   expect(end.shell).toBeCloseTo(0.2, 6);
   expect(end.edges).toBeCloseTo(0.75, 6);
   expect(xrayAt(-1)).toEqual(xrayAt(0));
+});
+
+test("ambient motion only where the scene moves on its own", () => {
+  // the transistor pulse, until the patch has faded out at the die
+  expect(ambientAt(0)).toBe(true);
+  expect(ambientAt(0.2)).toBe(true);
+  // the build itself only moves when you scroll
+  expect(ambientAt(0.3)).toBe(false);
+  expect(ambientAt(0.6)).toBe(false);
+  expect(ambientAt(0.84)).toBe(false);
+  // the closed server: status LEDs blink, fans turn
+  expect(ambientAt(0.85)).toBe(true);
+  expect(ambientAt(1)).toBe(true);
+  expect(ambientAt(-1)).toBe(true);
+  expect(ambientAt(2)).toBe(true);
 });

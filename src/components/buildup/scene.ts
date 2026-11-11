@@ -164,11 +164,12 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
     })
   );
   const shellMats = server.shell.map((m) => m.material as THREE.MeshStandardMaterial);
+  const ledBase = server.leds.map((m) => m.color.clone());
 
   /* ---- per frame ------------------------------------------------------- */
 
   function update(p: number, time: number) {
-    micro.setLit(progress(p, "transistors"));
+    micro.setLit(progress(p, "transistors"), time);
     const toDie = progress(p, "toDie");
     micro.setOpacity(1 - Math.min(1, Math.max(0, (toDie - 0.4) / 0.6)));
     dieProgress.value = toDie;
@@ -218,6 +219,14 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
       });
     });
     server.rotors.forEach((r, i) => (r.rotation.z = -time * (12 + (i % 3))));
+
+    // status LEDs: dark until the lid is on, then power steady and each GPU
+    // flickering with its own rhythm
+    const on = progress(p, "lid") >= 1 ? 1 : 0;
+    server.leds.forEach((m, i) => {
+      const busy = i === 8 || Math.sin(time * (4.1 + i * 1.3) + i * 2.1) + Math.sin(time * (1.7 + i * 0.45)) > 0.35;
+      m.color.copy(ledBase[i]).multiplyScalar(on ? (busy ? 1 : 0.22) : 0.07);
+    });
 
     // the closed server turns see-through so the eight GPUs stay in view
     const xr = xrayAt(p);

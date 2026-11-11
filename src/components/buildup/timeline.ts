@@ -141,3 +141,14 @@ export function xrayAt(pRaw: number): { shell: number; edges: number } {
   const x = progress(clampP(pRaw), "xray");
   return { shell: 1 - 0.8 * x, edges: 0.2 + 0.55 * x };
 }
+
+/**
+ * Whether the scene has motion of its own at p, so the render loop keeps
+ * running after scrolling stops: the transistor pulse until the patch has
+ * faded at the die, and the closed server's LEDs and fans. Everywhere
+ * else the build only moves when you scroll.
+ */
+export function ambientAt(pRaw: number): boolean {
+  const p = clampP(pRaw);
+  return p < STEPS.toDie[1] || p >= STEPS.lid[1];
+}

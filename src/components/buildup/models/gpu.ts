@@ -134,6 +134,8 @@ const C = {
   bracket: clay("#141517"),
   vent: clay("#0b0b0c"),
   accent: clay(PALETTE.red, { roughness: 0.6 }),
+  // unlit near-black: the inside of the fin stack seen down the open end
+  cavity: new THREE.MeshBasicMaterial({ color: "#060607", side: THREE.DoubleSide }),
 };
 C.accent.emissive = new THREE.Color(PALETTE.red);
 C.accent.emissiveIntensity = 0.35;
@@ -196,6 +198,13 @@ export function buildCasing(): CasingPart[] {
   // fin stack: plates along the card, so air runs front to back
   const fins = new THREE.Group();
   many(fins, 0.7, 26, CARD.length - 10, C.fins, Array.from({ length: 41 }, (_, i) => [-48 + i * 2.4, 4.4, BOARD_Z] as [number, number, number]));
+  // dark plates a little way into each end, so the gaps between fins read
+  // as a deep channel rather than a solid block
+  [BOARD_MIN_Z + 30, BOARD_MIN_Z + CARD.length - 30].forEach((z) => {
+    const plate = new THREE.Mesh(new THREE.PlaneGeometry(98, 25), C.cavity);
+    plate.position.set(0, 4.4 + 12.5, z);
+    fins.add(plate);
+  });
   add(fins, [0, 130, 0], 2);
 
   // the shroud shell, end skirts, and the red accent along one chamfer
@@ -221,6 +230,9 @@ export function buildCasing(): CasingPart[] {
   part(bracket, 124, 42, 1.4, C.bracket, 4, PCB_TOP - 6, BOARD_MIN_Z - 1.2, true);
   many(bracket, 6, 26, 1.6, C.vent, Array.from({ length: 9 }, (_, i) => [-48 + i * 11, PCB_TOP + 2, BOARD_MIN_Z - 1.2] as [number, number, number]));
   part(bracket, 1.4, 42, 12, C.bracket, HALF_W + 9, PCB_TOP - 6, BOARD_MIN_Z - 7.2);
+  // folded flanges along the bracket's two long edges, bent outward like the
+  // screw tab (inward, the top one would cut through the shroud's chamfer)
+  [PCB_TOP - 6, PCB_TOP - 6 + 42 - 1.2].forEach((y) => part(bracket, 118, 1.2, 6, C.bracket, 1, y, BOARD_MIN_Z - 4.6, true));
   add(bracket, [0, 0, -170], 4);
 
   return parts;

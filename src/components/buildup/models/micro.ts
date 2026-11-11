@@ -7,7 +7,8 @@ import { PALETTE, clay } from "../materials";
  * drawn at a representative size rather than true scale. An 8 x 8 array of
  * gate-all-around transistors — three stacked nanosheet channels, a gate
  * wrapped around them, source/drain contacts — framed by rows of standard
- * cells. `setLit(t)` lights the gates in a diagonal wave (t 0 → 1);
+ * cells. `setLit(t, time)` lights the gates in a diagonal wave (t 0 → 1)
+ * while a pulse of current keeps sweeping across them (time in seconds);
  * `setOpacity(o)` fades the whole patch as the camera pulls back.
  */
 
@@ -60,6 +61,7 @@ export function buildMicro() {
   place(gates, (k) => [cells[k][0], 0.04, cells[k][1]]);
   const dim = new THREE.Color("#5a1d1e");
   const lit = new THREE.Color(PALETTE.red).multiplyScalar(1.6);
+  const hot = new THREE.Color("#ffd2c8").multiplyScalar(1.5);
   const c = new THREE.Color();
   cells.forEach((_, k) => gates.setColorAt(k, dim));
 
@@ -90,12 +92,16 @@ export function buildMicro() {
 
   return {
     group,
-    /** Light the gates in a diagonal wave, t 0 → 1. */
-    setLit(t: number) {
+    /** Light the gates in a diagonal wave (t 0 → 1), with a pulse of current sweeping across. */
+    setLit(t: number, time = 0) {
+      const front = ((time * 0.5) % 1.5) - 0.25; // the pulse's diagonal position, looping
       cells.forEach(([x, z], k) => {
-        const delay = ((x - origin + (z - origin)) / (2 * (N - 1) * PITCH)) * 0.7;
-        const v = Math.min(1, Math.max(0, (t - delay) / 0.3));
-        gates.setColorAt(k, c.copy(dim).lerp(lit, v));
+        const diag = (x - origin + (z - origin)) / (2 * (N - 1) * PITCH);
+        const v = Math.min(1, Math.max(0, (t - diag * 0.7) / 0.3));
+        const pulse = Math.exp(-((diag - front) ** 2) / 0.008);
+        // the pulse wakes dark gates toward red and runs white-hot over lit ones
+        c.copy(dim).lerp(lit, Math.max(v, pulse * 0.55));
+        gates.setColorAt(k, c.lerp(hot, pulse * 0.45 * v));
       });
       if (gates.instanceColor) gates.instanceColor.needsUpdate = true;
     },

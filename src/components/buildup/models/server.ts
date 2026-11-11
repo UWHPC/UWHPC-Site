@@ -33,6 +33,8 @@ const M = {
   blade: clay("#26272b"),
   hub: clay(PALETTE.red, { roughness: 0.6 }),
   psu: clay(PALETTE.deep),
+  cable: clay("#141517", { roughness: 0.55 }),
+  plug: clay("#0f1012"),
   floor: clay("#19191c"),
 };
 
@@ -136,7 +138,30 @@ export function buildServer() {
 
   /* power supplies at the rear */
   const psus = group("psus", [0, 0, -320]);
-  [130, 194].forEach((x) => part(psus, 60, 82, 230, M.psu, x, FLOOR + 2, -275, true));
+  const psuX = [130, 194];
+  psuX.forEach((x) => part(psus, 60, 82, 230, M.psu, x, FLOOR + 2, -275, true));
+
+  /* 16-pin plugs on each card's top edge, cables arcing back to the PSUs
+     (cards 0-3 on one, 4-7 on the other); they drop in after the PSUs */
+  const power = group("psus", [0, 140, 0]);
+  for (let i = 0; i < 8; i++) {
+    const [sx, sy, sz] = slotPose(i).position;
+    // card-local (59, 7, -125) on the end skirt; upright maps local (x, y) to world (-y, x)
+    const px = sx - 7;
+    const py = sy + 55.5; // the card's top edge
+    const pz = sz - 125;
+    part(power, 10, 7.5, 20, M.plug, px, py, pz, true);
+    const k = i % 4;
+    const tx = psuX[i < 4 ? 0 : 1] - 21 + k * 14;
+    const curve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(px, py + 7, pz),
+      new THREE.Vector3(px, py + 20, pz - 12),
+      new THREE.Vector3((px + tx) / 2, py + 26 - k * 2.5, (pz - 158) / 2 - 10),
+      new THREE.Vector3(tx, FLOOR + 74, -150),
+      new THREE.Vector3(tx, FLOOR + 70, -160),
+    ]);
+    power.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 48, 2, 8, false), M.cable));
+  }
 
   /* chassis: floor, walls, front and rear panels (each from its own side) */
   const shellMat = () => {
@@ -168,10 +193,22 @@ export function buildServer() {
   for (let i = 0; i < 12; i++) part(front, 14, 120, 2, relief, 40 + i * 15, FLOOR + 28, D / 2 + 0.6);
   for (let i = 0; i < 4; i++) part(front, 40, 70, 2, relief, -190 + i * 46, FLOOR + 50, D / 2 + 0.6);
   shell.push(...(front.children.filter((c) => c instanceof THREE.Mesh && c !== front.children[0]) as THREE.Mesh[]));
+
+  // status LEDs above the drive bays: one per GPU, then power (red). They
+  // stay solid through the x-ray; the scene blinks them once the lid is on.
+  const leds: THREE.MeshBasicMaterial[] = [];
+  const ledGeo = rbox(7, 3, 1.6, 0.6);
+  for (let i = 0; i < 9; i++) {
+    const m = new THREE.MeshBasicMaterial({ color: i < 8 ? "#e8ecf2" : PALETTE.red, toneMapped: false });
+    const led = new THREE.Mesh(ledGeo, m);
+    led.position.set(-205 + i * 13 + (i === 8 ? 10 : 0), FLOOR + 140, D / 2 + 1.2);
+    front.add(led);
+    leds.push(m);
+  }
   panel("chassis", [0, 0, -220], W, H, 2, 0, FLOOR, -D / 2 + 1);
 
   /* lid, last */
   panel("lid", [0, 320, 0], W + 4, 2.4, D + 4, 0, TOP, 0);
 
-  return { parts, shell, shellEdges, rotors };
+  return { parts, shell, shellEdges, rotors, leds };
 }

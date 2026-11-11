@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import type { BuildupScene } from "@/components/buildup/scene";
 import { stepProgress } from "@/components/buildup/motion";
-import { clampP, levelAt, overlaysAt } from "@/components/buildup/timeline";
+import { ambientAt, clampP, levelAt, overlaysAt } from "@/components/buildup/timeline";
 
 /**
  * Drives the build-up hero. Scroll progress p through the runway is
@@ -86,6 +86,7 @@ export function useBuildupScroll<T extends HTMLElement = HTMLElement>() {
     let visible = true;
     let last = performance.now();
     const t0 = last;
+    let lastDraw = 0;
     const frame = (now: number) => {
       raf = 0;
       const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
@@ -93,11 +94,16 @@ export function useBuildupScroll<T extends HTMLElement = HTMLElement>() {
       const step = stepProgress({ current, target, dt, visible });
       current = step.current;
       if (!step.render) return; // off screen: no rendering until it's back
-      applyOverlays(current);
-      scene?.update(current, (now - t0) / 1000);
-      // settled: that was the last frame until the next scroll (the fans
-      // only spin while things move, which saves battery)
-      if (step.idle) return;
+      // settled where something moves on its own (transistor pulse, server
+      // LEDs): keep going at about 30 fps; settled anywhere else: draw this
+      // last frame and stop until the next scroll (saves battery)
+      const ambient = step.idle && ambientAt(current);
+      if (!ambient || now - lastDraw >= 32) {
+        applyOverlays(current);
+        scene?.update(current, (now - t0) / 1000);
+        lastDraw = now;
+      }
+      if (step.idle && !ambient) return;
       raf = requestAnimationFrame(frame);
     };
     const start = () => {
