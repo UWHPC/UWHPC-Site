@@ -1,6 +1,6 @@
 /// <reference types="bun" />
 import { expect, test } from "bun:test";
-import { CAMERA_KEYS, LEVELS, ambientAt, cameraAt, endDrift, levelAt, overlaysAt, progress, xrayAt } from "./timeline";
+import { CAMERA_KEYS, LEVELS, STEPS, ambientAt, cameraAt, endDrift, levelAt, overlaysAt, progress, xrayAt } from "./timeline";
 
 const dist = (a: number[], b: number[]) => Math.hypot(...a.map((v, i) => v - b[i]));
 
@@ -39,6 +39,14 @@ test("camera never flies after the bare board", () => {
   expect(travel).toBeLessThan(250);
 });
 
+test("the bare board holds its frame before the casing arrives", () => {
+  const board = STEPS.toBoard[1];
+  const casing = STEPS.casing[0];
+  expect(casing - board).toBeGreaterThan(0.03);
+  expect(cameraAt((board + casing) / 2)).toEqual(cameraAt(board));
+  expect(progress(casing, "casing")).toBe(0);
+});
+
 test("camera is continuous (no jumps)", () => {
   for (let p = 0; p < 1; p += 0.001) {
     const a = cameraAt(p).position;
@@ -72,8 +80,8 @@ test("overlays: content is visible at both ends", () => {
 test("x-ray: the shell stays solid until the lid is on, then turns see-through", () => {
   expect(xrayAt(0.84)).toEqual({ shell: 1, edges: 0.2 });
   const end = xrayAt(1);
-  expect(end.shell).toBeCloseTo(0.2, 6);
-  expect(end.edges).toBeCloseTo(0.75, 6);
+  expect(end.shell).toBeCloseTo(0.1, 6);
+  expect(end.edges).toBeCloseTo(0.5, 6);
   expect(xrayAt(-1)).toEqual(xrayAt(0));
 });
 

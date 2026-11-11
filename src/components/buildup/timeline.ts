@@ -27,8 +27,8 @@ export type Step =
 export const STEPS: Record<Step, [number, number]> = {
   transistors: [0, 0.1],
   toDie: [0.1, 0.26],
-  toBoard: [0.26, 0.36],
-  casing: [0.36, 0.48],
+  toBoard: [0.26, 0.35],
+  casing: [0.39, 0.48],
   join: [0.48, 0.58],
   bridges: [0.57, 0.62],
   switchboard: [0.6, 0.65],
@@ -65,11 +65,12 @@ export const CAMERA_KEYS: CameraKey[] = [
   { t: 0.0, target: [0, 0, 0], offset: [1.6, 2.4, 2.0] },
   { t: 0.1, target: [0, 0, 0], offset: [2.4, 3.6, 2.6] },
   { t: 0.26, target: [0, 0, 0], offset: [28, 40, 34] },
-  { t: 0.36, target: [0, -4, -10], offset: [170, 210, 200] },
+  { t: STEPS.toBoard[1], target: [0, -4, -13], offset: [184, 171, 223] },
+  { t: STEPS.casing[0], target: [0, -4, -13], offset: [184, 171, 223] },
   { t: 0.48, target: [0, 10, 0], offset: [250, 230, 300] },
   { t: 0.6, target: [0, -40, 40], offset: [420, 360, 520] },
   { t: 0.85, target: [-30, -80, 90], offset: [700, 560, 860] },
-  { t: 1.0, target: [-30, -80, 90], offset: [660, 500, 900] },
+  { t: 1.0, target: [-20, -58, 68], offset: [440, 665, 1040] },
 ];
 
 const len = (v: Vec3) => Math.hypot(v[0], v[1], v[2]);
@@ -139,7 +140,7 @@ export function overlaysAt(pRaw: number) {
 /** Server shell opacity and its edge-line opacity: solid, then see-through. */
 export function xrayAt(pRaw: number): { shell: number; edges: number } {
   const x = progress(clampP(pRaw), "xray");
-  return { shell: 1 - 0.8 * x, edges: 0.2 + 0.55 * x };
+  return { shell: 1 - 0.9 * x, edges: 0.2 + 0.3 * x };
 }
 
 /**

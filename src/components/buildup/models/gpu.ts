@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { PALETTE, clay, detail, outline } from "../materials";
-import { pcbTexture } from "../textures";
+import { DIE_WIDTH, pcbTexture } from "../textures";
 
 /**
  * The hero GPU, in card-local millimetres. Lying pose: the PCB is in the
@@ -14,6 +14,17 @@ export const CARD = { length: 267, width: 111, thick: 40 };
 export const PKG_Z = 18; // package offset from the board's centre
 const PCB_TOP = -2.4; // die 0.7 + interposer 0.5 + substrate 1.2 below the die top
 const BOARD_Z = -PKG_Z; // board centre, relative to the die
+const PCB_THICKNESS = 1.6;
+const MOUNT_RADIUS = 1.65;
+const MOUNTS: [number, number][] = [-46, 46].flatMap((x) =>
+  [BOARD_Z - 126, BOARD_Z + 126].map((z): [number, number] => [x, z])
+);
+const POWER_STAGES: [number, number][] = Array.from({ length: 24 }, (_, i) => BOARD_Z - 118 + i * 9.5)
+  .filter((z) => Math.abs(z) >= 34)
+  .flatMap((z) => [[-44, z], [44, z]] as [number, number][]);
+const CONTROLLERS: [number, number][] = [[-17, -68], [19, -57], [-16, 54], [17, 68]];
+const BULK_X = Array.from({ length: 8 }, (_, i) => -28 + i * 8);
+const BULK_Z = BOARD_Z - 112;
 
 type Mat = THREE.Material | THREE.Material[];
 
@@ -22,7 +33,7 @@ function rbox(w: number, h: number, d: number, r = Math.min(w, h, d) * 0.18) {
   const k = `${w}|${h}|${d}|${r}|${detail.segments}`;
   let g = geo.get(k);
   if (!g) {
-    g = new RoundedBoxGeometry(w, h, d, detail.segments, r);
+    g = r === 0 ? new THREE.BoxGeometry(w, h, d) : new RoundedBoxGeometry(w, h, d, detail.segments, r);
     geo.set(k, g);
   }
   return g;
@@ -38,8 +49,8 @@ function part(parent: THREE.Object3D, w: number, h: number, d: number, mat: Mat,
 }
 
 /** Many identical rounded boxes in one draw call (bottom-centres). */
-function many(parent: THREE.Object3D, w: number, h: number, d: number, mat: THREE.Material, at: [number, number, number][]) {
-  const m = new THREE.InstancedMesh(rbox(w, h, d), mat, at.length);
+function many(parent: THREE.Object3D, w: number, h: number, d: number, mat: THREE.Material, at: [number, number, number][], radius?: number) {
+  const m = new THREE.InstancedMesh(rbox(w, h, d, radius), mat, at.length);
   const o = new THREE.Object3D();
   at.forEach(([x, y, z], i) => {
     o.position.set(x, y + h / 2, z);
@@ -52,7 +63,9 @@ function many(parent: THREE.Object3D, w: number, h: number, d: number, mat: THRE
 
 const M = {
   pcbTop: new THREE.MeshStandardMaterial({ map: (() => {
-    const t = new THREE.CanvasTexture(pcbTexture());
+    const t = new THREE.CanvasTexture(pcbTexture({
+      ...CARD, boardZ: BOARD_Z, powerStages: POWER_STAGES, controllers: CONTROLLERS, bulkX: BULK_X, bulkZ: BULK_Z,
+    }));
     t.colorSpace = THREE.SRGBColorSpace;
     t.anisotropy = 8;
     return t;
@@ -60,31 +73,81 @@ const M = {
   pcbEdge: clay("#202924"),
   substrate: clay(PALETTE.deep),
   interposer: clay("#55575e", { roughness: 0.55 }),
-  hbm: clay("#9a9ca3", { roughness: 0.5 }),
+  hbm: clay("#727984", { roughness: 0.48 }),
+  hbmLayers: clay("#363943", { roughness: 0.54 }),
+  hbmMark: clay("#a1a7ae"),
   cap: clay("#7c6f5f"),
   choke: clay(PALETTE.mid),
   fet: clay("#16171a"),
   bulk: clay("#34363c"),
   connector: clay("#121315"),
   fingers: clay("#b49a6a", { roughness: 0.55 }),
+  solder: new THREE.MeshStandardMaterial({ color: "#92989d", metalness: 0.55, roughness: 0.46 }),
+  ceramic: clay("#927e68"),
+  plating: new THREE.MeshStandardMaterial({ color: "#ad905f", metalness: 0.64, roughness: 0.39, side: THREE.DoubleSide }),
 };
+
+function createPcbGeometry() {
+  const shape = new THREE.Shape();
+  const left = -CARD.width / 2;
+  const right = CARD.width / 2;
+  const far = -(BOARD_Z - CARD.length / 2);
+  const near = -(BOARD_Z + CARD.length / 2);
+  const corner = 1.4;
+  shape.moveTo(left + corner, near);
+  shape.lineTo(right - corner, near);
+  shape.quadraticCurveTo(right, near, right, near + corner);
+  shape.lineTo(right, far - corner);
+  shape.quadraticCurveTo(right, far, right - corner, far);
+  shape.lineTo(left + corner, far);
+  shape.quadraticCurveTo(left, far, left, far - corner);
+  shape.lineTo(left, near + corner);
+  shape.quadraticCurveTo(left, near, left + corner, near);
+  for (const [x, z] of MOUNTS) {
+    const hole = new THREE.Path();
+    hole.absarc(x, -z, MOUNT_RADIUS, 0, 2 * Math.PI, true);
+    shape.holes.push(hole);
+  }
+  const board = new THREE.ExtrudeGeometry(shape, { depth: PCB_THICKNESS, bevelEnabled: false, curveSegments: 12 });
+  board.rotateX(-Math.PI / 2);
+  board.translate(0, PCB_TOP - PCB_THICKNESS, 0);
+
+  const positions = board.getAttribute("position");
+  const uv = board.getAttribute("uv");
+  for (let i = 0; i < uv.count; i++) {
+    uv.setXY(i, 0.5 + positions.getX(i) / CARD.width, 0.5 - (positions.getZ(i) - BOARD_Z) / CARD.length);
+  }
+  return board;
+}
+
+const pcbGeometry = createPcbGeometry();
+const mountRim = new THREE.RingGeometry(MOUNT_RADIUS - 0.016, 2.45, 24).rotateX(-Math.PI / 2);
+const mountWall = new THREE.CylinderGeometry(MOUNT_RADIUS - 0.017, MOUNT_RADIUS - 0.017, PCB_THICKNESS, 24, 1, true);
 
 /**
  * Package and bare board. `dieFaces` are the die's six face materials (the
  * scene owns the top face's power-on shader).
  */
-export function buildBoard(dieFaces: THREE.Material[]) {
+export function buildBoard(dieFaces: THREE.Material[], closeup = true) {
   const group = new THREE.Group();
 
   // the die and the package around it
-  const die = new THREE.Mesh(new RoundedBoxGeometry(26, 0.7, 26, 2, 0.15), dieFaces);
+  const die = new THREE.Mesh(new RoundedBoxGeometry(DIE_WIDTH, 0.7, DIE_WIDTH, 2, 0.15), dieFaces);
   die.position.y = -0.35;
   group.add(die);
   const dieAnchor = new THREE.Object3D();
   group.add(dieAnchor);
   part(group, 50, 0.5, 38, M.interposer, 0, -1.2, 0);
   part(group, 58, 1.2, 58, M.substrate, 0, PCB_TOP, 0, true);
-  many(group, 9, 0.75, 11, M.hbm, [-19, 19].flatMap((x) => [-12.5, 0, 12.5].map((z) => [x, -0.7, z] as [number, number, number])));
+  const memory: [number, number, number][] = [-19, 19].flatMap((x) => [-12.5, 0, 12.5].map((z) => [x, -0.7, z] as [number, number, number]));
+  if (closeup) {
+    many(group, 8.7, 0.56, 10.7, M.hbmLayers, memory);
+    many(group, 9, 0.08, 11, M.hbm, memory.flatMap(([x, y, z]) => [0.1, 0.28, 0.46].map((h) => [x, y + h, z] as [number, number, number])), 0);
+    many(group, 9, 0.19, 11, M.hbm, memory.map(([x, y, z]) => [x, y + 0.56, z]));
+    many(group, 2.6, 0.015, 0.22, M.hbmMark, memory.flatMap(([x, y, z]) => [0, 0.55].map((d) => [x - 1.9, y + 0.75, z - 3.4 + d] as [number, number, number])), 0);
+  } else {
+    many(group, 9, 0.75, 11, M.hbm, memory);
+  }
   const ring: [number, number, number][] = [];
   for (let i = 0; i < 13; i++) {
     const t = -24 + i * 4;
@@ -92,33 +155,76 @@ export function buildBoard(dieFaces: THREE.Material[]) {
   }
   many(group, 1.4, 0.6, 1.4, M.cap, ring);
 
-  // the board itself
-  part(group, CARD.width, 1.6, CARD.length, [M.pcbEdge, M.pcbEdge, M.pcbTop, M.pcbEdge, M.pcbEdge, M.pcbEdge], 0, PCB_TOP - 1.6, BOARD_Z, true);
+  const pcb = new THREE.Mesh(pcbGeometry, [M.pcbTop, M.pcbEdge]);
+  group.add(pcb);
+  outline(pcb);
+  const rims = new THREE.InstancedMesh(mountRim, M.plating, MOUNTS.length);
+  const walls = new THREE.InstancedMesh(mountWall, M.plating, MOUNTS.length);
+  const o = new THREE.Object3D();
+  MOUNTS.forEach(([x, z], i) => {
+    o.position.set(x, PCB_TOP + 0.016, z);
+    o.updateMatrix();
+    rims.setMatrixAt(i, o.matrix);
+    o.position.y = PCB_TOP - PCB_THICKNESS / 2;
+    o.updateMatrix();
+    walls.setMatrixAt(i, o.matrix);
+  });
+  group.add(rims, walls);
 
   // power stages down both long edges, FETs beside them
-  const chokes: [number, number, number][] = [];
-  for (let i = 0; i < 24; i++) {
-    const z = BOARD_Z - 118 + i * 9.5;
-    if (Math.abs(z) < 34) continue; // keep clear of the package
-    chokes.push([-44, PCB_TOP, z], [44, PCB_TOP, z]);
-  }
-  many(group, 8, 5.5, 8, M.choke, chokes);
-  many(group, 4, 1, 5, M.fet, chokes.map(([x, y, z]) => [x * 0.82, y, z] as [number, number, number]));
+  many(group, 8, 5.5, 8, M.choke, POWER_STAGES.map(([x, z]) => [x, PCB_TOP, z]));
+  many(group, 4, 1, 5, M.fet, POWER_STAGES.map(([x, z]) => [x * 0.82, PCB_TOP, z]));
 
   // bulk capacitors and the 16-pin power connector at the rear
-  const bulk = new THREE.InstancedMesh(new THREE.CylinderGeometry(3, 3, 9, 24), M.bulk, 8);
-  const o = new THREE.Object3D();
-  for (let i = 0; i < 8; i++) {
-    o.position.set(-28 + i * 8, PCB_TOP + 4.5, BOARD_Z - 112);
+  const bulk = new THREE.InstancedMesh(new THREE.CylinderGeometry(3, 3, 9, 24), M.bulk, BULK_X.length);
+  BULK_X.forEach((x, i) => {
+    o.position.set(x, PCB_TOP + 4.5, BULK_Z);
     o.updateMatrix();
     bulk.setMatrixAt(i, o.matrix);
-  }
+  });
   group.add(bulk);
   part(group, 22, 10, 9, M.connector, 30, PCB_TOP, BOARD_Z - 126, true);
 
   // PCIe edge fingers along one long edge, NVLink fingers along the other
-  part(group, 2, 0.4, 92, M.fingers, -CARD.width / 2 + 1.5, PCB_TOP - 0.2, BOARD_Z + 6);
-  many(group, 2, 0.4, 26, M.fingers, [-40, -6, 28].map((z) => [CARD.width / 2 - 1.5, PCB_TOP - 0.2, BOARD_Z + z] as [number, number, number]));
+  const fingers: [number, number, number][] = [];
+  const addFingers = (x: number, start: number, count: number) => {
+    for (let i = 0; i < count; i++) fingers.push([x, PCB_TOP - 0.025, BOARD_Z + start + i * 1.5]);
+  };
+  addFingers(-53.7, -39, 10);
+  addFingers(-53.7, -20, 47);
+  [-40, -6, 28].forEach((z) => addFingers(53.7, z - 12, 17));
+  many(group, 3.2, 0.07, 0.96, M.fingers, fingers, 0);
+
+  if (closeup) {
+    // Surface-mount controllers with visible leads, and banks of bypass capacitors.
+    many(group, 7, 1.15, 8, M.fet, CONTROLLERS.map(([x, z]) => [x, PCB_TOP, z]));
+    const pins: [number, number, number][] = [];
+    CONTROLLERS.forEach(([x, z]) => {
+      for (let i = 0; i < 7; i++) {
+        pins.push([x - 4.1, PCB_TOP, z - 3 + i], [x + 4.1, PCB_TOP, z - 3 + i]);
+      }
+    });
+    many(group, 2.1, 0.23, 0.38, M.solder, pins, 0);
+    many(group, 0.65, 0.025, 0.65, M.hbmMark, CONTROLLERS.map(([x, z]) => [x - 2.3, PCB_TOP + 1.15, z - 2.7]), 0);
+
+    const passives: [number, number, number][] = POWER_STAGES.map(([x, z]) => [x * 0.7, PCB_TOP, z]);
+    for (let i = 0; i < 14; i++) {
+      const x = -24.7 + i * 3.8;
+      passives.push([x, PCB_TOP, -36], [x, PCB_TOP, 36], [x, PCB_TOP, 42]);
+    }
+    many(group, 2.4, 0.45, 1.25, M.solder, passives, 0);
+    many(group, 1.42, 0.34, 1.28, M.ceramic, passives.map(([x, y, z]) => [x, y + 0.26, z]), 0);
+
+    const capLids = new THREE.InstancedMesh(new THREE.CylinderGeometry(2.55, 2.55, 0.15, 20), M.solder, BULK_X.length);
+    BULK_X.forEach((x, i) => {
+      o.position.set(x, PCB_TOP + 9, BULK_Z);
+      o.updateMatrix();
+      capLids.setMatrixAt(i, o.matrix);
+    });
+    group.add(capLids);
+    many(group, 2.9, 0.025, 0.25, M.bulk, BULK_X.map((x) => [x, PCB_TOP + 9.075, BULK_Z]), 0);
+    part(group, 8, 0.95, 4, M.choke, 30, PCB_TOP + 10, BOARD_Z - 126);
+  }
 
   return { group, dieAnchor };
 }
@@ -241,7 +347,7 @@ export function buildCasing(): CasingPart[] {
 /** A finished card (for the seven that join the hero card). */
 export function buildCard(dieFaces: THREE.Material[]) {
   const group = new THREE.Group();
-  group.add(buildBoard(dieFaces).group);
+  group.add(buildBoard(dieFaces, false).group);
   buildCasing().forEach(({ obj }) => group.add(obj));
   return group;
 }

@@ -35,7 +35,6 @@ const M = {
   psu: clay(PALETTE.deep),
   cable: clay("#141517", { roughness: 0.55 }),
   plug: clay("#0f1012"),
-  floor: clay("#19191c"),
 };
 
 function rbox(w: number, h: number, d: number, r = Math.min(w, h, d) * 0.18) {
@@ -164,8 +163,8 @@ export function buildServer() {
   }
 
   /* chassis: floor, walls, front and rear panels (each from its own side) */
-  const shellMat = () => {
-    const m = clay("#232428");
+  const shellMat = (color = "#232428") => {
+    const m = clay(color);
     m.transparent = true;
     return m;
   };
@@ -183,7 +182,7 @@ export function buildServer() {
     return g;
   };
   const floorG = group("chassis", [0, -160, 0]);
-  part(floorG, W, 2, D, M.floor, 0, FLOOR - 2, 0, true);
+  shell.push(part(floorG, W, 2, D, shellMat("#19191c"), 0, FLOOR - 2, 0, true));
   panel("chassis", [-170, 0, 0], 2, H, D, -W / 2, FLOOR, 0);
   panel("chassis", [170, 0, 0], 2, H, D, W / 2, FLOOR, 0);
   const front = panel("chassis", [0, 0, 220], W, H, 10, 0, FLOOR, D / 2 - 5);

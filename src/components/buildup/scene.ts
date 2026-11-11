@@ -4,10 +4,10 @@ import { PALETTE, clay, detail, outline } from "./materials";
 import { buildBoard, buildCard, buildCasing } from "./models/gpu";
 import { cardPose, joinDrop, slotPose, HERO_SLOT, SERVER_FLOOR_Y } from "./poses";
 import { buildServer, type ServerGroup } from "./models/server";
-import { buildMicro } from "./models/micro";
+import { buildMicro, MICRO_PULSE_SPAN, MICRO_RAIL_Z } from "./models/micro";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
-import { dieTextures, shadowTexture } from "./textures";
-import { cameraAt, endDrift, progress, xrayAt } from "./timeline";
+import { DIE_WIDTH, dieTextures, shadowTexture } from "./textures";
+import { STEPS, cameraAt, endDrift, progress, xrayAt } from "./timeline";
 import { renderQuality, seat } from "./motion";
 
 /**
@@ -80,8 +80,11 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
     textures.push(t);
     return t;
   };
-  const die = dieTextures();
+  const die = dieTextures(MICRO_RAIL_Z);
   const dieProgress = { value: 0 };
+  const pulseFront = { value: 0 };
+  const pulseSpan = { value: MICRO_PULSE_SPAN };
+  const pulseStrength = { value: 0 };
   const dieTop = new THREE.MeshStandardMaterial({
     map: tex(die.base),
     emissiveMap: tex(die.glow),
@@ -94,13 +97,25 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
   dieTop.onBeforeCompile = (shader) => {
     shader.uniforms.uTiming = { value: timing };
     shader.uniforms.uDieProgress = dieProgress;
+    shader.uniforms.uPulseFront = pulseFront;
+    shader.uniforms.uPulseSpan = pulseSpan;
+    shader.uniforms.uPulseStrength = pulseStrength;
     shader.fragmentShader = shader.fragmentShader
-      .replace("#include <common>", "#include <common>\nuniform sampler2D uTiming;\nuniform float uDieProgress;")
+      .replace("#include <common>", `#include <common>
+        uniform sampler2D uTiming;
+        uniform float uDieProgress;
+        uniform float uPulseFront;
+        uniform float uPulseSpan;
+        uniform float uPulseStrength;`)
       .replace(
         "#include <emissivemap_fragment>",
         `#include <emissivemap_fragment>
         float tStart = texture2D(uTiming, vEmissiveMapUv).r;
-        totalEmissiveRadiance *= smoothstep(tStart, tStart + 0.06, uDieProgress);`
+        float powered = smoothstep(tStart, tStart + 0.06, uDieProgress);
+        float diagonal = 0.5 + (vEmissiveMapUv.x - vEmissiveMapUv.y) * ${DIE_WIDTH.toFixed(1)} / uPulseSpan;
+        float delta = diagonal - uPulseFront;
+        float pulse = exp(-delta * delta / 0.008) * uPulseStrength;
+        totalEmissiveRadiance *= max(powered, pulse);`
       );
   };
   const silicon = clay(PALETTE.silicon, { roughness: 0.5 });
@@ -130,6 +145,8 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
   // two 4-way NVLink bridges across the card tops (cards 0–3, 4–7)
   const bridgeMat = clay(PALETTE.deep);
   const bridgeEdge = clay(PALETTE.red, { roughness: 0.6 });
+  bridgeEdge.emissive.set(PALETTE.red);
+  bridgeEdge.emissiveIntensity = 0;
   const bridges = [0, 4].map((first) => {
     const x0 = slotPose(first).position[0] - 34;
     const x1 = slotPose(first + 3).position[0] + 5.5;
@@ -188,10 +205,15 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
   /* ---- per frame ------------------------------------------------------- */
 
   function update(p: number, time: number) {
-    micro.setLit(progress(p, "transistors"), time);
     const toDie = progress(p, "toDie");
-    micro.setOpacity(1 - Math.min(1, Math.max(0, (toDie - 0.4) / 0.6)));
+    const detailOpacity = 1 - THREE.MathUtils.smoothstep(toDie, 0.16, 0.68);
+    const front = ((time * 0.5) % 1.5) - 0.25;
+    micro.setOpacity(detailOpacity);
+    if (micro.group.visible) micro.setLit(progress(p, "transistors"), front);
     dieProgress.value = toDie;
+    pulseFront.value = front;
+    pulseSpan.value = THREE.MathUtils.lerp(MICRO_PULSE_SPAN, DIE_WIDTH * 1.3, THREE.MathUtils.smoothstep(toDie, 0.23, 0.8));
+    pulseStrength.value = THREE.MathUtils.smoothstep(toDie, 0.07, 0.33) * (1 - THREE.MathUtils.smoothstep(toDie, 0.74, 1));
 
     // casing parts fly in, one after another
     const c = progress(p, "casing");
@@ -254,10 +276,16 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
       m.depthWrite = xr.shell > 0.99;
     });
     server.shellEdges.opacity = xr.edges;
+    bridgeEdge.emissiveIntensity = 0.65 * progress(p, "xray");
 
     // the keys are framed for landscape; a tall, narrow screen stands back
     const { position, target } = cameraAt(p);
-    const fit = camera.aspect < 1 ? Math.min(1.9, 0.62 / camera.aspect + 0.3) : 1;
+    const portraitFit = camera.aspect < 1 ? Math.min(2.35, 0.62 / camera.aspect + 0.3) : 1;
+    // The angled chassis is widest on screen just before the camera swings front-on.
+    const narrow = 1 - THREE.MathUtils.smoothstep(camera.aspect, 0.5, 0.78);
+    const wideChassis = THREE.MathUtils.smoothstep(p, STEPS.chassis[0], STEPS.xray[0]) *
+      (1 - THREE.MathUtils.smoothstep(p, STEPS.xray[0], 1));
+    const fit = portraitFit * (1 + 0.16 * narrow * wideChassis);
     // at the end, a slow sway around the server
     const yaw = endDrift(p, time);
     const ox = (position[0] - target[0]) * fit;
