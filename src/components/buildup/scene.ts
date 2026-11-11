@@ -7,7 +7,7 @@ import { buildServer, type ServerGroup } from "./models/server";
 import { buildMicro, dieRailGeometry, MICRO_PULSE_SPAN } from "./models/micro";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { DIE_WIDTH, dieTextures, shadowTexture } from "./textures";
-import { STEPS, cameraAt, endDrift, progress, xrayAt } from "./timeline";
+import { STEPS, cameraAt, endDrift, progress, serverBootAt, xrayAt } from "./timeline";
 import { renderQuality, seat } from "./motion";
 import { buildAtmosphere } from "./atmosphere";
 
@@ -55,8 +55,8 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
   scene.add(rim2);
   scene.add(new THREE.HemisphereLight("#f2f2f5", "#1a1a1d", 1.1));
   // the ending's light sweep: a soft cool light that passes once across the
-  // front of the closed server as the title arrives
-  const sweep = new THREE.PointLight("#dfe6ff", 0, 650, 0);
+  // interior of the server as the lid clears
+  const sweep = new THREE.PointLight("#dfe6ff", 0, 540, 0);
   scene.add(sweep);
 
   const camera = new THREE.PerspectiveCamera(34, 1, 0.05, 20000);
@@ -97,13 +97,15 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
       float delta = 0.5 + distance / uPulseSpan - uPulseFront;
       return exp(-delta * delta / 0.008) * uPulseStrength;
     }`;
-  const dieTop = new THREE.MeshStandardMaterial({
+  const dieTop = new THREE.MeshPhysicalMaterial({
     map: tex(die.base),
     emissiveMap: tex(die.glow),
     emissive: new THREE.Color("#ffffff"),
     emissiveIntensity: 1.5,
     roughness: 0.38,
     metalness: 0.19,
+    clearcoat: 0.25,
+    clearcoatRoughness: 0.2,
   });
   const timing = tex(die.timing, false);
   dieTop.onBeforeCompile = (shader) => {
@@ -161,6 +163,8 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
     });
 
   // two 4-way NVLink bridges across the card tops (cards 0–3, 4–7)
+  const shadowMap = tex(shadowTexture());
+  const footShadowGeo = new THREE.PlaneGeometry(30, 48).rotateX(-Math.PI / 2);
   const bridgeMat = clay(PALETTE.deep);
   const bridgeCover = clay("#42464f", { roughness: 0.53 });
   const bridgeMetal = new THREE.MeshStandardMaterial({ color: "#727883", metalness: 0.46, roughness: 0.44 });
@@ -178,6 +182,12 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
     const x1 = slotPose(first + 3).position[0] + 5.5;
     const top = slotPose(first).position[1] + 55.5;
     const g = new THREE.Group();
+    const footShadowMat = new THREE.MeshBasicMaterial({
+      map: shadowMap, transparent: true, opacity: 0, depthWrite: false, toneMapped: false,
+    });
+    const footShadows = new THREE.InstancedMesh(footShadowGeo, footShadowMat, 4);
+    const shadowMatrix = new THREE.Matrix4();
+    g.add(footShadows);
     const width = x1 - x0;
     const body = new THREE.Mesh(new RoundedBoxGeometry(width, 7, 80, 3, 2), bridgeMat);
     g.add(body);
@@ -205,6 +215,7 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
       const gasket = new THREE.Mesh(connectorGasket, gasketMat);
       gasket.position.set(x, -7.1, 11);
       g.add(mark, housing, gasket);
+      footShadows.setMatrixAt(i, shadowMatrix.makeTranslation(x, -6.64, 11));
     }
     const edge = new THREE.Mesh(new RoundedBoxGeometry(width - 6, 1, 1.2, 2, 0.4), bridgeEdge);
     edge.position.set(0, 3.6, 40);
@@ -213,11 +224,10 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
     g.position.copy(home);
     g.visible = false;
     scene.add(g);
-    return { g, home };
+    return { g, home, footShadows };
   });
 
   // contact shadows: soft dark pools under the lying card and the server
-  const shadowMap = tex(shadowTexture());
   const shadow = (w: number, d: number) => {
     const m = new THREE.Mesh(
       new THREE.PlaneGeometry(w, d),
@@ -256,6 +266,8 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
   const lidMats = panelMaterials(server.lidShell);
   const frameMats = panelMaterials(server.frameShell);
   const ledBase = server.leds.map((m) => m.color.clone());
+  const latchHome = server.lidLatch.position.z;
+  let lastFrameTime = 0;
 
   /* ---- per frame ------------------------------------------------------- */
 
@@ -301,10 +313,12 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
       g.visible = t > 0;
     });
     const br = progress(p, "bridges");
-    bridges.forEach(({ g, home }, i) => {
+    bridges.forEach(({ g, home, footShadows }, i) => {
       const t = seat((br - i * 0.3) / 0.7);
       g.position.set(home.x, home.y + 140 * (1 - t), home.z);
       g.visible = t > 0;
+      footShadows.visible = Math.abs(t - 1) < 0.007;
+      footShadows.material.opacity = 0.62 * (1 - THREE.MathUtils.smoothstep(Math.abs(t - 1), 0, 0.007));
     });
 
     serverGroups.forEach(([key, list]) => {
@@ -317,14 +331,19 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
         obj.visible = t > 0;
       });
     });
-    server.rotors.forEach((r, i) => (r.rotation.z = -time * (12 + (i % 3))));
-
-    // status LEDs: dark until the lid is on, then power steady and each GPU
-    // flickering with its own rhythm
-    const on = progress(p, "lid") >= 1 ? 1 : 0;
+    const boot = serverBootAt(p);
+    server.lidLatch.position.z = latchHome - 4.3 * (1 - boot.latch);
+    const dt = THREE.MathUtils.clamp(time - lastFrameTime, 0, 0.05);
+    lastFrameTime = time;
+    server.rotors.forEach((rotor, i) => {
+      // Integrate speed so scrubbing the boot never snaps the blades to a new angle.
+      rotor.rotation.z = (rotor.rotation.z - dt * boot.fanSpeed * (10.2 + (i % 3) * 0.65)) % (2 * Math.PI);
+    });
     server.leds.forEach((m, i) => {
-      const busy = i === 8 || Math.sin(time * (4.1 + i * 1.3) + i * 2.1) + Math.sin(time * (1.7 + i * 0.45)) > 0.35;
-      m.color.copy(ledBase[i]).multiplyScalar(on ? (busy ? 1 : 0.22) : 0.07);
+      const activity = 0.5 + 0.25 * Math.sin(time * (4.1 + i * 1.3) + i * 2.1) + 0.25 * Math.sin(time * (1.7 + i * 0.45));
+      const power = i === 8 ? boot.power : i < 4 ? boot.firstBank : boot.secondBank;
+      const flicker = i === 8 ? 1 : 1 - boot.activity * 0.5 * activity;
+      m.color.copy(ledBase[i]).multiplyScalar(THREE.MathUtils.lerp(0.05, flicker, power));
     });
 
     // the closed server turns see-through so the eight GPUs stay in view
@@ -332,11 +351,10 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
     for (const [materials, opacity] of [[shellMats, xr.shell], [lidMats, xr.lid], [frameMats, xr.frame]] as const) {
       for (const material of materials) {
         material.opacity = opacity;
-        material.depthWrite = opacity > 0.99;
       }
     }
     server.shellEdges.opacity = xr.edges;
-    bridgeEdge.emissiveIntensity = 0.65 * progress(p, "xray");
+    bridgeEdge.emissiveIntensity = 0.16 * THREE.MathUtils.smoothstep(p, STEPS.bridges[1], STEPS.bridges[1] + 0.018) + 0.49 * boot.secondBank;
 
     // the keys are framed for landscape; a tall, narrow screen stands back
     const { position, target } = cameraAt(p);
@@ -345,23 +363,26 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
     const narrow = 1 - THREE.MathUtils.smoothstep(camera.aspect, 0.5, 0.78);
     const wideChassis = THREE.MathUtils.smoothstep(p, STEPS.chassis[0], STEPS.lid[1]) *
       (1 - THREE.MathUtils.smoothstep(p, STEPS.xray[0], STEPS.xray[1]));
-    const fit = portraitFit * (1 + 0.16 * narrow * wideChassis);
+    const finaleFrame = THREE.MathUtils.smoothstep(camera.aspect, 1.05, 1.5) * progress(p, "xray");
+    const fit = portraitFit * (1 + 0.16 * narrow * wideChassis + 0.16 * finaleFrame);
+    const framingY = target[1] + 44 * finaleFrame;
     // at the end, a slow sway around the server
     const yaw = endDrift(p, time);
     const ox = (position[0] - target[0]) * fit;
     const oz = (position[2] - target[2]) * fit;
     camera.position.set(
       target[0] + ox * Math.cos(yaw) + oz * Math.sin(yaw),
-      target[1] + (position[1] - target[1]) * fit,
+      framingY + (position[1] - target[1]) * fit,
       target[2] - ox * Math.sin(yaw) + oz * Math.cos(yaw)
     );
 
-    const sw = progress(p, "title");
-    sweep.intensity = 2.2 * Math.sin(Math.PI * sw);
-    sweep.position.set(-420 + 840 * sw, SERVER_FLOOR_Y + 260, 560);
-    atmosphere.update(cardStage, serverStage, sweep.intensity / 2.2, time, renderer.getPixelRatio());
-    camera.lookAt(...target);
-    const d = camera.position.distanceTo(new THREE.Vector3(...target));
+    const sw = THREE.MathUtils.smoothstep(p, STEPS.xray[0] + 0.015, STEPS.xray[1] + 0.006);
+    const sweepStrength = Math.sin(Math.PI * sw);
+    sweep.intensity = 1.65 * sweepStrength;
+    sweep.position.set(-410 + 820 * sw, SERVER_FLOOR_Y + 285, 305);
+    atmosphere.update(cardStage, serverStage, sweepStrength, time, renderer.getPixelRatio());
+    camera.lookAt(target[0], framingY, target[2]);
+    const d = camera.position.distanceTo(new THREE.Vector3(target[0], framingY, target[2]));
     camera.near = Math.max(0.05, d / 60);
     camera.far = d * 40 + 2000;
     camera.updateProjectionMatrix();

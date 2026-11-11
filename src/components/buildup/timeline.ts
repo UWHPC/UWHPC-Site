@@ -36,8 +36,8 @@ export const STEPS: Record<Step, [number, number]> = {
   fans: [0.7, 0.74],
   psus: [0.72, 0.76],
   chassis: [0.75, 0.81],
-  lid: [0.8, 0.85],
-  xray: [0.882, 0.945],
+  lid: [0.8, 0.837],
+  xray: [0.87, 0.945],
   title: [0.95, 0.99],
 };
 
@@ -49,6 +49,15 @@ const phase = (p: number, start: number, duration: number) => clampP((p - start)
 /** smootherstep: zero velocity and acceleration at both ends. */
 const ease = (t: number) => t * t * t * (t * (t * 6 - 15) + 10);
 const easeInOutSine = (t: number) => -(Math.cos(Math.PI * t) - 1) / 2;
+
+/** Smooth acceleration at the ends, with a steady rate through the middle. */
+function easeWithCruise(t: number): number {
+  const ramp = 0.26;
+  const distance = 1 - ramp;
+  if (t > 1 - ramp) return 1 - easeWithCruise(1 - t);
+  if (t >= ramp) return (t - ramp / 2) / distance;
+  return (t - (ramp / Math.PI) * Math.sin(Math.PI * t / ramp)) / (2 * distance);
+}
 
 /** Eased 0 → 1 across a step's range; 0 before it, 1 after it. */
 export function progress(p: number, step: Step): number {
@@ -90,7 +99,8 @@ export function cameraAt(pRaw: number): { position: Vec3; target: Vec3 } {
   while (i < CAMERA_KEYS.length - 2 && p > CAMERA_KEYS[i + 1].t) i++;
   const a = CAMERA_KEYS[i];
   const b = CAMERA_KEYS[i + 1];
-  const s = easeInOutSine(phase(p, a.t, b.t - a.t));
+  const t = phase(p, a.t, b.t - a.t);
+  const s = a.t === STEPS.xray[0] ? easeWithCruise(t) : easeInOutSine(t);
 
   const da = len(a.offset);
   const db = len(b.offset);
@@ -143,9 +153,22 @@ export function overlaysAt(pRaw: number) {
 export function xrayAt(p: number) {
   const [start, end] = STEPS.xray;
   const reveal = phase(p, start, end - start);
-  const lid = ease(phase(reveal, 0, 0.65));
-  const shell = ease(phase(reveal, 0.36, 0.64));
+  const lid = easeWithCruise(phase(reveal, 0, 0.82));
+  const shell = easeWithCruise(phase(reveal, 0.29, 0.71));
   return { shell: 1 - 0.6 * shell, lid: 1 - 0.78 * lid, frame: 1 - 0.34 * shell, edges: 0.2 + 0.3 * ease(reveal) };
+}
+
+/** Power comes on after the latch seats, then the two banks of four GPUs. */
+export function serverBootAt(p: number) {
+  const closed = STEPS.lid[1];
+  return {
+    latch: ease(phase(p, closed - 0.006, 0.009)),
+    power: ease(phase(p, closed + 0.003, 0.007)),
+    firstBank: ease(phase(p, closed + 0.012, 0.012)),
+    secondBank: ease(phase(p, closed + 0.025, 0.014)),
+    fanSpeed: easeWithCruise(phase(p, closed + 0.008, 0.06)),
+    activity: ease(phase(p, closed + 0.041, 0.018)),
+  };
 }
 
 /**

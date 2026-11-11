@@ -214,6 +214,7 @@ function buildFanModels(rotors: THREE.Object3D[]) {
     const frame = new THREE.Mesh(frameGeo, M.fanFrame);
     fan.add(frame);
     outline(frame);
+    many(fan, 7.8, 7.8, 1.6, M.recess, bolts.map(([x, y, z]) => [x, y - 1.8, z - 0.45]));
     many(fan, 4.2, 4.2, 1.2, M.steel, bolts);
     const rotor = new THREE.Group();
     const hub = new THREE.Mesh(hubGeo, M.hub);
@@ -276,6 +277,7 @@ export function buildServer() {
     const px = sx - 7;
     const py = sy + 55.5; // the card's top edge
     const pz = sz - 125;
+    part(power, 12.6, 0.65, 21.5, M.recess, px, py - 0.1, pz);
     part(power, 10, 7.5, 20, M.plug, px, py, pz, true);
     const k = i % 4;
     const tx = PSU_X[i < 4 ? 0 : 1] + LEAD_OFFSETS[k];
@@ -297,7 +299,17 @@ export function buildServer() {
   const shellMat = (color = "#232428") => {
     const m = clay(color);
     m.transparent = true;
+    m.depthWrite = false;
     return m;
+  };
+  // The finale camera stays above the front-right corner. Compose the panels
+  // back to front so their blend order cannot change as the camera turns.
+  const orderPanels = (panelGroup: THREE.Group, layer: number) => {
+    panelGroup.children.forEach((child, index) => {
+      if (!(child instanceof THREE.Mesh) || !child.material.transparent) return;
+      child.renderOrder = layer + index * 0.01;
+      child.children.forEach((edge) => { edge.renderOrder = child.renderOrder + 0.005; });
+    });
   };
   const shellEdges = new THREE.LineBasicMaterial({ color: "#c8c8c8", transparent: true, opacity: 0.2, depthWrite: false });
   const shell: THREE.Mesh[] = [];
@@ -317,6 +329,7 @@ export function buildServer() {
   };
   const floorG = group("chassis", [0, -160, 0]);
   shell.push(part(floorG, W, 2, D, shellMat("#19191c"), 0, FLOOR - 2, 0, true));
+  orderPanels(floorG, 2);
   const trim = shellMat("#45484f");
   const relief = shellMat("#141518");
   const frameTrim = trim.clone();
@@ -328,6 +341,7 @@ export function buildServer() {
     panels.push(part(wall, 4, 5, D - 36, wallTrim, side * (W / 2 - 3), TOP - 6, 0));
     panels.push(many(wall, 1.6, 4.2, 7, wallTrim, [-350, -220, -90, 90, 220, 350].map((z) => [side * (W / 2 + 1), FLOOR + 19, z])));
     frameShell.push(many(wall, 5, H - 4, 9, frameTrim, [-D / 2 + 9, D / 2 - 11].map((z) => [side * (W / 2 - 3), FLOOR + 2, z])));
+    orderPanels(wall, side > 0 ? 5 : 4);
   }
   const front = panel("chassis", [0, 0, 220], W, H, 10, 0, FLOOR, D / 2 - 5, frameShell);
   // front panel relief: intake vents and drive bays
@@ -341,6 +355,7 @@ export function buildServer() {
   frameShell.push(many(front, 40, 70, 2, bezelRelief, drives));
   frameShell.push(many(front, 28, 5, 3.4, frameTrim, drives.map(([x, y, z]) => [x, y + 9, z + 1.2])));
   frameShell.push(many(front, 22, 1.6, 1.1, bezelRelief, drives.map(([x, y, z]) => [x, y + 11, z + 3])));
+  orderPanels(front, 6);
 
   // status LEDs above the drive bays: one per GPU, then power (red). They
   // stay solid through the x-ray; the scene blinks them once the lid is on.
@@ -369,13 +384,16 @@ export function buildServer() {
   shell.push(many(rear, 8, 1.6, 0.9, trim, network.map(([x, y, z]) => [x, y + 11, z - 0.85])));
   shell.push(many(rear, 17, 6, 1.7, relief, [[-109, FLOOR + 22, rearZ - 1.35], [-109, FLOOR + 32, rearZ - 1.35]]));
   shell.push(part(rear, 26, 11, 1.6, relief, -68, FLOOR + 24, rearZ - 1.35));
+  orderPanels(rear, 3);
 
   /* lid, last */
   const lid = panel("lid", [0, 320, 0], W + 4, 2.4, D + 4, 0, TOP, 0, lidShell);
   const lidTrim = trim.clone();
   lidShell.push(many(lid, 3.2, 1, D - 70, lidTrim, [[-208, TOP + 2.4, 0], [208, TOP + 2.4, 0]]));
   lidShell.push(part(lid, 52, 2.2, 14, relief.clone(), 0, TOP + 2.4, 278));
-  lidShell.push(part(lid, 37, 1.2, 5, lidTrim, 0, TOP + 4.6, 278));
+  const lidLatch = part(lid, 37, 1.2, 5, lidTrim, 0, TOP + 4.6, 278);
+  lidShell.push(lidLatch);
+  orderPanels(lid, 7);
 
-  return { parts, shell, lidShell, frameShell, shellEdges, rotors, leds };
+  return { parts, shell, lidShell, frameShell, shellEdges, rotors, leds, lidLatch };
 }

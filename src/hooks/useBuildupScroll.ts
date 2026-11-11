@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import type { BuildupScene } from "@/components/buildup/scene";
 import { stepProgress } from "@/components/buildup/motion";
-import { ambientAt, clampP, levelAt, overlaysAt } from "@/components/buildup/timeline";
+import { STEPS, ambientAt, clampP, levelAt, overlaysAt } from "@/components/buildup/timeline";
 
 /**
  * Drives the build-up hero. Scroll progress p through the runway is
@@ -39,6 +39,7 @@ export function useBuildupScroll<T extends HTMLElement = HTMLElement>() {
     let disposed = false;
     let runwayStart = 0;
     let runwayLength = 1;
+    let desktop = false;
     let level = -1;
     let endVisible = false;
 
@@ -72,6 +73,7 @@ export function useBuildupScroll<T extends HTMLElement = HTMLElement>() {
       const r = el.getBoundingClientRect();
       runwayStart = r.top + window.scrollY;
       runwayLength = Math.max(1, r.height - window.innerHeight);
+      desktop = window.innerWidth >= 768;
     };
     const sizeScene = () => {
       if (scene && sticky) scene.resize(sticky.clientWidth, sticky.clientHeight);
@@ -94,11 +96,11 @@ export function useBuildupScroll<T extends HTMLElement = HTMLElement>() {
       const step = stepProgress({ current, target, dt, visible });
       current = step.current;
       if (!step.render) return; // off screen: no rendering until it's back
-      // settled where something moves on its own (transistor pulse, server
-      // LEDs): keep going at about 30 fps; settled anywhere else: draw this
-      // last frame and stop until the next scroll (saves battery)
+      // Draw the desktop camera sway on each refresh. Other idle animation
+      // can run at about 30 fps, and static stages stop after the last frame.
       const ambient = step.idle && ambientAt(current);
-      if (!ambient || now - lastDraw >= 32) {
+      const desktopSway = desktop && current > STEPS.title[0];
+      if (!ambient || desktopSway || now - lastDraw >= 32) {
         scene?.setMoving(!step.idle);
         applyOverlays(current);
         scene?.update(current, (now - t0) / 1000);

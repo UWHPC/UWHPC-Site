@@ -66,8 +66,8 @@ export default function Hero() {
         </div>
 
         {/* headline — resolves at the bird's-eye finale */}
-        <div className="chip-title pointer-events-none absolute inset-x-0 top-[12vh] z-10 bg-[radial-gradient(ellipse_42%_60%_at_50%_50%,rgb(17_17_17/0.88),transparent)] px-6 py-[4vh] text-center">
-          <p className="mx-auto mb-6 text-5xl font-bold tracking-tight font-stretch-expanded leading-[0.98] sm:text-6xl lg:text-7xl">
+        <div className="chip-title pointer-events-none absolute inset-x-0 top-[12vh] z-10 bg-[radial-gradient(ellipse_42%_60%_at_50%_50%,rgb(17_17_17/0.88),transparent)] px-6 py-[4vh] text-center landscape:md:top-[10vh] landscape:md:py-2">
+          <p className="mx-auto mb-6 text-5xl font-bold tracking-tight font-stretch-expanded leading-[0.98] sm:text-6xl lg:text-7xl landscape:md:mb-3">
             UW<span className="text-accent">HPC</span>
           </p>
           <p className="mx-auto max-w-lg text-base text-ink-muted sm:text-lg">
@@ -77,7 +77,7 @@ export default function Hero() {
         </div>
 
         {/* CTAs resolve at bird's-eye */}
-        <div className="chip-endcap absolute inset-x-0 bottom-[8vh] z-10 flex flex-col items-center gap-3 px-6 sm:flex-row sm:justify-center">
+        <div className="chip-endcap absolute inset-x-0 bottom-[8vh] z-10 flex flex-col items-center gap-3 px-6 sm:flex-row sm:justify-center landscape:md:bottom-[4vh]">
           <Link
             href="/join"
             className="w-full bg-accent px-7 py-3.5 text-center font-mono text-xs tracking-[0.14em] uppercase text-white transition-colors hover:bg-accent-bright focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:w-auto"

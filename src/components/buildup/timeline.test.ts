@@ -1,6 +1,6 @@
 /// <reference types="bun" />
 import { expect, test } from "bun:test";
-import { CAMERA_KEYS, LEVELS, STEPS, ambientAt, cameraAt, endDrift, levelAt, overlaysAt, progress, xrayAt } from "./timeline";
+import { CAMERA_KEYS, LEVELS, STEPS, ambientAt, cameraAt, endDrift, levelAt, overlaysAt, progress, serverBootAt, xrayAt } from "./timeline";
 
 const dist = (a: number[], b: number[]) => Math.hypot(...a.map((v, i) => v - b[i]));
 
@@ -83,7 +83,7 @@ test("the closed server holds its frame before the lid and wall fade in sequence
   expect(start - closed).toBeGreaterThan(0.03);
   expect(cameraAt((closed + start) / 2)).toEqual(cameraAt(closed));
   expect(xrayAt(start)).toEqual({ shell: 1, lid: 1, frame: 1, edges: 0.2 });
-  const early = xrayAt(start + (end - start) * 0.3);
+  const early = xrayAt(start + (end - start) * 0.25);
   expect(early.lid).toBeLessThan(1);
   expect(early.shell).toBe(1);
   expect(overlaysAt(end).title).toBe(0);
@@ -95,6 +95,21 @@ test("the closed server holds its frame before the lid and wall fade in sequence
   expect(xrayAt(-1)).toEqual(xrayAt(0));
 });
 
+test("the server boots in order after the lid closes", () => {
+  const closed = STEPS.lid[1];
+  expect(serverBootAt(closed).power).toBe(0);
+  expect(serverBootAt(closed).fanSpeed).toBe(0);
+  const powered = serverBootAt(closed + 0.011);
+  expect(powered.latch).toBe(1);
+  expect(powered.power).toBe(1);
+  expect(powered.firstBank).toBe(0);
+  const firstBank = serverBootAt(closed + 0.0245);
+  expect(firstBank.firstBank).toBe(1);
+  expect(firstBank.secondBank).toBe(0);
+  expect(serverBootAt(STEPS.xray[1]).fanSpeed).toBe(1);
+  expect(serverBootAt(STEPS.xray[1]).secondBank).toBe(1);
+});
+
 test("ambient motion only where the scene moves on its own", () => {
   // the transistor pulse, until the patch has faded out at the die
   expect(ambientAt(0)).toBe(true);
@@ -102,9 +117,9 @@ test("ambient motion only where the scene moves on its own", () => {
   // the build itself only moves when you scroll
   expect(ambientAt(0.3)).toBe(false);
   expect(ambientAt(0.6)).toBe(false);
-  expect(ambientAt(0.84)).toBe(false);
+  expect(ambientAt(STEPS.lid[1] - 0.001)).toBe(false);
   // the closed server: status LEDs blink, fans turn
-  expect(ambientAt(0.85)).toBe(true);
+  expect(ambientAt(STEPS.lid[1])).toBe(true);
   expect(ambientAt(1)).toBe(true);
   expect(ambientAt(-1)).toBe(true);
   expect(ambientAt(2)).toBe(true);
