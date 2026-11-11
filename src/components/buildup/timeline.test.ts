@@ -1,6 +1,6 @@
 /// <reference types="bun" />
 import { expect, test } from "bun:test";
-import { CAMERA_KEYS, LEVELS, ambientAt, cameraAt, levelAt, overlaysAt, progress, xrayAt } from "./timeline";
+import { CAMERA_KEYS, LEVELS, ambientAt, cameraAt, endDrift, levelAt, overlaysAt, progress, xrayAt } from "./timeline";
 
 const dist = (a: number[], b: number[]) => Math.hypot(...a.map((v, i) => v - b[i]));
 
@@ -90,4 +90,24 @@ test("ambient motion only where the scene moves on its own", () => {
   expect(ambientAt(1)).toBe(true);
   expect(ambientAt(-1)).toBe(true);
   expect(ambientAt(2)).toBe(true);
+});
+
+test("end drift: still until the title arrives, then a slow, small sway", () => {
+  for (const t of [0, 3.7, 11, 40]) {
+    expect(endDrift(0.5, t)).toBe(0);
+    expect(endDrift(0.9, t)).toBe(0); // title step starts here: no jump
+    expect(Math.abs(endDrift(1, t))).toBeLessThanOrEqual(0.07);
+  }
+  // it moves slowly: under 0.02 rad per second at most
+  for (let t = 0; t < 30; t += 0.25) {
+    expect(Math.abs(endDrift(1, t + 0.25) - endDrift(1, t))).toBeLessThan(0.005);
+  }
+  // it actually sways
+  let lo = 0;
+  let hi = 0;
+  for (let t = 0; t < 40; t += 0.5) {
+    lo = Math.min(lo, endDrift(1, t));
+    hi = Math.max(hi, endDrift(1, t));
+  }
+  expect(hi - lo).toBeGreaterThan(0.1);
 });

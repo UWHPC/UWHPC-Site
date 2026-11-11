@@ -34,3 +34,9 @@ export function outline(mesh: THREE.Mesh, opacity = 0.18): THREE.LineSegments {
   mesh.add(lines);
   return lines;
 }
+
+/**
+ * Rounding segments for the models' rounded boxes; the scene lowers this
+ * on phones before it builds them (fewer triangles in the many small parts).
+ */
+export const detail = { segments: 3 };

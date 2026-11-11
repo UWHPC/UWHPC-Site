@@ -152,3 +152,12 @@ export function ambientAt(pRaw: number): boolean {
   const p = clampP(pRaw);
   return p < STEPS.toDie[1] || p >= STEPS.lid[1];
 }
+
+/**
+ * The ending's slow camera sway, in radians of yaw about the target: zero
+ * until the title step starts, easing in with it, then about ±4° on a
+ * 25-second cycle while the closed server sits under the title.
+ */
+export function endDrift(pRaw: number, time: number): number {
+  return ease(progress(clampP(pRaw), "title")) * 0.07 * Math.sin(time * 0.25) + 0; // + 0: no -0
+}

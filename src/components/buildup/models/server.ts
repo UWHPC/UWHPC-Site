@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
-import { PALETTE, clay, outline } from "../materials";
+import { PALETTE, clay, detail, outline } from "../materials";
 import { SERVER_FLOOR_Y, slotPose } from "../poses";
 
 /**
@@ -39,7 +39,7 @@ const M = {
 };
 
 function rbox(w: number, h: number, d: number, r = Math.min(w, h, d) * 0.18) {
-  return new RoundedBoxGeometry(w, h, d, 3, r);
+  return new RoundedBoxGeometry(w, h, d, detail.segments, r);
 }
 
 /** A rounded box by its bottom-centre. */

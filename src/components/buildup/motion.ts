@@ -36,3 +36,19 @@ export function seat(x: number): number {
   const u = s - 1;
   return 1 + (back + 1) * u * u * u + back * u * u;
 }
+
+/**
+ * Lens and resolution for the canvas at its current CSS width, so turning
+ * a phone re-frames the scene. Narrow screens get a wider lens and a
+ * resolution cap, and drop to 1x while the scene is moving (restored for
+ * the frame it settles on); wide screens keep up to 2x throughout.
+ */
+export function renderQuality(width: number, devicePixelRatio: number, moving: boolean): {
+  fov: number;
+  pixelRatio: number;
+  mobile: boolean;
+} {
+  const mobile = width < 768;
+  const cap = mobile ? (moving ? 1 : 1.5) : 2;
+  return { fov: mobile ? 48 : 34, pixelRatio: Math.min(devicePixelRatio || 1, cap), mobile };
+}

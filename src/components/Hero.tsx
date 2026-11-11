@@ -27,9 +27,9 @@ export default function Hero() {
       <div className="chip-sticky sticky top-0 flex h-screen flex-col items-center justify-center overflow-hidden pt-16">
         <div className="blueprint-grid pointer-events-none absolute inset-0 mx-auto max-w-6xl border-line md:border-x" />
 
-        {/* the 3D scene: die → GPU → server → rack → aisle */}
+        {/* the 3D scene: transistors → die → GPU → eight GPUs → server */}
         <canvas
-          aria-label="A GPU die powering on, then the camera pulling back through the GPU, its server, the rack, and a datacentre aisle"
+          aria-label="Transistors powering on, pulling back to a GPU die and its board; the casing closes around the GPU, seven more GPUs join it, and a server assembles around all eight"
           role="img"
           className="hero-canvas absolute inset-0 h-full w-full"
         />

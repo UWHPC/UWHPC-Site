@@ -1,14 +1,14 @@
 import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
-import { PALETTE, clay, outline } from "./materials";
+import { PALETTE, clay, detail, outline } from "./materials";
 import { buildBoard, buildCard, buildCasing } from "./models/gpu";
 import { cardPose, joinDrop, slotPose, HERO_SLOT, SERVER_FLOOR_Y } from "./poses";
 import { buildServer, type ServerGroup } from "./models/server";
 import { buildMicro } from "./models/micro";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { dieTextures, shadowTexture } from "./textures";
-import { cameraAt, progress, xrayAt } from "./timeline";
-import { seat } from "./motion";
+import { cameraAt, endDrift, progress, xrayAt } from "./timeline";
+import { renderQuality, seat } from "./motion";
 
 /**
  * The build-up hero's three.js scene. Models are built once; `update(p)`
@@ -18,13 +18,16 @@ import { seat } from "./motion";
 
 export type BuildupScene = {
   update: (p: number, time: number) => void;
+  /** Phones render at lower resolution while moving; call each frame. */
+  setMoving: (moving: boolean) => void;
   resize: (w: number, h: number) => void;
   dispose: () => void;
 };
 
 export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: boolean }): BuildupScene {
+  // phones build the many small rounded parts with fewer segments
+  detail.segments = opts.mobile ? 1 : 3;
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, opts.mobile ? 1.5 : 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.1;
@@ -48,8 +51,24 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
   rim2.position.set(-1, 0.35, -0.6);
   scene.add(rim2);
   scene.add(new THREE.HemisphereLight("#f2f2f5", "#1a1a1d", 1.1));
+  // the ending's light sweep: a soft cool light that passes once across the
+  // front of the closed server as the title arrives
+  const sweep = new THREE.PointLight("#dfe6ff", 0, 650, 0);
+  scene.add(sweep);
 
-  const camera = new THREE.PerspectiveCamera(opts.mobile ? 48 : 34, 1, 0.05, 20000);
+  const camera = new THREE.PerspectiveCamera(34, 1, 0.05, 20000);
+  let width = 1;
+  let height = 1;
+  let moving = false;
+  // lens and resolution from the current size, so turning a phone re-frames
+  const applyQuality = () => {
+    const q = renderQuality(width, window.devicePixelRatio || 1, moving);
+    if (renderer.getPixelRatio() !== q.pixelRatio) {
+      renderer.setPixelRatio(q.pixelRatio);
+      renderer.setSize(width, height, false);
+    }
+    camera.fov = q.fov;
+  };
 
   /* ---- die: top face carries the floorplan and its power-on glow ------- */
 
@@ -239,11 +258,19 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
     // the keys are framed for landscape; a tall, narrow screen stands back
     const { position, target } = cameraAt(p);
     const fit = camera.aspect < 1 ? Math.min(1.9, 0.62 / camera.aspect + 0.3) : 1;
+    // at the end, a slow sway around the server
+    const yaw = endDrift(p, time);
+    const ox = (position[0] - target[0]) * fit;
+    const oz = (position[2] - target[2]) * fit;
     camera.position.set(
-      target[0] + (position[0] - target[0]) * fit,
+      target[0] + ox * Math.cos(yaw) + oz * Math.sin(yaw),
       target[1] + (position[1] - target[1]) * fit,
-      target[2] + (position[2] - target[2]) * fit
+      target[2] - ox * Math.sin(yaw) + oz * Math.cos(yaw)
     );
+
+    const sw = progress(p, "title");
+    sweep.intensity = 2.2 * Math.sin(Math.PI * sw);
+    sweep.position.set(-420 + 840 * sw, SERVER_FLOOR_Y + 260, 560);
     camera.lookAt(...target);
     const d = camera.position.distanceTo(new THREE.Vector3(...target));
     camera.near = Math.max(0.05, d / 60);
@@ -253,9 +280,18 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
   }
 
   function resize(w: number, h: number) {
+    width = w;
+    height = h;
     renderer.setSize(w, h, false);
+    applyQuality();
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
+  }
+
+  function setMoving(m: boolean) {
+    if (m === moving) return;
+    moving = m;
+    applyQuality();
   }
 
   function dispose() {
@@ -269,5 +305,5 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
     });
   }
 
-  return { update, resize, dispose };
+  return { update, setMoving, resize, dispose };
 }

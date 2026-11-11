@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
-import { PALETTE, clay, outline } from "../materials";
+import { PALETTE, clay, detail, outline } from "../materials";
 import { pcbTexture } from "../textures";
 
 /**
@@ -19,10 +19,10 @@ type Mat = THREE.Material | THREE.Material[];
 
 const geo = new Map<string, THREE.BufferGeometry>();
 function rbox(w: number, h: number, d: number, r = Math.min(w, h, d) * 0.18) {
-  const k = `${w}|${h}|${d}|${r}`;
+  const k = `${w}|${h}|${d}|${r}|${detail.segments}`;
   let g = geo.get(k);
   if (!g) {
-    g = new RoundedBoxGeometry(w, h, d, 3, r);
+    g = new RoundedBoxGeometry(w, h, d, detail.segments, r);
     geo.set(k, g);
   }
   return g;

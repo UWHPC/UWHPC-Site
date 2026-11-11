@@ -99,6 +99,7 @@ export function useBuildupScroll<T extends HTMLElement = HTMLElement>() {
       // last frame and stop until the next scroll (saves battery)
       const ambient = step.idle && ambientAt(current);
       if (!ambient || now - lastDraw >= 32) {
+        scene?.setMoving(!step.idle);
         applyOverlays(current);
         scene?.update(current, (now - t0) / 1000);
         lastDraw = now;

@@ -1,6 +1,6 @@
 /// <reference types="bun" />
 import { expect, test } from "bun:test";
-import { seat, stepProgress } from "./motion";
+import { renderQuality, seat, stepProgress } from "./motion";
 
 test("off-screen frames never render (final review: Important 1)", () => {
   expect(stepProgress({ current: 0.2, target: 0.21, dt: 0.016, visible: false }).render).toBe(false);
@@ -41,4 +41,20 @@ test("idle: once settled the loop stops, while moving it keeps going", () => {
   expect(settled.render).toBe(true); // draws the final frame
   expect(settled.idle).toBe(true);
   expect(stepProgress({ current: 0.3, target: 0.32, dt: 0.016, visible: true }).idle).toBe(false);
+});
+
+test("render quality follows the current width, not the width at load", () => {
+  // phone portrait: wide lens, capped resolution
+  expect(renderQuality(375, 3, false)).toEqual({ fov: 48, pixelRatio: 1.5, mobile: true });
+  // the same phone turned to landscape (812 wide) frames like a desktop
+  expect(renderQuality(812, 3, false)).toEqual({ fov: 34, pixelRatio: 2, mobile: false });
+  // a low-density screen is never upscaled
+  expect(renderQuality(1440, 1, false).pixelRatio).toBe(1);
+});
+
+test("phones drop resolution while moving and restore it at rest", () => {
+  expect(renderQuality(375, 3, true).pixelRatio).toBe(1);
+  expect(renderQuality(375, 3, false).pixelRatio).toBe(1.5);
+  // desktops keep full resolution throughout
+  expect(renderQuality(1440, 2, true).pixelRatio).toBe(2);
 });
