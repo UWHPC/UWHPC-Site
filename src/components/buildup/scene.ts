@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
-import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { PALETTE, clay } from "./materials";
+import { buildBoard } from "./models/gpu";
 import { buildMicro } from "./models/micro";
 import { dieTextures } from "./textures";
 import { cameraAt, progress } from "./timeline";
@@ -77,9 +77,11 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
       );
   };
   const silicon = clay(PALETTE.silicon, { roughness: 0.5 });
-  const dieMesh = new THREE.Mesh(new RoundedBoxGeometry(26, 0.7, 26, 2, 0.15), [silicon, silicon, dieTop, silicon, silicon, silicon]);
-  dieMesh.position.y = -0.35; // top face at y = 0
-  scene.add(dieMesh);
+  // the hero card: board (with the die) now; casing parts join in Task 4
+  const card = new THREE.Group();
+  scene.add(card);
+  const board = buildBoard([silicon, silicon, dieTop, silicon, silicon, silicon]);
+  card.add(board.group);
 
   const micro = buildMicro();
   scene.add(micro.group);

@@ -65,7 +65,7 @@ export const CAMERA_KEYS: CameraKey[] = [
   { t: 0.0, target: [0, 0, 0], offset: [1.6, 2.4, 2.0] },
   { t: 0.1, target: [0, 0, 0], offset: [2.4, 3.6, 2.6] },
   { t: 0.26, target: [0, 0, 0], offset: [28, 40, 34] },
-  { t: 0.36, target: [0, -4, 10], offset: [170, 210, 200] },
+  { t: 0.36, target: [0, -4, -10], offset: [170, 210, 200] },
   { t: 0.48, target: [0, 10, 0], offset: [250, 230, 300] },
   { t: 0.6, target: [0, -40, 40], offset: [420, 360, 520] },
   { t: 0.85, target: [0, -60, 40], offset: [620, 500, 760] },
