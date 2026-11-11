@@ -33,6 +33,12 @@ export default function Hero() {
           role="img"
           className="hero-canvas absolute inset-0 h-full w-full"
         />
+        {/* the scene's lit floor fades into the page colour, so the hero
+            runs into the next section instead of stopping on a hard edge */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-[22vh] bg-gradient-to-t from-bg via-bg/70 to-transparent"
+        />
 
         {/* opening statement — visible on load, clears as the die powers on */}
         <div className="chip-intro pointer-events-none absolute inset-0 z-10">
