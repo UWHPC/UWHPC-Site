@@ -124,6 +124,56 @@ const pcbGeometry = createPcbGeometry();
 const mountRim = new THREE.RingGeometry(MOUNT_RADIUS - 0.016, 2.45, 24).rotateX(-Math.PI / 2);
 const mountWall = new THREE.CylinderGeometry(MOUNT_RADIUS - 0.017, MOUNT_RADIUS - 0.017, PCB_THICKNESS, 24, 1, true);
 
+function buildPowerSocket(parent: THREE.Object3D) {
+  const x = 30;
+  const z = BOARD_Z - 126;
+  const housing = new THREE.Shape();
+  housing.moveTo(-11, 0);
+  housing.lineTo(11, 0);
+  housing.lineTo(11, 10);
+  housing.lineTo(-11, 10);
+  housing.closePath();
+
+  const contacts: [number, number, number][] = [];
+  const sense: [number, number, number][] = [];
+  function opening(cx: number, cy: number, w: number, h: number, chamfer: number) {
+    const hole = new THREE.Path();
+    const left = cx - w / 2;
+    const right = cx + w / 2;
+    const bottom = cy - h / 2;
+    const top = cy + h / 2;
+    hole.moveTo(left, bottom);
+    hole.lineTo(left, top - chamfer);
+    hole.lineTo(left + chamfer, top);
+    hole.lineTo(right - chamfer, top);
+    hole.lineTo(right, top - chamfer);
+    hole.lineTo(right, bottom);
+    hole.closePath();
+    housing.holes.push(hole);
+  }
+  for (const cy of [2, 5.1]) {
+    for (let i = 0; i < 6; i++) {
+      const cx = (i - 2.5) * 3.15;
+      opening(cx, cy, 2.5, 2.35, i % 2 ? 0.45 : 0.08);
+      contacts.push([x + cx, PCB_TOP + cy - 0.3, z - 0.65]);
+    }
+  }
+  for (let i = 0; i < 4; i++) {
+    const cx = (i - 1.5) * 2.45;
+    opening(cx, 8.15, 1.48, 1.42, 0.08);
+    sense.push([x + cx, PCB_TOP + 8, z - 0.65]);
+  }
+
+  const shell = new THREE.Mesh(new THREE.ExtrudeGeometry(housing, { depth: 8, bevelEnabled: false }), M.connector);
+  shell.position.set(x, PCB_TOP, z - 4.5);
+  parent.add(shell);
+  outline(shell, 0.12);
+  part(parent, 22, 10, 1, M.connector, x, PCB_TOP, z + 4);
+  part(parent, 8, 0.95, 4, M.choke, x, PCB_TOP + 10, z);
+  many(parent, 0.65, 0.6, 5.6, M.fingers, contacts, 0);
+  many(parent, 0.38, 0.3, 5.6, M.fingers, sense, 0);
+}
+
 /**
  * Package and bare board. `dieFaces` are the die's six face materials (the
  * scene owns the top face's power-on shader).
@@ -183,7 +233,8 @@ export function buildBoard(dieFaces: THREE.Material[], closeup = true) {
     bulk.setMatrixAt(i, o.matrix);
   });
   group.add(bulk);
-  part(group, 22, 10, 9, M.connector, 30, PCB_TOP, BOARD_Z - 126, true);
+  if (closeup) buildPowerSocket(group);
+  else part(group, 22, 10, 9, M.connector, 30, PCB_TOP, BOARD_Z - 126, true);
 
   // PCIe edge fingers along one long edge, NVLink fingers along the other
   const fingers: [number, number, number][] = [];
@@ -199,12 +250,15 @@ export function buildBoard(dieFaces: THREE.Material[], closeup = true) {
     // Surface-mount controllers with visible leads, and banks of bypass capacitors.
     many(group, 7, 1.15, 8, M.fet, CONTROLLERS.map(([x, z]) => [x, PCB_TOP, z]));
     const pins: [number, number, number][] = [];
+    const fillets: [number, number, number][] = [];
     CONTROLLERS.forEach(([x, z]) => {
       for (let i = 0; i < 7; i++) {
         pins.push([x - 4.1, PCB_TOP, z - 3 + i], [x + 4.1, PCB_TOP, z - 3 + i]);
+        fillets.push([x - 4.92, PCB_TOP, z - 3 + i], [x + 4.92, PCB_TOP, z - 3 + i]);
       }
     });
     many(group, 2.1, 0.23, 0.38, M.solder, pins, 0);
+    many(group, 0.68, 0.29, 0.58, M.solder, fillets, 0.13);
     many(group, 0.65, 0.025, 0.65, M.hbmMark, CONTROLLERS.map(([x, z]) => [x - 2.3, PCB_TOP + 1.15, z - 2.7]), 0);
 
     const passives: [number, number, number][] = POWER_STAGES.map(([x, z]) => [x * 0.7, PCB_TOP, z]);
@@ -223,7 +277,6 @@ export function buildBoard(dieFaces: THREE.Material[], closeup = true) {
     });
     group.add(capLids);
     many(group, 2.9, 0.025, 0.25, M.bulk, BULK_X.map((x) => [x, PCB_TOP + 9.075, BULK_Z]), 0);
-    part(group, 8, 0.95, 4, M.choke, 30, PCB_TOP + 10, BOARD_Z - 126);
   }
 
   return { group, dieAnchor };

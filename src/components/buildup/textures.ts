@@ -106,7 +106,7 @@ function drawBlock(c: Ctx, b: Block, mode: "base" | "glow" | "timing", seed: num
   }
   const glow = mode === "glow";
   c.fillStyle = glow ? PALETTE[b.kind].glow : PALETTE[b.kind].base(seed % 3);
-  c.globalAlpha = glow ? 0.55 : 1;
+  c.globalAlpha = glow ? 0.4 : 1;
   c.fillRect(x, y, w, h);
   c.globalAlpha = 1;
 
@@ -135,27 +135,43 @@ function drawBlock(c: Ctx, b: Block, mode: "base" | "glow" | "timing", seed: num
     c.fillStyle = glow ? "rgba(255,255,255,0.6)" : "hsl(205 30% 40%)";
     c.fillRect(x + 2, y + h - 5, w - 4, 3);
   } else {
-    const vertical = b.kind === "phy";
-    const n = Math.floor((vertical ? h : w) / 9);
+    const phy = b.kind === "phy";
+    const n = Math.floor((phy ? h : w) / 9);
+    c.fillStyle = glow ? "rgba(255,179,165,0.48)" : "rgba(197,174,141,0.25)";
     for (let i = 1; i < n; i++) {
       c.beginPath();
-      if (vertical) {
-        c.moveTo(x + 3, y + (h * i) / n);
-        c.lineTo(x + w - 3, y + (h * i) / n);
+      if (phy) {
+        const lane = y + (h * i) / n;
+        c.moveTo(x + 4, lane - 2);
+        c.lineTo(x + w - 10, lane - 2);
+        c.moveTo(x + 4, lane + 2);
+        c.lineTo(x + w - 10, lane + 2);
+        c.fillRect(x + w - 8, lane - 3, 4, 6);
+      } else if (b.kind === "l2") {
+        const bank = x + (w * i) / n;
+        c.moveTo(bank, y + 3);
+        c.lineTo(bank, y + h * 0.43);
+        c.moveTo(bank, y + h * 0.57);
+        c.lineTo(bank, y + h - 3);
       } else {
-        c.moveTo(x + (w * i) / n, y + 3);
-        c.lineTo(x + (w * i) / n, y + h - 3);
+        const pin = x + (w * i) / n;
+        c.moveTo(pin, y + h * 0.33);
+        c.lineTo(pin, y + h - 7);
+        c.fillRect(pin - 2, y + 4, 4, 5);
       }
       c.stroke();
     }
   }
 }
 
-export function dieTextures(microRailZ: number[]) {
+export function dieTextures(resolution: number) {
   const blocks = dieLayout();
-  const [base, b] = canvas(S);
-  const [glow, g] = canvas(S);
+  const [base, b] = canvas(resolution);
+  const [glow, g] = canvas(resolution);
   const [timing, t] = canvas(S);
+  const scale = resolution / S;
+  b.scale(scale, scale);
+  g.scale(scale, scale);
 
   // silicon: deep indigo with a faint diagonal sheen
   const grad = b.createLinearGradient(0, 0, S, S);
@@ -193,24 +209,6 @@ export function dieTextures(microRailZ: number[]) {
     drawBlock(g, blk, "glow", i);
     drawBlock(t, blk, "timing", i);
   });
-
-  // The close-up taps land directly on these etched rails at the die center.
-  for (const [ctx, color, width] of [[b, "#947655", 0.92], [g, "#ee535a", 1.7]] as const) {
-    ctx.strokeStyle = color;
-    ctx.lineWidth = width * k;
-    microRailZ.forEach((z) => {
-      const y = 400 + z / DIE_WIDTH * 800;
-      const bankY = 400 + (y - 400) * 0.42;
-      ctx.beginPath();
-      ctx.moveTo(298 * k, bankY * k);
-      ctx.lineTo(336 * k, bankY * k);
-      ctx.lineTo(365 * k, y * k);
-      ctx.lineTo(435 * k, y * k);
-      ctx.lineTo(464 * k, bankY * k);
-      ctx.lineTo(502 * k, bankY * k);
-      ctx.stroke();
-    });
-  }
 
   // seal ring
   b.strokeStyle = "#5a5a62";

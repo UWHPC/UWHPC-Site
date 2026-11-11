@@ -15,8 +15,26 @@ import { PALETTE, clay } from "../materials";
 const N = 8;
 const PITCH = 0.24;
 const ORIGIN = -((N - 1) * PITCH) / 2;
-export const MICRO_RAIL_Z = Array.from({ length: N + 1 }, (_, i) => ORIGIN + (i - 0.5) * PITCH);
+const MICRO_RAIL_Z = Array.from({ length: N + 1 }, (_, i) => ORIGIN + (i - 0.5) * PITCH);
 export const MICRO_PULSE_SPAN = -4 * ORIGIN;
+
+export function dieRailGeometry() {
+  const rails = MICRO_RAIL_Z.map((z) => {
+    const bankZ = z * 0.42;
+    const path = [
+      [-3.315, bankZ, 0.027], [-2.08, bankZ, 0.015], [-1.1375, z, 0.015],
+      [1.1375, z, 0.015], [2.08, bankZ, 0.015], [3.315, bankZ, 0.027],
+    ];
+    const rail = new THREE.Shape();
+    rail.moveTo(path[0][0], -path[0][1] + path[0][2]);
+    path.slice(1).forEach(([x, center, halfWidth]) => rail.lineTo(x, -center + halfWidth));
+    path.reverse().forEach(([x, center, halfWidth]) => rail.lineTo(x, -center - halfWidth));
+    rail.closePath();
+    return rail;
+  });
+  // Just above the die so the etched traces retain clean edges at grazing angles.
+  return new THREE.ShapeGeometry(rails).rotateX(-Math.PI / 2).translate(0, 0.006, 0);
+}
 
 export function buildMicro() {
   const group = new THREE.Group();
@@ -128,12 +146,9 @@ export function buildMicro() {
       if (gates.instanceColor) gates.instanceColor.needsUpdate = true;
     },
     setOpacity(opacity: number) {
-      materials.forEach((m) => {
-        m.opacity = opacity;
-        m.depthWrite = opacity === 1;
-      });
-      // Flatten the raised contact and gate geometry into the etched routing.
-      group.scale.y = 0.06 + 0.94 * opacity;
+      materials.forEach((m) => { m.opacity = opacity; });
+      // Keep the front faces solid over the short fade instead of showing rear layers.
+      group.scale.y = 0.32 + 0.68 * opacity;
       group.visible = opacity > 0.01;
     },
   };

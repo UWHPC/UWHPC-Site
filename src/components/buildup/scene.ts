@@ -4,11 +4,12 @@ import { PALETTE, clay, detail, outline } from "./materials";
 import { buildBoard, buildCard, buildCasing } from "./models/gpu";
 import { cardPose, joinDrop, slotPose, HERO_SLOT, SERVER_FLOOR_Y } from "./poses";
 import { buildServer, type ServerGroup } from "./models/server";
-import { buildMicro, MICRO_PULSE_SPAN, MICRO_RAIL_Z } from "./models/micro";
+import { buildMicro, dieRailGeometry, MICRO_PULSE_SPAN } from "./models/micro";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { DIE_WIDTH, dieTextures, shadowTexture } from "./textures";
 import { STEPS, cameraAt, endDrift, progress, xrayAt } from "./timeline";
 import { renderQuality, seat } from "./motion";
+import { buildAtmosphere } from "./atmosphere";
 
 /**
  * The build-up hero's three.js scene. Models are built once; `update(p)`
@@ -35,8 +36,10 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
 
   const scene = new THREE.Scene();
   const pmrem = new THREE.PMREMGenerator(renderer);
-  const env = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-  scene.environment = env;
+  const room = new RoomEnvironment();
+  const env = pmrem.fromScene(room, 0.04);
+  room.dispose();
+  scene.environment = env.texture;
   scene.environmentIntensity = 0.35;
 
   // clay lighting: one soft key, two cool rims from behind that pick the
@@ -76,46 +79,49 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
   const tex = (c: HTMLCanvasElement, srgb = true) => {
     const t = new THREE.CanvasTexture(c);
     if (srgb) t.colorSpace = THREE.SRGBColorSpace;
-    t.anisotropy = 8;
+    t.anisotropy = Math.min(opts.mobile ? 8 : 16, renderer.capabilities.getMaxAnisotropy());
     textures.push(t);
     return t;
   };
-  const die = dieTextures(MICRO_RAIL_Z);
+  const die = dieTextures(opts.mobile ? 1024 : 2048);
   const dieProgress = { value: 0 };
   const pulseFront = { value: 0 };
   const pulseSpan = { value: MICRO_PULSE_SPAN };
   const pulseStrength = { value: 0 };
+  const pulseUniforms = { uPulseFront: pulseFront, uPulseSpan: pulseSpan, uPulseStrength: pulseStrength };
+  const pulseShader = `
+    uniform float uPulseFront;
+    uniform float uPulseSpan;
+    uniform float uPulseStrength;
+    float powerPulse(float distance) {
+      float delta = 0.5 + distance / uPulseSpan - uPulseFront;
+      return exp(-delta * delta / 0.008) * uPulseStrength;
+    }`;
   const dieTop = new THREE.MeshStandardMaterial({
     map: tex(die.base),
     emissiveMap: tex(die.glow),
     emissive: new THREE.Color("#ffffff"),
     emissiveIntensity: 1.5,
-    roughness: 0.6,
-    metalness: 0.05,
+    roughness: 0.38,
+    metalness: 0.19,
   });
   const timing = tex(die.timing, false);
   dieTop.onBeforeCompile = (shader) => {
     shader.uniforms.uTiming = { value: timing };
     shader.uniforms.uDieProgress = dieProgress;
-    shader.uniforms.uPulseFront = pulseFront;
-    shader.uniforms.uPulseSpan = pulseSpan;
-    shader.uniforms.uPulseStrength = pulseStrength;
+    Object.assign(shader.uniforms, pulseUniforms);
     shader.fragmentShader = shader.fragmentShader
       .replace("#include <common>", `#include <common>
         uniform sampler2D uTiming;
         uniform float uDieProgress;
-        uniform float uPulseFront;
-        uniform float uPulseSpan;
-        uniform float uPulseStrength;`)
+        ${pulseShader}`)
       .replace(
         "#include <emissivemap_fragment>",
         `#include <emissivemap_fragment>
         float tStart = texture2D(uTiming, vEmissiveMapUv).r;
         float powered = smoothstep(tStart, tStart + 0.06, uDieProgress);
-        float diagonal = 0.5 + (vEmissiveMapUv.x - vEmissiveMapUv.y) * ${DIE_WIDTH.toFixed(1)} / uPulseSpan;
-        float delta = diagonal - uPulseFront;
-        float pulse = exp(-delta * delta / 0.008) * uPulseStrength;
-        totalEmissiveRadiance *= max(powered, pulse);`
+        float diagonal = (vEmissiveMapUv.x - vEmissiveMapUv.y) * ${DIE_WIDTH.toFixed(1)};
+        totalEmissiveRadiance *= mix(powered * 0.84, 1.0, powerPulse(diagonal));`
       );
   };
   const silicon = clay(PALETTE.silicon, { roughness: 0.5 });
@@ -125,6 +131,18 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
   const dieFaces = [silicon, silicon, dieTop, silicon, silicon, silicon];
   const board = buildBoard(dieFaces);
   card.add(board.group);
+  const railMaterial = new THREE.MeshStandardMaterial({ color: "#907553", metalness: 0.43, roughness: 0.55 });
+  railMaterial.onBeforeCompile = (shader) => {
+    Object.assign(shader.uniforms, pulseUniforms);
+    shader.vertexShader = shader.vertexShader
+      .replace("#include <common>", "#include <common>\nvarying float vRailDiagonal;")
+      .replace("#include <begin_vertex>", "#include <begin_vertex>\nvRailDiagonal = position.x + position.z;");
+    shader.fragmentShader = shader.fragmentShader
+      .replace("#include <common>", `#include <common>\nvarying float vRailDiagonal;\n${pulseShader}`)
+      .replace("#include <emissivemap_fragment>", `#include <emissivemap_fragment>
+        totalEmissiveRadiance += vec3(0.8, 0.045, 0.035) * powerPulse(vRailDiagonal);`);
+  };
+  board.group.add(new THREE.Mesh(dieRailGeometry(), railMaterial));
   const casing = buildCasing();
   const casingBase = casing.map(({ obj }) => obj.position.clone());
   casing.forEach(({ obj }) => card.add(obj));
@@ -183,6 +201,7 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
   serverShadow.position.set(0, SERVER_FLOOR_Y - 3, 0);
   const cardShadowMat = cardShadow.material as THREE.MeshBasicMaterial;
   const serverShadowMat = serverShadow.material as THREE.MeshBasicMaterial;
+  const atmosphere = buildAtmosphere(scene, sweep.position, opts.mobile);
 
   const micro = buildMicro();
   scene.add(micro.group);
@@ -206,7 +225,7 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
 
   function update(p: number, time: number) {
     const toDie = progress(p, "toDie");
-    const detailOpacity = 1 - THREE.MathUtils.smoothstep(toDie, 0.16, 0.68);
+    const detailOpacity = 1 - THREE.MathUtils.smoothstep(toDie, 0.38, 0.59);
     const front = ((time * 0.5) % 1.5) - 0.25;
     micro.setOpacity(detailOpacity);
     if (micro.group.visible) micro.setLit(progress(p, "transistors"), front);
@@ -233,10 +252,13 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
     card.rotation.set(...pose.rotation);
     const j = progress(p, "join");
     const board = progress(p, "toBoard");
-    cardShadowMat.opacity = Math.min(board * 2, 1) * (1 - Math.min(1, j / 0.4));
+    const cardStage = Math.min(board * 2, 1) * (1 - Math.min(1, j / 0.4));
+    const serverStage = Math.min(1, j / 0.5);
+    cardShadowMat.opacity = cardStage;
     cardShadow.visible = cardShadowMat.opacity > 0.01;
-    serverShadowMat.opacity = Math.min(1, j / 0.5);
+    serverShadowMat.opacity = serverStage;
     serverShadow.visible = serverShadowMat.opacity > 0.01;
+    rim.intensity = 1.5 + 0.45 * cardStage + 0.28 * serverStage;
     others.forEach(({ g, k, home }) => {
       const t = joinDrop(j, k);
       g.position.set(home.x, home.y + 260 * (1 - t), home.z - 60 * (1 - t));
@@ -299,6 +321,7 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
     const sw = progress(p, "title");
     sweep.intensity = 2.2 * Math.sin(Math.PI * sw);
     sweep.position.set(-420 + 840 * sw, SERVER_FLOOR_Y + 260, 560);
+    atmosphere.update(cardStage, serverStage, sweep.intensity / 2.2, time, renderer.getPixelRatio());
     camera.lookAt(...target);
     const d = camera.position.distanceTo(new THREE.Vector3(...target));
     camera.near = Math.max(0.05, d / 60);
@@ -326,6 +349,9 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
     renderer.dispose();
     pmrem.dispose();
     env.dispose();
+    atmosphere.dispose();
+    dieTop.dispose();
+    railMaterial.dispose();
     textures.forEach((t) => t.dispose());
     scene.traverse((o) => {
       const m = o as THREE.Mesh;
