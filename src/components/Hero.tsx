@@ -112,7 +112,6 @@ export default function Hero() {
                   </li>
                 ))}
               </ol>
-              <p className="chip-hud-callout invisible mt-4 max-w-xs text-xs tracking-normal normal-case text-accent-bright md:text-sm" />
             </div>
             <a
               href="#about"

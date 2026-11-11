@@ -53,8 +53,8 @@ test("levels and copy", () => {
   expect(LEVELS[1].note).toBe("GH100 · 144 SMs, full die");
   expect(LEVELS[2].note).toBe("H200 · 141 GB HBM3e");
   expect(LEVELS[3].note).toBe("8 GPUs over NVLink");
-  expect(LEVELS[2].callout).toBe("Maverick works here: irregular graph workloads on one GPU.");
-  expect(LEVELS[3].callout).toBe("BATS starts here: beamforming split across GPUs.");
+  // the readout names the hardware only; no project callouts
+  expect(LEVELS.some((l) => "callout" in l)).toBe(false);
   expect(levelAt(0)).toBe(0);
   expect(levelAt(0.2)).toBe(1);
   expect(levelAt(0.35)).toBe(2);

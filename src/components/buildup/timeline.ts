@@ -103,23 +103,13 @@ export function cameraAt(pRaw: number): { position: Vec3; target: Vec3 } {
 
 /* ---- scale readout ----------------------------------------------------- */
 
-export type Level = { name: string; note: string; from: number; callout: string };
+export type Level = { name: string; note: string; from: number };
 
 export const LEVELS: Level[] = [
-  { name: "Transistor", note: "TSMC 4N · 80 billion per die", from: 0, callout: "" },
-  { name: "Die", note: "GH100 · 144 SMs, full die", from: 0.12, callout: "" },
-  {
-    name: "GPU",
-    note: "H200 · 141 GB HBM3e",
-    from: 0.3,
-    callout: "Maverick works here: irregular graph workloads on one GPU.",
-  },
-  {
-    name: "Server",
-    note: "8 GPUs over NVLink",
-    from: 0.5,
-    callout: "BATS starts here: beamforming split across GPUs.",
-  },
+  { name: "Transistor", note: "TSMC 4N · 80 billion per die", from: 0 },
+  { name: "Die", note: "GH100 · 144 SMs, full die", from: 0.12 },
+  { name: "GPU", note: "H200 · 141 GB HBM3e", from: 0.3 },
+  { name: "Server", note: "8 GPUs over NVLink", from: 0.5 },
 ];
 
 export function levelAt(pRaw: number): number {

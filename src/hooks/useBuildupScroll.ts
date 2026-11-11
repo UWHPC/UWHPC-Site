@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import type { BuildupScene } from "@/components/buildup/scene";
 import { stepProgress } from "@/components/buildup/motion";
-import { LEVELS, clampP, levelAt, overlaysAt } from "@/components/buildup/timeline";
+import { clampP, levelAt, overlaysAt } from "@/components/buildup/timeline";
 
 /**
  * Drives the build-up hero. Scroll progress p through the runway is
@@ -30,7 +30,6 @@ export function useBuildupScroll<T extends HTMLElement = HTMLElement>() {
     const rail = q<HTMLElement>(".chip-rail-fill");
     const hud = q<HTMLElement>(".chip-hud");
     const hudRows = Array.from(el.querySelectorAll<HTMLElement>(".chip-hud [data-level]"));
-    const callout = q<HTMLElement>(".chip-hud-callout");
 
     const set = (node: HTMLElement | null, prop: string, value: string) => {
       if (node && node.style.getPropertyValue(prop) !== value) node.style.setProperty(prop, value);
@@ -60,10 +59,6 @@ export function useBuildupScroll<T extends HTMLElement = HTMLElement>() {
       if (next !== level) {
         level = next;
         hudRows.forEach((row) => row.toggleAttribute("data-active", Number(row.dataset.level) === level));
-        if (callout) {
-          callout.textContent = LEVELS[level].callout;
-          callout.style.visibility = LEVELS[level].callout ? "visible" : "hidden";
-        }
       }
       const showEnd = o.endcap > 0.02;
       if (showEnd !== endVisible) {
