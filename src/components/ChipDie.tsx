@@ -38,15 +38,15 @@ function gapStyle(item: Gap) {
   return varStyle({
     "--tc": item.color,
     ...(item.sw ? { "--sw": item.sw } : {}),
-    "--chip-range-start": `${item.td * 100}%`,
-    "--chip-range-end": `${(item.td + (item.tw ?? 0.12)) * 100}%`,
+    "--chip-range-start": `contain ${item.td * 100}%`,
+    "--chip-range-end": `contain ${(item.td + (item.tw ?? 0.12)) * 100}%`,
   });
 }
 
 function regionStyle(item: Region) {
   return varStyle({
-    "--chip-range-start": `${item.d * 100}%`,
-    "--chip-range-end": `${(item.d + (item.w ?? 0.08)) * 100}%`,
+    "--chip-range-start": `contain ${item.d * 100}%`,
+    "--chip-range-end": `contain ${(item.d + (item.w ?? 0.08)) * 100}%`,
   });
 }
 

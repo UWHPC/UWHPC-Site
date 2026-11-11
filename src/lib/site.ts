@@ -47,26 +47,51 @@ export const SOCIAL_LINKS = {
 
 export type Project = {
   title: string;
+  /** Full name, when the title is an acronym or codename. */
+  subtitle?: string;
   description: string;
   tags: string[];
   status: string;
+  leads?: string[];
   href?: string;
+  /** Current flagship work, shown large with its own visual. */
+  featured?: boolean;
 };
 
 export const PROJECTS: Project[] = [
   {
+    title: "BATS",
+    subtitle: "Beamforming Across Tensor-core Systems",
+    description:
+      "Beamforming combines signals from an array of sensors so that one direction adds up and the rest cancel out. It sits at the core of radio astronomy, radar, and medical ultrasound. Forming many beams across frequency channels is a batched complex matrix multiply, which tensor cores accelerate. BATS is building a distributed tensor-core beamformer across GPUs and nodes, with a planner that chooses how to split the work from the workload, where the data lives, and the interconnect.",
+    tags: ["CUDA", "Tensor cores", "Multi-GPU"],
+    status: "Spec v1",
+    leads: ["Alyan Salamat", "Shpat Sahiti"],
+    featured: true,
+  },
+  {
+    title: "Maverick",
+    subtitle: "Topology-aware GPU execution of graph neural networks",
+    description:
+      "Two graphs with the same number of edges can produce very different GPU workloads: a handful of high-degree nodes can leave most of the GPU waiting. Maverick analyzes the topology of a static graph once and uses it to choose specialized execution strategies for GNN inference, measured against TorchInductor under torch.compile, with the cost of that analysis counted against the speedup.",
+    tags: ["PyTorch", "Triton", "GNNs"],
+    status: "Working draft",
+    leads: ["James Redekopp", "Vijay Goyal"],
+    featured: true,
+  },
+  {
     title: "XPU",
     description:
-      "A lightweight C++23 library providing a shared interface for memory management, math operations, data layouts, and execution across CPU and NVIDIA CUDA. It gives UWHPC projects a reusable performance foundation, with AMD HIP and SYCL backends on the roadmap.",
-    tags: ["C++", "CUDA", "Portability"],
+      "A header-only C++23 library that lets the same allocation, layout, and math code compile for either CPU or NVIDIA CUDA. Backend-aware buffers, structure-of-arrays storage, OpenMP + SIMD parallel loops on the CPU, and launch helpers on the GPU. It's the performance foundation shared across UWHPC projects.",
+    tags: ["C++23", "CUDA", "OpenMP"],
     status: "In Progress",
     href: "https://github.com/UWHPC/xpu",
   },
   {
     title: "Variational Monte Carlo",
     description:
-      "A Monte Carlo engine for simulating the homogeneous electron gas. Implements a Slater–Jastrow trial wavefunction and Metropolis sampling for electron configurations.",
-    tags: ["C++", "Monte Carlo", "Quantum"],
+      "A Variational Monte Carlo engine in CUDA C++ for the homogeneous electron gas. A plane-wave Slater determinant with a Padé–Jastrow factor, sampled by Metropolis moves in a periodic cell, with Jastrow optimization and blocking analysis for honest error bars.",
+    tags: ["CUDA C++", "Monte Carlo", "Many-body physics"],
     status: "In Progress",
     href: "https://github.com/UWHPC/Variational-Monte-Carlo",
   },

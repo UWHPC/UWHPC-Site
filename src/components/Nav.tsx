@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -15,6 +16,7 @@ const links = [
 
 export default function Nav() {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
 
   return (
     <nav className="chip-nav fixed top-0 left-0 right-0 z-50 border-b border-line bg-bg/90 backdrop-blur-md">
@@ -75,7 +77,7 @@ export default function Nav() {
                 key={l.href}
                 href={l.href}
                 onClick={() => setOpen(false)}
-                className="bg-accent px-4 py-2 text-center font-mono text-xs tracking-[0.15em] uppercase text-white transition-colors hover:bg-accent-bright focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                className="bg-accent px-4 py-2 text-center font-mono text-xs tracking-[0.14em] uppercase text-white transition-colors hover:bg-accent-bright focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
               >
                 Get Involved
               </Link>
@@ -84,8 +86,12 @@ export default function Nav() {
                 key={l.href}
                 href={l.href}
                 onClick={() => setOpen(false)}
-                className="link-trace font-mono text-xs tracking-[0.15em] uppercase text-ink-muted transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                aria-current={pathname === l.href ? "page" : undefined}
+                className="link-trace flex items-center gap-2 font-mono text-xs tracking-[0.14em] uppercase text-ink-muted transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent aria-[current=page]:text-ink"
               >
+                {pathname === l.href && (
+                  <span aria-hidden="true" className="h-1 w-1 bg-accent" />
+                )}
                 {l.label}
               </Link>
             )

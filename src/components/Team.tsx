@@ -60,7 +60,7 @@ export default function Team() {
         <div className="mt-10">
           <a
             href="/team"
-            className="link-trace inline-flex items-center gap-2 font-mono text-xs tracking-[0.15em] uppercase text-accent transition-colors hover:text-accent-bright focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            className="link-trace inline-flex items-center gap-2 font-mono text-xs tracking-[0.14em] uppercase text-accent transition-colors hover:text-accent-bright focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
             Meet the full team
             <span aria-hidden="true">→</span>

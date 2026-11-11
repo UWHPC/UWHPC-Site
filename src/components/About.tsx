@@ -1,61 +1,66 @@
-"use client";
+import { Container } from "@/components/ui";
 
-import { useFadeIn } from "@/hooks/useFadeIn";
-import { Container, SectionHeader } from "@/components/ui";
-
-const stats = [
-  { value: "HPC", label: "Core Focus" },
-  { value: "UW", label: "Waterloo Based" },
-  { value: "//", label: "Performance Driven" },
-  { value: "++", label: "Student Led" },
+/**
+ * The statement. Each word is its own span so the CSS view timeline can
+ * light them in reading order as lines scroll through the viewport.
+ * Accent words carry their own lit color.
+ */
+const STATEMENT: { text: string; accent?: boolean }[][] = [
+  [{ text: "We're a student design team at the University of Waterloo building" }],
+  [{ text: "high\u2011performance software", accent: true }],
+  [{ text: "for computationally intensive workloads — from numerical methods down to the" }],
+  [{ text: "compilers and systems", accent: true }],
+  [{ text: "that make them fast." }],
 ];
 
-function StatCell({
-  stat,
-  index,
-}: {
-  stat: { value: string; label: string };
-  index: number;
-}) {
-  const ref = useFadeIn(200 + index * 100);
-
-  return (
-    <div
-      ref={ref}
-      className="opacity-0 translate-y-3 transition-all duration-500 ease-out border border-line p-5"
-    >
-      <div className="mb-1 font-mono text-2xl text-accent">{stat.value}</div>
-      <div className="font-mono text-xs text-ink-muted">{stat.label}</div>
-    </div>
-  );
-}
+const FACTS = [
+  { label: "Based at", value: "Sedra Student Design Centre" },
+  { label: "Built with", value: "C++23 · CUDA · OpenMP" },
+  { label: "Run by", value: "Students, for students" },
+];
 
 export default function About() {
-  const descRef = useFadeIn(100);
-
   return (
-    <section id="about" className="border-t border-line">
-      <Container className="py-24">
-        <SectionHeader index="00" kicker="About Us" title="About" />
-
-        <div className="grid items-center gap-12 md:grid-cols-2">
-          <div
-            ref={descRef}
-            className="opacity-0 translate-y-3 transition-all duration-500 ease-out"
-          >
-            <p className="text-base/7 font-light text-ink-muted">
-              We build clusters, crush benchmarks, and compete - UWHPC is
-              Waterloo&apos;s team for students who want to push hardware and
-              code to their absolute limits.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            {stats.map((s, i) => (
-              <StatCell key={s.label} stat={s} index={i} />
-            ))}
-          </div>
+    <section id="about" className="relative">
+      <Container className="py-28 sm:py-40">
+        <div className="mb-10 flex items-baseline gap-3 font-mono text-xs tracking-[0.18em] uppercase">
+          <span className="text-accent">00</span>
+          <span className="text-ink-faint">/ Who we are</span>
         </div>
+
+        <p className="max-w-5xl text-[clamp(1.75rem,4.2vw,3.4rem)] leading-[1.12] font-semibold tracking-[-0.015em]">
+          {STATEMENT.flat().map((chunk, i) =>
+            chunk.text.split(" ").map((word, j) => (
+              <span
+                key={`${i}-${j}`}
+                className="reveal-word"
+                style={
+                  chunk.accent
+                    ? ({ "--word-color": "var(--color-accent-bright)" } as React.CSSProperties)
+                    : undefined
+                }
+              >
+                {word}{" "}
+              </span>
+            ))
+          )}
+        </p>
+
+        <dl className="mt-20 grid border-t border-line sm:grid-cols-3">
+          {FACTS.map((f, i) => (
+            <div
+              key={f.label}
+              className={`border-b border-line py-6 sm:border-b-0 ${
+                i > 0 ? "sm:border-l sm:pl-8" : ""
+              }`}
+            >
+              <dt className="mb-2 font-mono text-[11px] tracking-[0.18em] uppercase text-ink-faint">
+                {f.label}
+              </dt>
+              <dd className="text-lg font-medium">{f.value}</dd>
+            </div>
+          ))}
+        </dl>
       </Container>
     </section>
   );

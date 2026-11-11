@@ -39,7 +39,7 @@ function PostRow({
         <h3 className="mb-2 text-xl font-semibold tracking-tight">
           {post.title}
         </h3>
-        <p className="max-w-prose text-sm/6 font-light text-ink-muted">
+        <p className="max-w-prose text-sm/6 text-ink-muted">
           {post.excerpt}
         </p>
       </div>

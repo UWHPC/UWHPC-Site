@@ -19,14 +19,14 @@ export default function TeamPage() {
       <main className="pt-16">
         <Container className="py-24">
           <div className="mb-14">
-            <div className="mb-4 flex items-baseline gap-3 font-mono text-xs tracking-[0.2em] uppercase">
+            <div className="mb-4 flex items-baseline gap-3 font-mono text-xs tracking-[0.18em] uppercase">
               <span className="text-accent">01</span>
               <span className="text-ink-faint">/ Our Team</span>
             </div>
             <h1 className="mb-5 text-3xl font-bold tracking-tight uppercase font-stretch-expanded sm:text-4xl">
               Meet the Team
             </h1>
-            <p className="max-w-md font-light text-ink-muted">
+            <p className="max-w-md text-ink-muted">
               The people behind UWHPC.
             </p>
           </div>
@@ -43,7 +43,7 @@ export default function TeamPage() {
                   <Pins className="absolute -top-[7px] left-6" />
                   <Pins className="absolute -bottom-[7px] right-6" />
 
-                  <div className="mb-6 flex items-center justify-between border-b border-line pb-4 font-mono text-[0.65rem] tracking-[0.2em] text-ink-faint">
+                  <div className="mb-6 flex items-center justify-between border-b border-line pb-4 font-mono text-[11px] tracking-[0.18em] text-ink-faint">
                     <span>MEMBER</span>
                     <span>{String(i + 1).padStart(2, "0")}</span>
                   </div>
@@ -64,7 +64,7 @@ export default function TeamPage() {
                         alt={member.name}
                         fill
                         sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                        className={member.imageClassName ?? "object-contain object-center"}
+                        className={`${member.imageClassName ?? "object-contain object-center"} grayscale contrast-[1.05] transition duration-700 group-hover:scale-[1.03] group-hover:grayscale-0`}
                       />
                     )}
                   </div>

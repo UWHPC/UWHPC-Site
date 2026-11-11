@@ -45,7 +45,8 @@ function body(): string {
     "",
     ...PROJECTS.map((p) =>
       [
-        `- **${p.title}** (${p.status})`,
+        `- **${p.title}**${p.subtitle ? `: ${p.subtitle}` : ""} (${p.status})`,
+        ...(p.leads ? [`  Leads: ${p.leads.join(", ")}`] : []),
         `  ${p.description}`,
         `  Tags: ${p.tags.join(", ")}`,
         ...(p.href ? [`  Source: ${p.href}`] : []),

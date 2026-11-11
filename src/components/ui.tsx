@@ -40,18 +40,18 @@ export function SectionHeader({
   as?: "h1" | "h2";
 }) {
   return (
-    <div className="mb-14 grid gap-6 md:grid-cols-12 md:items-end">
+    <div className="mb-16 grid gap-6 md:grid-cols-12 md:items-end">
       <div className="md:col-span-7">
-        <div className="mb-4 flex items-baseline gap-3 font-mono text-xs tracking-[0.2em] uppercase">
+        <div className="mb-4 flex items-baseline gap-3 font-mono text-xs tracking-[0.18em] uppercase">
           <span className="text-accent">{index}</span>
           <span className="text-ink-faint">/ {kicker}</span>
         </div>
-        <Heading className="text-3xl font-bold tracking-tight uppercase font-stretch-expanded sm:text-4xl">
+        <Heading className="text-4xl leading-[0.95] font-bold tracking-tight uppercase font-stretch-expanded sm:text-5xl lg:text-6xl">
           {title}
         </Heading>
       </div>
       {blurb && (
-        <p className="font-light text-ink-muted md:col-span-5 md:justify-self-end md:text-right">
+        <p className="text-ink-muted md:col-span-5 md:justify-self-end md:text-right">
           {blurb}
         </p>
       )}

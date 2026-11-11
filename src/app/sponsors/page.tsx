@@ -38,14 +38,14 @@ export default function SponsorsPage() {
       <main className="pt-16">
         <Container className="py-24">
           <div className="mb-14">
-            <div className="mb-4 flex items-baseline gap-3 font-mono text-xs tracking-[0.2em] uppercase">
+            <div className="mb-4 flex items-baseline gap-3 font-mono text-xs tracking-[0.18em] uppercase">
               <span className="text-accent">01</span>
               <span className="text-ink-faint">/ Our Partners</span>
             </div>
             <h1 className="mb-5 text-3xl font-bold tracking-tight uppercase font-stretch-expanded sm:text-4xl">
               Sponsors
             </h1>
-            <p className="max-w-md font-light text-ink-muted">
+            <p className="max-w-md text-ink-muted">
               The organizations funding the hardware, compute, and
               infrastructure behind our work.
             </p>
@@ -54,7 +54,7 @@ export default function SponsorsPage() {
           <div className="space-y-12">
             {tiers.map(({ tier, sponsors }) => (
               <section key={tier}>
-                <h2 className="mb-5 flex items-baseline gap-3 font-mono text-xs tracking-[0.2em] uppercase">
+                <h2 className="mb-5 flex items-baseline gap-3 font-mono text-xs tracking-[0.18em] uppercase">
                   <span className={tierStyle[tier].label}>{tier}</span>
                   <span className="text-ink-faint">/ Sponsor</span>
                 </h2>
@@ -95,14 +95,14 @@ export default function SponsorsPage() {
           <Container className="py-24">
             <div className="grid gap-8 md:grid-cols-12 md:items-end">
               <div className="md:col-span-7">
-                <div className="mb-4 flex items-baseline gap-3 font-mono text-xs tracking-[0.2em] uppercase">
+                <div className="mb-4 flex items-baseline gap-3 font-mono text-xs tracking-[0.18em] uppercase">
                   <span className="text-accent">02</span>
                   <span className="text-ink-faint">/ Partner With Us</span>
                 </div>
                 <h2 className="mb-5 text-3xl font-bold tracking-tight uppercase font-stretch-expanded sm:text-4xl">
                   Become a Sponsor
                 </h2>
-                <p className="max-w-prose font-light text-ink-muted">
+                <p className="max-w-prose text-ink-muted">
                   Sponsorship funds GPUs, compute access, and project
                   infrastructure for hands-on engineering work, and gives your
                   team a focused point of contact with students interested in
@@ -113,7 +113,7 @@ export default function SponsorsPage() {
               <div className="md:col-span-5 md:justify-self-end">
                 <a
                   href={`mailto:${CONTACT_EMAIL}?subject=Sponsoring%20UWHPC`}
-                  className="inline-block bg-accent px-6 py-3 font-mono text-xs tracking-[0.15em] uppercase text-white transition-colors hover:bg-accent-bright focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  className="inline-block bg-accent px-6 py-3 font-mono text-xs tracking-[0.14em] uppercase text-white transition-colors hover:bg-accent-bright focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                 >
                   {CONTACT_EMAIL}
                 </a>

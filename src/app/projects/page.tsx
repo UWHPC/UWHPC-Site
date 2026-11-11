@@ -17,7 +17,7 @@ export default function ProjectsPage() {
     <>
       <Nav />
       <main className="pt-16">
-        <Projects as="h1" />
+        <Projects as="h1" all />
         <Focus />
       </main>
       <Footer />

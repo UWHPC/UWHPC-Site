@@ -92,7 +92,7 @@ function Row({ channel, index }: { channel: Channel; index: number }) {
       </span>
       <div className="flex min-w-0 flex-1 items-center justify-between gap-4">
         <div className="min-w-0">
-          <span className="block font-mono text-xs tracking-[0.15em] uppercase text-ink-faint">
+          <span className="block font-mono text-xs tracking-[0.14em] uppercase text-ink-faint">
             {channel.label}
           </span>
           <span className="mt-0.5 block truncate text-sm font-medium text-ink transition-colors group-hover:text-accent sm:text-base">

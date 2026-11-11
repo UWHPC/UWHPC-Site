@@ -8,14 +8,27 @@ import { useEffect, useRef } from "react";
  * applied directly to the few active layers. This avoids cascading a
  * changing custom property through the full SVG on every frame.
  *
- * The sequence is scrubbed by the user's own scrolling, so it runs
- * regardless of prefers-reduced-motion; reduced motion only disables
- * the inertia smoothing (instant tracking) and, globally, the
- * self-running pulse effects.
+ * The sequence is scrubbed by the user's own scrolling and always runs,
+ * with inertia smoothing, whatever the OS motion preference.
  */
 
-const SWOOP_START = 0.05;
-const SWOOP_END = 0.64;
+const SWOOP_START = 0;
+const SWOOP_END = 0.66;
+
+/* Camera poses: [translateX %, translateY %, rotateX deg, rotateZ deg, scale].
+   The path is a quadratic Bezier that passes through MID at its halfway
+   point; globals.css samples the same curve into keyframes. */
+type Pose = [number, number, number, number, number];
+const OPEN_NARROW: Pose = [0, 30, 56, -34, 0.9];
+const OPEN_WIDE: Pose = [58, 20, 56, -34, 1.0];
+const MID: Pose = [4, 6, 38, -12, 1.45];
+const END: Pose = [0, 8, 0, 0, 0.95];
+
+const bezier = (p0: number, m: number, p2: number, t: number) =>
+  (1 - t) * (1 - 2 * t) * p0 + 4 * t * (1 - t) * m + t * (2 * t - 1) * p2;
+
+/** Matches the CSS timing cubic-bezier(0.45, 0, 0.55, 1) closely. */
+const easeInOutSine = (t: number) => -(Math.cos(Math.PI * t) - 1) / 2;
 const TITLE_START = 0.68;
 const TITLE_END = 0.84;
 const ENDCAP_START = 0.75;
@@ -46,12 +59,13 @@ export function useScrollProgress<T extends HTMLElement = HTMLDivElement>() {
     const el = ref.current;
     if (!el) return;
 
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const nav = document.querySelector<HTMLElement>(".chip-nav");
     const scene = el.querySelector<HTMLElement>(".chip-die3d");
     const titleElement = el.querySelector<HTMLElement>(".chip-title");
     const endcapElement = el.querySelector<HTMLElement>(".chip-endcap");
     const cueElement = el.querySelector<HTMLElement>(".chip-cue");
+    const railElement = el.querySelector<HTMLElement>(".chip-rail-fill");
+    const wide = window.matchMedia("(min-width: 768px)");
+    const introElement = el.querySelector<HTMLElement>(".chip-intro");
     const gridElement = el.querySelector<HTMLElement>(".blueprint-grid");
     const svgElement = el.querySelector<SVGSVGElement>(".chip-svg");
     const canvasElement = el.querySelector<HTMLCanvasElement>(".chip-base-canvas");
@@ -81,16 +95,12 @@ export function useScrollProgress<T extends HTMLElement = HTMLDivElement>() {
       }
     };
 
-    const nativeScroll = CSS.supports(
-      "animation-timeline",
-      "scroll(root block)"
-    );
+    const nativeScroll = CSS.supports("animation-timeline", "view()");
     const mobileDetail = window.matchMedia("(max-width: 640px)");
     const connection = (
       navigator as Navigator & { connection?: { saveData?: boolean } }
     ).connection;
     const lowPower =
-      reduced.matches ||
       mobileDetail.matches ||
       (navigator.hardwareConcurrency > 0 && navigator.hardwareConcurrency <= 4) ||
       connection?.saveData === true;
@@ -169,16 +179,23 @@ export function useScrollProgress<T extends HTMLElement = HTMLDivElement>() {
       const endcap = ease(
         phase(p, ENDCAP_START, ENDCAP_END - ENDCAP_START)
       );
-      const motion = ease(phase(p, SWOOP_START, SWOOP_END - SWOOP_START));
+      const motion = easeInOutSine(phase(p, SWOOP_START, SWOOP_END - SWOOP_START));
       const fade = phase(p, 0.02, 0.3);
       const edge = phase(p, 0.04, 0.22);
       const cue = phase(p, 0.05, 0.1);
+      const intro = ease(phase(p, 0.01, 0.12));
 
       if (!nativeScroll) {
         setStyle(
           scene,
           "transform",
-          `translate3d(${(8 * (1 - motion)).toFixed(3)}%, ${(14 - 6 * motion).toFixed(3)}%, 0) rotateX(${(70 * (1 - motion)).toFixed(3)}deg) rotateZ(${(-18 * (1 - motion)).toFixed(3)}deg) scale(${(2.1 - 1.15 * motion).toFixed(4)})`
+          (() => {
+            const open = wide.matches ? OPEN_WIDE : OPEN_NARROW;
+            const [x, y, rx, rz, sc] = open.map((o, i) =>
+              bezier(o, MID[i], END[i], motion)
+            );
+            return `translate3d(${x.toFixed(3)}%, ${y.toFixed(3)}%, 0) rotateX(${rx.toFixed(3)}deg) rotateZ(${rz.toFixed(3)}deg) scale(${sc.toFixed(4)})`;
+          })()
         );
         setStyle(titleElement, "opacity", title.toFixed(4));
         setStyle(
@@ -193,14 +210,20 @@ export function useScrollProgress<T extends HTMLElement = HTMLDivElement>() {
           `translate3d(0, ${(20 * (1 - endcap)).toFixed(3)}px, 0)`
         );
         setStyle(cueElement, "opacity", (1 - cue).toFixed(4));
-        setStyle(gridElement, "opacity", title.toFixed(4));
-        setStyle(nav, "opacity", title.toFixed(4));
+        setStyle(railElement, "transform", `scaleY(${p.toFixed(4)})`);
+        setStyle(introElement, "opacity", (1 - intro).toFixed(4));
+        setStyle(
+          introElement,
+          "transform",
+          `translate3d(0, ${(-48 * intro).toFixed(3)}px, 0)`
+        );
+        setStyle(gridElement, "opacity", (0.35 + 0.65 * title).toFixed(4));
 
-        const faceOpacity = (0.22 + 0.78 * fade).toFixed(4);
+        const faceOpacity = (0.5 + 0.5 * fade).toFixed(4);
         faceElements.forEach((face) => setStyle(face, "opacity", faceOpacity));
         sideElements.forEach((side) => setStyle(side, "opacity", faceOpacity));
         setStyle(edgeElement, "stroke-dashoffset", (1 - edge).toFixed(4));
-        setStyle(edgeElement, "opacity", (0.08 + 0.92 * edge).toFixed(4));
+        setStyle(edgeElement, "opacity", (0.3 + 0.7 * edge).toFixed(4));
         setStyle(edgeGlowElement, "stroke-dashoffset", (1 - edge).toFixed(4));
         setStyle(edgeGlowElement, "opacity", (0.02 + 0.18 * edge).toFixed(4));
 
@@ -274,11 +297,6 @@ export function useScrollProgress<T extends HTMLElement = HTMLDivElement>() {
 
     const onScroll = () => {
       target = targetP();
-      if (reduced.matches) {
-        current = target;
-        apply(current);
-        return;
-      }
       requestTick();
     };
 
@@ -291,17 +309,8 @@ export function useScrollProgress<T extends HTMLElement = HTMLDivElement>() {
       });
     };
 
-    const onMotionPreferenceChange = () => {
-      if (!reduced.matches) return;
-      if (raf) cancelAnimationFrame(raf);
-      raf = 0;
-      current = target;
-      apply(current);
-    };
-
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onResize, { passive: true });
-    reduced.addEventListener("change", onMotionPreferenceChange);
     const resizeObserver = new ResizeObserver(onResize);
     resizeObserver.observe(el);
 
@@ -309,11 +318,9 @@ export function useScrollProgress<T extends HTMLElement = HTMLDivElement>() {
       disposed = true;
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onResize);
-      reduced.removeEventListener("change", onMotionPreferenceChange);
       resizeObserver.disconnect();
       if (raf) cancelAnimationFrame(raf);
       if (measureRaf) cancelAnimationFrame(measureRaf);
-      nav?.style.removeProperty("opacity");
       if (canvasUrl) URL.revokeObjectURL(canvasUrl);
     };
   }, []);
