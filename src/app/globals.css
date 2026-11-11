@@ -207,3 +207,24 @@ body::after {
 .chip-stage[data-scene-ready="true"] .hero-canvas {
   opacity: 1;
 }
+
+/* Sponsor carousel: the track holds the logos twice and slides by half its
+   width, so it loops without a seam. Pauses on hover; edges fade out. */
+.sponsor-carousel {
+  mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+}
+
+.sponsor-track {
+  animation: sponsor-scroll 28s linear infinite;
+}
+
+.sponsor-carousel:hover .sponsor-track,
+.sponsor-carousel:focus-within .sponsor-track {
+  animation-play-state: paused;
+}
+
+@keyframes sponsor-scroll {
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}

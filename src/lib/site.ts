@@ -65,7 +65,7 @@ export const PROJECTS: Project[] = [
     description:
       "Beamforming combines signals from an array of sensors so that one direction adds up and the rest cancel out. It sits at the core of radio astronomy, radar, and medical ultrasound. Forming many beams across frequency channels is a batched complex matrix multiply, which tensor cores accelerate. BATS is building a distributed tensor-core beamformer across GPUs and nodes, with a planner that chooses how to split the work from the workload, where the data lives, and the interconnect.",
     tags: ["CUDA", "Tensor cores", "Multi-GPU"],
-    status: "Spec v1",
+    status: "In Progress",
     leads: ["Alyan Salamat", "Shpat Sahiti"],
     featured: true,
   },
@@ -75,7 +75,7 @@ export const PROJECTS: Project[] = [
     description:
       "Two graphs with the same number of edges can produce very different GPU workloads: a handful of high-degree nodes can leave most of the GPU waiting. Maverick analyzes the topology of a static graph once and uses it to choose specialized execution strategies for GNN inference, measured against TorchInductor under torch.compile, with the cost of that analysis counted against the speedup.",
     tags: ["PyTorch", "Triton", "GNNs"],
-    status: "Working draft",
+    status: "In Progress",
     leads: ["James Redekopp", "Vijay Goyal"],
     featured: true,
   },
@@ -86,6 +86,7 @@ export const PROJECTS: Project[] = [
     tags: ["C++23", "CUDA", "OpenMP"],
     status: "In Progress",
     href: "https://github.com/UWHPC/xpu",
+    featured: true,
   },
   {
     title: "Variational Monte Carlo",
@@ -94,6 +95,7 @@ export const PROJECTS: Project[] = [
     tags: ["CUDA C++", "Monte Carlo", "Many-body physics"],
     status: "In Progress",
     href: "https://github.com/UWHPC/Variational-Monte-Carlo",
+    featured: true,
   },
 ];
 

@@ -4,14 +4,14 @@ import { PROJECTS, type Project } from "@/lib/site";
 import BeamPattern from "@/components/BeamPattern";
 import DegreeSkew from "@/components/DegreeSkew";
 import XpuLayout from "@/components/XpuLayout";
-import ElectronGas from "@/components/ElectronGas";
+import CorrelationHole from "@/components/CorrelationHole";
 
 /** Each visual is drawn from the project's own spec or source. */
 const VISUALS: Record<string, ReactNode> = {
   BATS: <BeamPattern />,
   Maverick: <DegreeSkew />,
   XPU: <XpuLayout />,
-  "Variational Monte Carlo": <ElectronGas />,
+  "Variational Monte Carlo": <CorrelationHole />,
 };
 
 function SourceLink({ href }: { href: string }) {
@@ -71,21 +71,11 @@ function ProjectPanel({ project, index }: { project: Project; index: number }) {
           </p>
         )}
 
-        <div className="mt-auto flex flex-wrap items-center gap-2">
-          {project.tags.map((t) => (
-            <span
-              key={t}
-              className="border border-line-strong px-2.5 py-1 font-mono text-[11px] tracking-[0.14em] uppercase text-ink-muted"
-            >
-              {t}
-            </span>
-          ))}
-          {project.href && (
-            <span className="ml-auto">
-              <SourceLink href={project.href} />
-            </span>
-          )}
-        </div>
+        {project.href && (
+          <div className="mt-auto flex justify-end">
+            <SourceLink href={project.href} />
+          </div>
+        )}
       </div>
 
       <div
@@ -116,9 +106,6 @@ function LedgerRow({ project, index }: { project: Project; index: number }) {
       </h4>
       <p className="text-sm/6 text-ink-muted md:col-span-6">{project.description}</p>
       <div className="flex items-center gap-4 md:col-span-2 md:justify-end">
-        <span className="font-mono text-[11px] tracking-[0.14em] uppercase text-ink-faint">
-          {project.tags[0]}
-        </span>
         {project.href && <SourceLink href={project.href} />}
       </div>
     </li>

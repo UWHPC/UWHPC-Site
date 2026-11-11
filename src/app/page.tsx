@@ -14,9 +14,9 @@ export default function Home() {
       <main>
         <Hero />
         <About />
+        <SponsorStrip />
         <Projects />
         <Focus />
-        <SponsorStrip />
         <Join />
       </main>
       <Footer />
