@@ -35,3 +35,13 @@ export function cardPose(p: number): Pose {
     rotation: [0, 0, end.rotation[2] * t + 0],
   };
 }
+
+/**
+ * How far joining card k (0 = nearest the hero) has dropped into its slot,
+ * 0..1, at join progress j. The stagger fits inside the step, so the last
+ * card (k = 6) lands at j = 0.96.
+ */
+export function joinDrop(j: number, k: number): number {
+  const raw = Math.min(1, Math.max(0, (j - 0.3 - k * 0.06) / 0.3));
+  return raw * raw * (3 - 2 * raw);
+}

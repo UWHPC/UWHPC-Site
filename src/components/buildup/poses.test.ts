@@ -1,6 +1,6 @@
 /// <reference types="bun" />
 import { expect, test } from "bun:test";
-import { CARD_PITCH, SERVER_FLOOR_Y, cardPose, slotPose } from "./poses";
+import { CARD_PITCH, SERVER_FLOOR_Y, cardPose, joinDrop, slotPose } from "./poses";
 
 test("hero card starts in its solo pose", () => {
   expect(cardPose(0)).toEqual({ position: [0, 0, 0], rotation: [0, 0, 0] });
@@ -29,4 +29,13 @@ test("hero card moves continuously while it turns upright", () => {
     const b = cardPose(p + 0.001).position;
     expect(Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2])).toBeLessThan(6);
   }
+});
+
+test("every joining card lands fully in its slot by the end of join", () => {
+  for (let k = 0; k < 7; k++) {
+    expect(joinDrop(0, k)).toBe(0);
+    expect(joinDrop(1, k)).toBe(1);
+  }
+  // later cards arrive after earlier ones
+  expect(joinDrop(0.6, 0)).toBeGreaterThan(joinDrop(0.6, 6));
 });

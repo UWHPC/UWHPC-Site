@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { PALETTE, clay, outline } from "./materials";
 import { buildBoard, buildCard, buildCasing } from "./models/gpu";
-import { cardPose, slotPose, HERO_SLOT } from "./poses";
+import { cardPose, joinDrop, slotPose, HERO_SLOT } from "./poses";
 import { buildServer, type ServerGroup } from "./models/server";
 import { buildMicro } from "./models/micro";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
@@ -168,8 +168,7 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
     card.rotation.set(...pose.rotation);
     const j = progress(p, "join");
     others.forEach(({ g, k, home }) => {
-      const raw = Math.min(1, Math.max(0, (j - 0.3 - k * 0.08) / 0.3));
-      const t = raw * raw * (3 - 2 * raw);
+      const t = joinDrop(j, k);
       g.position.set(home.x, home.y + 260 * (1 - t), home.z - 60 * (1 - t));
       g.visible = t > 0;
     });
