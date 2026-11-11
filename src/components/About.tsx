@@ -13,12 +13,6 @@ const STATEMENT: { text: string; accent?: boolean }[][] = [
   [{ text: "that make them fast." }],
 ];
 
-const FACTS = [
-  { label: "Based at", value: "Sedra Student Design Centre" },
-  { label: "Built with", value: "C++23 · CUDA · OpenMP" },
-  { label: "Run by", value: "Students, for students" },
-];
-
 export default function About() {
   return (
     <section id="about" className="relative">
@@ -52,22 +46,6 @@ export default function About() {
             ))
           )}
         </p>
-
-        <dl className="mt-20 grid border-t border-line sm:grid-cols-3">
-          {FACTS.map((f, i) => (
-            <div
-              key={f.label}
-              className={`border-b border-line py-6 sm:border-b-0 ${
-                i > 0 ? "sm:border-l sm:pl-8" : ""
-              }`}
-            >
-              <dt className="mb-2 font-mono text-[11px] tracking-[0.18em] uppercase text-ink-faint">
-                {f.label}
-              </dt>
-              <dd className="text-lg font-medium">{f.value}</dd>
-            </div>
-          ))}
-        </dl>
       </Container>
     </section>
   );
