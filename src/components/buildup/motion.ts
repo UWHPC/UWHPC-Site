@@ -26,13 +26,14 @@ export function stepProgress(s: { current: number; target: number; dt: number; v
 /**
  * Easing for a part flying into place: it leaves at rest, overshoots by
  * about 3%, and settles exactly on 1, so things seat instead of stopping
- * dead. (An ease-out-back over a smoothstep.)
+ * dead. Constrained parts use the underlying smoothstep by itself.
  */
-export function seat(x: number): number {
+export function seat(x: number, overshoot = true): number {
   if (x <= 0) return 0;
   if (x >= 1) return 1;
   const s = x * x * (3 - 2 * x);
-  const back = 0.9; // overshoot strength
+  if (!overshoot) return s;
+  const back = 0.9;
   const u = s - 1;
   return 1 + (back + 1) * u * u * u + back * u * u;
 }

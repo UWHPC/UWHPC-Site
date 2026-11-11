@@ -34,14 +34,6 @@ export default function Hero() {
           className="hero-canvas absolute inset-0 h-full w-full"
         />
 
-        {/* scroll progress rail, riding the frame's left edge */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 left-1/2 z-20 hidden w-full max-w-6xl -translate-x-1/2 md:block"
-        >
-          <span className="chip-rail-fill absolute top-0 -left-px h-full w-px bg-accent" />
-        </div>
-
         {/* opening statement — visible on load, clears as the die powers on */}
         <div className="chip-intro pointer-events-none absolute inset-0 z-10">
           {/* darken behind the type so it reads over the die */}

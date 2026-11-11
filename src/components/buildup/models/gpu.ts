@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { PALETTE, clay, detail, outline } from "../materials";
-import { DIE_WIDTH, pcbTexture } from "../textures";
+import { DIE_WIDTH, pcbTexture, vapourChamberTexture } from "../textures";
 
 /**
  * The hero GPU, in card-local millimetres. Lying pose: the PCB is in the
@@ -18,6 +18,9 @@ const PCB_THICKNESS = 1.6;
 const MOUNT_RADIUS = 1.65;
 const MOUNTS: [number, number][] = [-46, 46].flatMap((x) =>
   [BOARD_Z - 126, BOARD_Z + 126].map((z): [number, number] => [x, z])
+);
+const MEMORY: [number, number, number][] = [-19, 19].flatMap((x) =>
+  [-12.5, 0, 12.5].map((z): [number, number, number] => [x, -0.7, z])
 );
 const POWER_STAGES: [number, number][] = Array.from({ length: 24 }, (_, i) => BOARD_Z - 118 + i * 9.5)
   .filter((z) => Math.abs(z) >= 34)
@@ -189,7 +192,7 @@ export function buildBoard(dieFaces: THREE.Material[], closeup = true) {
   group.add(dieAnchor);
   part(group, 50, 0.5, 38, M.interposer, 0, -1.2, 0);
   part(group, 58, 1.2, 58, M.substrate, 0, PCB_TOP, 0, true);
-  const memory: [number, number, number][] = [-19, 19].flatMap((x) => [-12.5, 0, 12.5].map((z) => [x, -0.7, z] as [number, number, number]));
+  const memory = MEMORY;
   if (closeup) {
     many(group, 8.7, 0.56, 10.7, M.hbmLayers, memory);
     many(group, 9, 0.08, 11, M.hbm, memory.flatMap(([x, y, z]) => [0.1, 0.28, 0.46].map((h) => [x, y + h, z] as [number, number, number])), 0);
@@ -284,9 +287,21 @@ export function buildBoard(dieFaces: THREE.Material[], closeup = true) {
 
 /* ---- casing ------------------------------------------------------------ */
 
+const chamberMap = new THREE.CanvasTexture(vapourChamberTexture());
+chamberMap.colorSpace = THREE.SRGBColorSpace;
+chamberMap.anisotropy = 8;
+
 const C = {
   vapour: clay("#4a3f38", { roughness: 0.6 }),
+  contact: clay("#71675f", { roughness: 0.88 }),
+  vapourTop: new THREE.MeshStandardMaterial({
+    color: "#51443b",
+    map: chamberMap,
+    roughness: 0.55,
+    metalness: 0.16,
+  }),
   fins: clay("#3d3f45", { roughness: 0.7 }),
+  finChannel: clay("#222329"),
   shroud: clay(PALETTE.body, { roughness: 0.78 }),
   skirt: clay(PALETTE.deep),
   rail: new THREE.MeshStandardMaterial({ color: "#626670", metalness: 0.42, roughness: 0.55 }),
@@ -303,6 +318,34 @@ C.accent.emissiveIntensity = 0.35;
 const SHROUD_TOP = 34;
 const HALF_W = CARD.width / 2;
 const BOARD_MIN_Z = BOARD_Z - CARD.length / 2;
+const BACKPLATE_GAP = 0.2;
+const BACKPLATE_THICKNESS = 1.6;
+const BACKPLATE_TOP = PCB_TOP - PCB_THICKNESS - BACKPLATE_GAP;
+const CHAMBER_BOTTOM = 0.1;
+const FIN_BASE = 4.4;
+const FIN_HEIGHT = 26;
+
+const standoffProfile = [
+  [0, 0], [2.8, 0], [2.8, BACKPLATE_GAP], [1.32, BACKPLATE_GAP],
+  [1.32, 1.12], [1.18, 1.22], [0.62, 1.22], [0.62, 0.1], [0, 0.1],
+];
+const standoffGeo = new THREE.LatheGeometry(standoffProfile.map(([r, y]) => new THREE.Vector2(r, y)), 16);
+
+function finGeometry() {
+  const half = (CARD.length - 10) / 2;
+  const profile: [number, number][] = [
+    [-half, 4.8], [-half + 20, 4.8], [-half + 25, 0],
+    [half - 12, 0], [half - 7, 3.2], [half, 3.2],
+    [half, FIN_HEIGHT], [-half, FIN_HEIGHT],
+  ];
+  const shape = new THREE.Shape(profile.map(([z, y]) => new THREE.Vector2(z, y)));
+  shape.closePath();
+  return new THREE.ExtrudeGeometry(shape, { depth: 0.7, bevelEnabled: false })
+    .rotateY(-Math.PI / 2)
+    .translate(0.35, 0, 0);
+}
+
+const finGeo = finGeometry();
 
 /**
  * The shroud's cross-section (x, y), extruded along the card: a shell with
@@ -335,37 +378,49 @@ function shroudGeometry() {
   return g;
 }
 
-export type CasingPart = { obj: THREE.Object3D; from: [number, number, number]; order: number };
+export type CasingPart = { obj: THREE.Object3D; from: [number, number, number]; order: number; overshoot?: boolean };
 
 /** The enclosure, in card-local coordinates, as parts that fly in. */
 export function buildCasing(): CasingPart[] {
   const parts: CasingPart[] = [];
-  const add = (obj: THREE.Object3D, from: [number, number, number], order: number) => {
-    parts.push({ obj, from, order });
+  const add = (obj: THREE.Object3D, from: [number, number, number], order: number, overshoot?: boolean) => {
+    parts.push({ obj, from, order, overshoot });
     return obj;
   };
 
   // backplate under the board
   const back = new THREE.Group();
-  part(back, CARD.width - 6, 1.6, CARD.length - 16, C.backplate, 0, PCB_TOP - 1.6 - 1.8, BOARD_Z, true);
-  add(back, [0, -90, 0], 0);
+  part(back, CARD.width - 6, BACKPLATE_THICKNESS, CARD.length - 8, C.backplate, 0, BACKPLATE_TOP - BACKPLATE_THICKNESS, BOARD_Z, true);
+  const standoffs = new THREE.InstancedMesh(standoffGeo, C.rail, MOUNTS.length);
+  const transform = new THREE.Matrix4();
+  MOUNTS.forEach(([x, z], i) => standoffs.setMatrixAt(i, transform.makeTranslation(x, BACKPLATE_TOP, z)));
+  back.add(standoffs);
+  // The seated plate has only 0.2 mm of clearance below the PCB.
+  add(back, [0, -90, 0], 0, false);
 
   // vapour chamber over the package
   const vapour = new THREE.Group();
-  part(vapour, 64, 4, 66, C.vapour, 0, 0.1, 0, true);
-  add(vapour, [0, 80, 0], 1);
+  const chamberFaces = [C.vapour, C.vapour, C.vapourTop, C.vapour, C.vapour, C.vapour];
+  part(vapour, 64, 4, 66, chamberFaces, 0, CHAMBER_BOTTOM, 0, true);
+  part(vapour, 24.5, 0.06, 24.5, C.contact, 0, CHAMBER_BOTTOM - 0.06, 0);
+  many(vapour, 8, 0.027, 10.2, C.contact, MEMORY.map(([x, , z]) => [x, CHAMBER_BOTTOM - 0.027, z]), 0);
+  add(vapour, [0, 80, 0], 1, false);
 
   // fin stack: plates along the card, so air runs front to back
   const fins = new THREE.Group();
-  many(fins, 0.7, 26, CARD.length - 10, C.fins, Array.from({ length: 41 }, (_, i) => [-48 + i * 2.4, 4.4, BOARD_Z] as [number, number, number]));
-  // dark plates a little way into each end, so the gaps between fins read
-  // as a deep channel rather than a solid block
-  [BOARD_MIN_Z + 30, BOARD_MIN_Z + CARD.length - 30].forEach((z) => {
-    const plate = new THREE.Mesh(new THREE.PlaneGeometry(98, 25), C.cavity);
-    plate.position.set(0, 4.4 + 12.5, z);
+  const finStack = new THREE.InstancedMesh(finGeo, C.fins, 41);
+  for (let i = 0; i < finStack.count; i++) finStack.setMatrixAt(i, transform.makeTranslation(-48 + i * 2.4, FIN_BASE, BOARD_Z));
+  fins.add(finStack);
+  // Recess the dark backing and sleeve so the first few millimetres of each
+  // channel stay open and the end notches read as cutouts.
+  const baffleGeo = new THREE.PlaneGeometry(96.4, FIN_HEIGHT - 1.2);
+  for (const z of [BOARD_MIN_Z + 40, BOARD_MIN_Z + CARD.length - 40]) {
+    const plate = new THREE.Mesh(baffleGeo, C.cavity);
+    plate.position.set(0, FIN_BASE + FIN_HEIGHT / 2, z);
     fins.add(plate);
-  });
-  add(fins, [0, 130, 0], 2);
+    part(fins, 96.4, 0.45, 18, C.finChannel, 0, FIN_BASE + 0.25, z);
+  }
+  add(fins, [0, 130, 0], 2, false);
 
   // the shroud shell, end skirts, and the red accent along one chamfer
   const shroud = new THREE.Group();

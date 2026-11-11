@@ -346,6 +346,30 @@ export function pcbTexture({ width, length, boardZ, powerStages, controllers, bu
   return c;
 }
 
+/** Fine directional grain and the inset seam on the copper chamber. */
+export function vapourChamberTexture() {
+  const [surface, ctx] = canvas(512);
+  ctx.fillStyle = "#efeeec";
+  ctx.fillRect(0, 0, 512, 512);
+  for (let i = 0; i < 512; i++) {
+    const start = (i * 179) % 512;
+    const width = 82 + (i * 43) % 390;
+    ctx.fillStyle = i % 3 === 0 ? "rgba(255,255,255,0.27)" : "rgba(68,53,42,0.075)";
+    ctx.fillRect(start, i, width, 1);
+    ctx.fillRect(start - 512, i, width, 1);
+  }
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = "rgba(85,65,52,0.2)";
+  ctx.beginPath();
+  ctx.roundRect(14, 14, 484, 484, 15);
+  ctx.stroke();
+  ctx.strokeStyle = "rgba(255,255,255,0.42)";
+  ctx.beginPath();
+  ctx.roundRect(17, 17, 478, 478, 13);
+  ctx.stroke();
+  return surface;
+}
+
 /* ---- datacentre floor ---------------------------------------------- */
 
 /**

@@ -43,6 +43,17 @@ test("idle: once settled the loop stops, while moving it keeps going", () => {
   expect(stepProgress({ current: 0.3, target: 0.32, dt: 0.016, visible: true }).idle).toBe(false);
 });
 
+test("constrained seating never travels past the backplate's mounted position", () => {
+  let previous = 0;
+  for (let i = 0; i <= 100; i++) {
+    const position = seat(i / 100, false);
+    expect(position).toBeGreaterThanOrEqual(previous);
+    expect(position).toBeLessThanOrEqual(1);
+    previous = position;
+  }
+  expect(previous).toBe(1);
+});
+
 test("render quality follows the current width, not the width at load", () => {
   // phone portrait: wide lens, capped resolution
   expect(renderQuality(375, 3, false)).toEqual({ fov: 48, pixelRatio: 1.5, mobile: true });

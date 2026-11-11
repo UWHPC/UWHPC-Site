@@ -167,10 +167,12 @@ body::after {
   will-change: transform, opacity;
 }
 
-/* Scroll progress rail on the frame's left edge. */
-.chip-rail-fill {
-  transform: scaleY(0);
-  transform-origin: top;
+.chip-rail-signal {
+  width: 1px;
+  height: 52px;
+  background: linear-gradient(to bottom, transparent, var(--color-accent-bright) 70%, transparent);
+  opacity: var(--hero-handoff-opacity, 0);
+  transform: translateY(var(--hero-handoff-y, -52px));
 }
 
 /* ------------------------------------------------------------------ */

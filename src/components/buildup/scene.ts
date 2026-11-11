@@ -18,7 +18,7 @@ import { buildAtmosphere } from "./atmosphere";
  */
 
 export type BuildupScene = {
-  update: (p: number, time: number) => void;
+  update: (p: number, time: number, exit: number) => void;
   /** Phones render at lower resolution while moving; call each frame. */
   setMoving: (moving: boolean) => void;
   resize: (w: number, h: number) => void;
@@ -271,7 +271,7 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
 
   /* ---- per frame ------------------------------------------------------- */
 
-  function update(p: number, time: number) {
+  function update(p: number, time: number, exit: number) {
     const toDie = progress(p, "toDie");
     const detailOpacity = 1 - THREE.MathUtils.smoothstep(toDie, 0.38, 0.59);
     const front = ((time * 0.5) % 1.5) - 0.25;
@@ -284,8 +284,8 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
 
     // casing parts fly in, one after another
     const c = progress(p, "casing");
-    casing.forEach(({ obj, from, order }, i) => {
-      const t = seat((c - order * 0.14) / 0.44);
+    casing.forEach(({ obj, from, order, overshoot }, i) => {
+      const t = seat((c - order * 0.14) / 0.44, overshoot);
       obj.position.set(
         casingBase[i].x + from[0] * (1 - t),
         casingBase[i].y + from[1] * (1 - t),
@@ -302,9 +302,10 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
     const board = progress(p, "toBoard");
     const cardStage = Math.min(board * 2, 1) * (1 - Math.min(1, j / 0.4));
     const serverStage = Math.min(1, j / 0.5);
+    const floorStage = serverStage * (1 - THREE.MathUtils.smoothstep(exit, 0, 1));
     cardShadowMat.opacity = cardStage;
     cardShadow.visible = cardShadowMat.opacity > 0.01;
-    serverShadowMat.opacity = serverStage;
+    serverShadowMat.opacity = floorStage;
     serverShadow.visible = serverShadowMat.opacity > 0.01;
     rim.intensity = 1.5 + 0.45 * cardStage + 0.28 * serverStage;
     others.forEach(({ g, k, home }) => {
@@ -380,7 +381,7 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
     const sweepStrength = Math.sin(Math.PI * sw);
     sweep.intensity = 1.65 * sweepStrength;
     sweep.position.set(-410 + 820 * sw, SERVER_FLOOR_Y + 285, 305);
-    atmosphere.update(cardStage, serverStage, sweepStrength, time, renderer.getPixelRatio());
+    atmosphere.update(cardStage, floorStage, sweepStrength, time, renderer.getPixelRatio());
     camera.lookAt(target[0], framingY, target[2]);
     const d = camera.position.distanceTo(new THREE.Vector3(target[0], framingY, target[2]));
     camera.near = Math.max(0.05, d / 60);

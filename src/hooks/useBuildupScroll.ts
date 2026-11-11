@@ -19,6 +19,7 @@ export function useBuildupScroll<T extends HTMLElement = HTMLElement>() {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    const page = el.parentElement;
 
     const q = <E extends Element>(s: string) => el.querySelector<E>(s);
     const sticky = q<HTMLElement>(".chip-sticky");
@@ -27,7 +28,6 @@ export function useBuildupScroll<T extends HTMLElement = HTMLElement>() {
     const cue = q<HTMLElement>(".chip-cue");
     const title = q<HTMLElement>(".chip-title");
     const endcap = q<HTMLElement>(".chip-endcap");
-    const rail = q<HTMLElement>(".chip-rail-fill");
     const hud = q<HTMLElement>(".chip-hud");
     const hudRows = Array.from(el.querySelectorAll<HTMLElement>(".chip-hud [data-level]"));
 
@@ -43,12 +43,13 @@ export function useBuildupScroll<T extends HTMLElement = HTMLElement>() {
     let level = -1;
     let endVisible = false;
 
-    const applyOverlays = (p: number) => {
+    const applyOverlays = (p: number, exit: number) => {
       const o = overlaysAt(p);
       set(intro, "opacity", (o.intro).toFixed(4));
       set(intro, "transform", `translate3d(0, ${(-48 * (1 - o.intro)).toFixed(2)}px, 0)`);
       set(cue, "opacity", o.cue.toFixed(4));
-      set(rail, "transform", `scaleY(${p.toFixed(4)})`);
+      set(page, "--hero-handoff-y", `${Math.round(-56 + exit * 230)}px`);
+      set(page, "--hero-handoff-opacity", (clampP((p - 0.98) / 0.02) * (1 - exit ** 2)).toFixed(3));
       set(title, "opacity", o.title.toFixed(4));
       set(title, "transform", `translate3d(0, ${(18 * (1 - o.title)).toFixed(2)}px, 0)`);
       set(endcap, "opacity", o.endcap.toFixed(4));
@@ -69,6 +70,7 @@ export function useBuildupScroll<T extends HTMLElement = HTMLElement>() {
     };
 
     const targetP = () => clampP((window.scrollY - runwayStart) / runwayLength);
+    const exitP = () => clampP((window.scrollY - runwayStart - runwayLength) / Math.max(1, window.innerHeight * 0.55));
     const measure = () => {
       const r = el.getBoundingClientRect();
       runwayStart = r.top + window.scrollY;
@@ -82,7 +84,7 @@ export function useBuildupScroll<T extends HTMLElement = HTMLElement>() {
     measure();
     let target = targetP();
     let current = target;
-    applyOverlays(current);
+    applyOverlays(current, exitP());
 
     let raf = 0;
     let visible = true;
@@ -101,9 +103,10 @@ export function useBuildupScroll<T extends HTMLElement = HTMLElement>() {
       const ambient = step.idle && ambientAt(current);
       const desktopSway = desktop && current > STEPS.title[0];
       if (!ambient || desktopSway || now - lastDraw >= 32) {
+        const exit = exitP();
         scene?.setMoving(!step.idle);
-        applyOverlays(current);
-        scene?.update(current, (now - t0) / 1000);
+        applyOverlays(current, exit);
+        scene?.update(current, (now - t0) / 1000, exit);
         lastDraw = now;
       }
       if (step.idle && !ambient) return;
@@ -147,7 +150,7 @@ export function useBuildupScroll<T extends HTMLElement = HTMLElement>() {
           if (disposed) return;
           scene = createBuildupScene(canvas, { mobile: window.matchMedia("(max-width: 767px)").matches });
           sizeScene();
-          scene.update(current, 0);
+          scene.update(current, 0, exitP());
           el.dataset.sceneReady = "true";
           start();
         })
@@ -163,6 +166,8 @@ export function useBuildupScroll<T extends HTMLElement = HTMLElement>() {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onResize);
       if (raf) cancelAnimationFrame(raf);
+      page?.style.removeProperty("--hero-handoff-y");
+      page?.style.removeProperty("--hero-handoff-opacity");
       scene?.dispose();
     };
   }, []);

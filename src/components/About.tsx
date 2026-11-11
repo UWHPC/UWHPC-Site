@@ -22,11 +22,11 @@ const FACTS = [
 export default function About() {
   return (
     <section id="about" className="relative">
-      {/* the hero's red progress rail carries on down the page's left
-          hairline and fades out, so the hero hands off instead of ending */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 hidden md:block">
+      {/* A highlight enters the About section as the hero leaves the viewport. */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 hidden h-56 overflow-hidden md:block">
         <div className="relative mx-auto max-w-6xl">
-          <span className="absolute top-0 -left-px h-56 w-px bg-gradient-to-b from-accent to-transparent" />
+          <span className="absolute top-0 left-0 h-56 w-px bg-gradient-to-b from-accent to-transparent xl:-left-px" />
+          <span className="chip-rail-signal absolute top-0 left-0 xl:-left-px" />
         </div>
       </div>
       <Container className="py-28 sm:py-40">
