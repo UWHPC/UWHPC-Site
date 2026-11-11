@@ -1,6 +1,6 @@
 /// <reference types="bun" />
 import { expect, test } from "bun:test";
-import { CAMERA_KEYS, LEVELS, cameraAt, levelAt, overlaysAt, progress } from "./timeline";
+import { CAMERA_KEYS, LEVELS, cameraAt, levelAt, overlaysAt, progress, xrayAt } from "./timeline";
 
 const dist = (a: number[], b: number[]) => Math.hypot(...a.map((v, i) => v - b[i]));
 
@@ -67,4 +67,12 @@ test("overlays: content is visible at both ends", () => {
   expect(overlaysAt(1).title).toBe(1);
   expect(overlaysAt(1).endcap).toBe(1);
   expect(overlaysAt(1).hud).toBe(0);
+});
+
+test("x-ray: the shell stays solid until the lid is on, then turns see-through", () => {
+  expect(xrayAt(0.84)).toEqual({ shell: 1, edges: 0.2 });
+  const end = xrayAt(1);
+  expect(end.shell).toBeCloseTo(0.2, 6);
+  expect(end.edges).toBeCloseTo(0.75, 6);
+  expect(xrayAt(-1)).toEqual(xrayAt(0));
 });

@@ -68,8 +68,8 @@ export const CAMERA_KEYS: CameraKey[] = [
   { t: 0.36, target: [0, -4, -10], offset: [170, 210, 200] },
   { t: 0.48, target: [0, 10, 0], offset: [250, 230, 300] },
   { t: 0.6, target: [0, -40, 40], offset: [420, 360, 520] },
-  { t: 0.85, target: [0, -60, 40], offset: [620, 500, 760] },
-  { t: 1.0, target: [0, -60, 40], offset: [580, 440, 820] },
+  { t: 0.85, target: [-30, -80, 90], offset: [700, 560, 860] },
+  { t: 1.0, target: [-30, -80, 90], offset: [660, 500, 900] },
 ];
 
 const len = (v: Vec3) => Math.hypot(v[0], v[1], v[2]);
@@ -142,4 +142,12 @@ export function overlaysAt(pRaw: number) {
     title: progress(p, "title"),
     endcap: ease(phase(p, 0.92, 0.06)),
   };
+}
+
+/* ---- x-ray ending ------------------------------------------------------- */
+
+/** Server shell opacity and its edge-line opacity: solid, then see-through. */
+export function xrayAt(pRaw: number): { shell: number; edges: number } {
+  const x = progress(clampP(pRaw), "xray");
+  return { shell: 1 - 0.8 * x, edges: 0.2 + 0.55 * x };
 }

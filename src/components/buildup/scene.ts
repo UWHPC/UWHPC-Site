@@ -3,10 +3,11 @@ import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment
 import { PALETTE, clay, outline } from "./materials";
 import { buildBoard, buildCard, buildCasing } from "./models/gpu";
 import { cardPose, slotPose, HERO_SLOT } from "./poses";
+import { buildServer, type ServerGroup } from "./models/server";
 import { buildMicro } from "./models/micro";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { dieTextures } from "./textures";
-import { cameraAt, progress } from "./timeline";
+import { cameraAt, progress, xrayAt } from "./timeline";
 
 /**
  * The build-up hero's three.js scene. Models are built once; `update(p)`
@@ -126,10 +127,23 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
   const micro = buildMicro();
   scene.add(micro.group);
 
+  /* ---- the server that builds around the cards ------------------------- */
+
+  const server = buildServer();
+  const serverGroups = Object.entries(server.parts) as [ServerGroup, { obj: THREE.Object3D; from: [number, number, number] }[]][];
+  const serverBase = new Map<THREE.Object3D, THREE.Vector3>();
+  serverGroups.forEach(([, list]) =>
+    list.forEach(({ obj }) => {
+      serverBase.set(obj, obj.position.clone());
+      obj.visible = false;
+      scene.add(obj);
+    })
+  );
+  const shellMats = server.shell.map((m) => m.material as THREE.MeshStandardMaterial);
+
   /* ---- per frame ------------------------------------------------------- */
 
   function update(p: number, time: number) {
-    void time;
     micro.setLit(progress(p, "transistors"));
     const toDie = progress(p, "toDie");
     micro.setOpacity(1 - Math.min(1, Math.max(0, (toDie - 0.4) / 0.6)));
@@ -166,6 +180,27 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
       g.position.set(home.x, home.y + 140 * (1 - t), home.z);
       g.visible = t > 0;
     });
+
+    serverGroups.forEach(([key, list]) => {
+      const g = progress(p, key);
+      list.forEach(({ obj, from }, i) => {
+        // within a group, parts arrive one after another
+        const raw = Math.min(1, Math.max(0, (g - (i / list.length) * 0.5) / 0.5));
+        const t = raw * raw * (3 - 2 * raw);
+        const base = serverBase.get(obj)!;
+        obj.position.set(base.x + from[0] * (1 - t), base.y + from[1] * (1 - t), base.z + from[2] * (1 - t));
+        obj.visible = t > 0;
+      });
+    });
+    server.rotors.forEach((r, i) => (r.rotation.z = -time * (12 + (i % 3))));
+
+    // the closed server turns see-through so the eight GPUs stay in view
+    const xr = xrayAt(p);
+    shellMats.forEach((m) => {
+      m.opacity = xr.shell;
+      m.depthWrite = xr.shell > 0.99;
+    });
+    server.shellEdges.opacity = xr.edges;
 
     const { position, target } = cameraAt(p);
     camera.position.set(...position);
