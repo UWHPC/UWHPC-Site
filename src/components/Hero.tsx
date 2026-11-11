@@ -1,35 +1,38 @@
 "use client";
 
 import Link from "next/link";
-import { useScrollProgress } from "@/hooks/useScrollProgress";
-import ChipDie from "@/components/ChipDie";
+import { useBuildupScroll } from "@/hooks/useBuildupScroll";
+import { LEVELS } from "@/components/buildup/timeline";
 
 /**
- * Scroll-driven hero: a processor die that wakes up as you scroll —
- * edges trace in, blocks light, signal lines run between them — while
- * the camera flattens to a bird's-eye view.
+ * Scroll-driven 3D hero, built up rather than zoomed out: transistors →
+ * die → bare GPU board, then the casing closes around that GPU, seven
+ * more join it, and the server assembles around them, ending closed in
+ * an x-ray view with all eight GPUs visible.
  *
- * The first screen is never empty: an opening statement sits over the
- * dimmed die and clears away as scrolling begins. A tall runway section
- * pins a full-screen stage; the native view timeline (or
- * useScrollProgress as a fallback) drives every layer from progress
- * through that runway.
+ * The headline renders with the page; the scene (buildup/scene, three.js)
+ * loads after first paint and fades in. useBuildupScroll drives the
+ * overlays and the scene from progress through the 300vh runway.
  */
 export default function Hero() {
-  const ref = useScrollProgress<HTMLElement>();
+  const ref = useBuildupScroll<HTMLElement>();
 
   return (
     <section
       ref={ref}
-      className="chip-stage relative h-[300vh]"
+      className="chip-stage relative h-[300vh]" /* SCROLL_VH in timeline.ts */
       data-end="false"
-      data-pulses="false"
-      data-low-power="false"
-      data-native-scroll="false"
-      data-canvas-ready="false"
+      data-scene-ready="false"
     >
       <div className="chip-sticky sticky top-0 flex h-screen flex-col items-center justify-center overflow-hidden pt-16">
         <div className="blueprint-grid pointer-events-none absolute inset-0 mx-auto max-w-6xl border-line md:border-x" />
+
+        {/* the 3D scene: die → GPU → server → rack → aisle */}
+        <canvas
+          aria-label="A GPU die powering on, then the camera pulling back through the GPU, its server, the rack, and a datacentre aisle"
+          role="img"
+          className="hero-canvas absolute inset-0 h-full w-full"
+        />
 
         {/* scroll progress rail, riding the frame's left edge */}
         <div
@@ -63,7 +66,7 @@ export default function Hero() {
         </div>
 
         {/* headline — resolves at the bird's-eye finale */}
-        <div className="chip-title pointer-events-none absolute inset-x-0 top-[16vh] z-10 px-6 text-center">
+        <div className="chip-title pointer-events-none absolute inset-x-0 top-[12vh] z-10 bg-[radial-gradient(ellipse_42%_60%_at_50%_50%,rgb(17_17_17/0.88),transparent)] px-6 py-[4vh] text-center">
           <p className="mx-auto mb-6 text-5xl font-bold tracking-tight font-stretch-expanded leading-[0.98] sm:text-6xl lg:text-7xl">
             UW<span className="text-accent">HPC</span>
           </p>
@@ -71,21 +74,6 @@ export default function Hero() {
             A student design team at the University of Waterloo pushing the
             boundaries of parallel and high-performance computing.
           </p>
-        </div>
-
-        {/* the die, in 3D, over a pool of ember light; rises in on load */}
-        <div className="chip-boot">
-          <div className="chip-scene mt-[2vh]">
-            <div
-              aria-hidden="true"
-              className="chip-glow chip-face pointer-events-none absolute top-1/2 left-1/2 aspect-square w-[180%] -translate-x-1/2 -translate-y-1/2"
-            />
-            <div className="chip-die3d relative aspect-square w-[min(78vw,56vh,540px)]">
-              <ChipDie />
-              <div className="chip-side chip-side-front" />
-              <div className="chip-side chip-side-right" />
-            </div>
-          </div>
         </div>
 
         {/* CTAs resolve at bird's-eye */}
@@ -102,6 +90,37 @@ export default function Hero() {
           >
             Learn More
           </Link>
+        </div>
+
+        {/* scale readout: where the camera is, and which project lives there */}
+        <div className="chip-hud pointer-events-none invisible absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-bg via-bg/80 to-transparent pt-24 opacity-0">
+          <div className="mx-auto flex max-w-6xl items-end justify-between gap-6 px-6 pb-6 md:px-10 md:pb-8">
+            <div className="font-mono text-[11px] tracking-[0.14em] uppercase">
+              <p className="mb-3 text-ink-faint">Scale</p>
+              <ol className="flex gap-4 md:block md:space-y-1.5">
+                {LEVELS.map((l, i) => (
+                  <li
+                    key={l.name}
+                    data-level={i}
+                    className="group flex items-center gap-2.5 text-ink-faint transition-colors duration-300 data-active:text-ink"
+                  >
+                    <span className="h-1.5 w-1.5 bg-line-strong transition-colors duration-300 group-data-active:bg-accent" />
+                    <span className="md:w-16">{l.name}</span>
+                    <span className="hidden tracking-normal normal-case text-ink-faint md:inline">
+                      {l.note}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+              <p className="chip-hud-callout invisible mt-4 max-w-xs text-xs tracking-normal normal-case text-accent-bright md:text-sm" />
+            </div>
+            <a
+              href="#about"
+              className="pointer-events-auto hidden font-mono text-[11px] tracking-[0.14em] whitespace-nowrap uppercase text-ink-muted transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:block"
+            >
+              Skip intro ↓
+            </a>
+          </div>
         </div>
 
         {/* scroll cue: a hairline with a signal travelling down it */}
