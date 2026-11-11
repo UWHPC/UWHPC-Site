@@ -2,6 +2,10 @@ import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { PALETTE, clay, detail, outline } from "../materials";
 import { DIE_WIDTH, pcbTexture, vapourChamberTexture } from "../textures";
+import {
+  BOARD_MOUNTS, BULK, BYPASS, CHOKE, COOLER_MOUNTS, MLCC, NVLINK, PASSIVE, POLYMER, STAGE,
+  bypass, chips, inputCaps, nvlink, pcie, phases, polymerCaps, smallPassives,
+} from "./boardLayout";
 
 /**
  * The hero GPU, in card-local millimetres. Lying pose: the PCB is in the
@@ -16,18 +20,13 @@ const PCB_TOP = -2.4; // die 0.7 + interposer 0.5 + substrate 1.2 below the die 
 const BOARD_Z = -PKG_Z; // board centre, relative to the die
 const PCB_THICKNESS = 1.6;
 const MOUNT_RADIUS = 1.65;
-const MOUNTS: [number, number][] = [-46, 46].flatMap((x) =>
-  [BOARD_Z - 126, BOARD_Z + 126].map((z): [number, number] => [x, z])
-);
+const MOUNTS = BOARD_MOUNTS; // the backplate's standoffs sit in these
+const HOLES = [...BOARD_MOUNTS, ...COOLER_MOUNTS];
 const MEMORY: [number, number, number][] = [-19, 19].flatMap((x) =>
   [-12.5, 0, 12.5].map((z): [number, number, number] => [x, -0.7, z])
 );
-const POWER_STAGES: [number, number][] = Array.from({ length: 24 }, (_, i) => BOARD_Z - 118 + i * 9.5)
-  .filter((z) => Math.abs(z) >= 34)
-  .flatMap((z) => [[-44, z], [44, z]] as [number, number][]);
-const CONTROLLERS: [number, number][] = [[-17, -68], [19, -57], [-16, 54], [17, 68]];
-const BULK_X = Array.from({ length: 8 }, (_, i) => -28 + i * 8);
-const BULK_Z = BOARD_Z - 112;
+const BULK_X = BULK.x;
+const BULK_Z = BULK.z;
 
 type Mat = THREE.Material | THREE.Material[];
 
@@ -66,9 +65,7 @@ function many(parent: THREE.Object3D, w: number, h: number, d: number, mat: THRE
 
 const M = {
   pcbTop: new THREE.MeshStandardMaterial({ map: (() => {
-    const t = new THREE.CanvasTexture(pcbTexture({
-      ...CARD, boardZ: BOARD_Z, powerStages: POWER_STAGES, controllers: CONTROLLERS, bulkX: BULK_X, bulkZ: BULK_Z,
-    }));
+    const t = new THREE.CanvasTexture(pcbTexture());
     t.colorSpace = THREE.SRGBColorSpace;
     t.anisotropy = 8;
     return t;
@@ -87,6 +84,11 @@ const M = {
   fingers: clay("#b49a6a", { roughness: 0.55 }),
   solder: new THREE.MeshStandardMaterial({ color: "#92989d", metalness: 0.55, roughness: 0.46 }),
   ceramic: clay("#927e68"),
+  polymer: clay("#1d1b1f", { roughness: 0.42 }),
+  stiffener: new THREE.MeshStandardMaterial({ color: "#7d8288", metalness: 0.6, roughness: 0.38 }),
+  crystal: new THREE.MeshStandardMaterial({ color: "#c3c6c9", metalness: 0.7, roughness: 0.3 }),
+  ledGreen: new THREE.MeshBasicMaterial({ color: new THREE.Color("#5dff9a").multiplyScalar(0.9), toneMapped: false }),
+  ledAmber: new THREE.MeshBasicMaterial({ color: new THREE.Color("#ffb347").multiplyScalar(0.8), toneMapped: false }),
   plating: new THREE.MeshStandardMaterial({ color: "#ad905f", metalness: 0.64, roughness: 0.39, side: THREE.DoubleSide }),
 };
 
@@ -100,13 +102,26 @@ function createPcbGeometry() {
   shape.moveTo(left + corner, near);
   shape.lineTo(right - corner, near);
   shape.quadraticCurveTo(right, near, right, near + corner);
+  // NVLink key notches on the +x edge (walking toward -z)
+  for (const c of [...nvlink].sort((a, b) => b.center - a.center)) {
+    const h = c.notch / 2;
+    shape.lineTo(right, -c.center - h);
+    shape.lineTo(right - NVLINK.notchDepth, -c.center - h);
+    shape.lineTo(right - NVLINK.notchDepth, -c.center + h);
+    shape.lineTo(right, -c.center + h);
+  }
   shape.lineTo(right, far - corner);
   shape.quadraticCurveTo(right, far, right - corner, far);
   shape.lineTo(left + corner, far);
   shape.quadraticCurveTo(left, far, left, far - corner);
+  // the PCIe key notch between pins 11 and 12 (walking toward +z)
+  shape.lineTo(left, -pcie.notch[0]);
+  shape.lineTo(left + pcie.notchDepth, -pcie.notch[0]);
+  shape.lineTo(left + pcie.notchDepth, -pcie.notch[1]);
+  shape.lineTo(left, -pcie.notch[1]);
   shape.lineTo(left, near + corner);
   shape.quadraticCurveTo(left, near, left + corner, near);
-  for (const [x, z] of MOUNTS) {
+  for (const [x, z] of HOLES) {
     const hole = new THREE.Path();
     hole.absarc(x, -z, MOUNT_RADIUS, 0, 2 * Math.PI, true);
     shape.holes.push(hole);
@@ -201,20 +216,26 @@ export function buildBoard(dieFaces: THREE.Material[], closeup = true) {
   } else {
     many(group, 9, 0.75, 11, M.hbm, memory);
   }
+  // decoupling capacitors ringing the interposer, inside the stiffener frame
   const ring: [number, number, number][] = [];
   for (let i = 0; i < 13; i++) {
     const t = -24 + i * 4;
-    ring.push([t, -1.2, 27], [t, -1.2, -27], [27, -1.2, t], [-27, -1.2, t]);
+    ring.push([t, -1.2, 26.4], [t, -1.2, -26.4], [26.4, -1.2, t], [-26.4, -1.2, t]);
   }
-  many(group, 1.4, 0.6, 1.4, M.cap, ring);
+  many(group, 1.2, 0.5, 1.2, M.cap, ring);
+  // the stiffener frame bonded round the edge of the substrate
+  const frame = 1.2;
+  const half = 29 - frame / 2;
+  many(group, 58, 0.8, frame, M.stiffener, [[0, -1.2, half], [0, -1.2, -half]], 0.15);
+  many(group, frame, 0.8, 58 - frame * 2, M.stiffener, [[half, -1.2, 0], [-half, -1.2, 0]], 0.15);
 
   const pcb = new THREE.Mesh(pcbGeometry, [M.pcbTop, M.pcbEdge]);
   group.add(pcb);
   outline(pcb);
-  const rims = new THREE.InstancedMesh(mountRim, M.plating, MOUNTS.length);
-  const walls = new THREE.InstancedMesh(mountWall, M.plating, MOUNTS.length);
+  const rims = new THREE.InstancedMesh(mountRim, M.plating, HOLES.length);
+  const walls = new THREE.InstancedMesh(mountWall, M.plating, HOLES.length);
   const o = new THREE.Object3D();
-  MOUNTS.forEach(([x, z], i) => {
+  HOLES.forEach(([x, z], i) => {
     o.position.set(x, PCB_TOP + 0.016, z);
     o.updateMatrix();
     rims.setMatrixAt(i, o.matrix);
@@ -224,14 +245,17 @@ export function buildBoard(dieFaces: THREE.Material[], closeup = true) {
   });
   group.add(rims, walls);
 
-  // power stages down both long edges, FETs beside them
-  many(group, 8, 5.5, 8, M.choke, POWER_STAGES.map(([x, z]) => [x, PCB_TOP, z]));
-  many(group, 4, 1, 5, M.fet, POWER_STAGES.map(([x, z]) => [x * 0.82, PCB_TOP, z]));
+  // the core and memory supplies: a power stage feeding each choke, and
+  // rows of solid polymer capacitors (a light bar marks each one's anode)
+  const at = (list: [number, number][], y = PCB_TOP) => list.map(([x, z]): [number, number, number] => [x, y, z]);
+  many(group, CHOKE.w, CHOKE.h, CHOKE.d, M.choke, at(phases.map((p) => p.choke)), 0.7);
+  many(group, STAGE.w, STAGE.h, STAGE.d, M.fet, at(phases.map((p) => p.stage)), 0.25);
+  many(group, POLYMER.w, POLYMER.h, POLYMER.d, M.polymer, at(polymerCaps), 0.35);
 
-  // bulk capacitors and the 16-pin power connector at the rear
-  const bulk = new THREE.InstancedMesh(new THREE.CylinderGeometry(3, 3, 9, 24), M.bulk, BULK_X.length);
+  // bulk input cans and the 16-pin power connector at the rear
+  const bulk = new THREE.InstancedMesh(new THREE.CylinderGeometry(BULK.r, BULK.r, BULK.h, 24), M.bulk, BULK_X.length);
   BULK_X.forEach((x, i) => {
-    o.position.set(x, PCB_TOP + 4.5, BULK_Z);
+    o.position.set(x, PCB_TOP + BULK.h / 2, BULK_Z);
     o.updateMatrix();
     bulk.setMatrixAt(i, o.matrix);
   });
@@ -239,47 +263,59 @@ export function buildBoard(dieFaces: THREE.Material[], closeup = true) {
   if (closeup) buildPowerSocket(group);
   else part(group, 22, 10, 9, M.connector, 30, PCB_TOP, BOARD_Z - 126, true);
 
-  // PCIe edge fingers along one long edge, NVLink fingers along the other
-  const fingers: [number, number, number][] = [];
-  const addFingers = (x: number, start: number, count: number) => {
-    for (let i = 0; i < count; i++) fingers.push([x, PCB_TOP - 0.025, BOARD_Z + start + i * 1.5]);
+  // PCIe x16 contacts (the presence-detect pins are shorter, so they mate
+  // last) and the three NVLink connectors, on both faces of the board
+  const contacts = (y: number) => {
+    const full: [number, number, number][] = [];
+    const short: [number, number, number][] = [];
+    [...pcie.front, ...pcie.back].forEach(({ z, short: s }) =>
+      (s ? short : full).push([s ? pcie.edge + 1.2 + (pcie.length - 1.2) / 2 : pcie.edge + pcie.length / 2, y, z])
+    );
+    const links = nvlink.flatMap((c) => c.fingers.map((z): [number, number, number] => [NVLINK.edge - NVLINK.length / 2, y, z]));
+    many(group, pcie.length, 0.06, 0.7, M.fingers, full, 0);
+    many(group, pcie.length - 1.2, 0.06, 0.7, M.fingers, short, 0);
+    many(group, NVLINK.length, 0.06, 0.7, M.fingers, links, 0);
   };
-  addFingers(-53.7, -39, 10);
-  addFingers(-53.7, -20, 47);
-  [-40, -6, 28].forEach((z) => addFingers(53.7, z - 12, 17));
-  many(group, 3.2, 0.07, 0.96, M.fingers, fingers, 0);
+  contacts(PCB_TOP - 0.02);
+  contacts(PCB_TOP - PCB_THICKNESS - 0.04);
 
   if (closeup) {
-    // Surface-mount controllers with visible leads, and banks of bypass capacitors.
-    many(group, 7, 1.15, 8, M.fet, CONTROLLERS.map(([x, z]) => [x, PCB_TOP, z]));
-    const pins: [number, number, number][] = [];
-    const fillets: [number, number, number][] = [];
-    CONTROLLERS.forEach(([x, z]) => {
-      for (let i = 0; i < 7; i++) {
-        pins.push([x - 4.1, PCB_TOP, z - 3 + i], [x + 4.1, PCB_TOP, z - 3 + i]);
-        fillets.push([x - 4.92, PCB_TOP, z - 3 + i], [x + 4.92, PCB_TOP, z - 3 + i]);
-      }
-    });
-    many(group, 2.1, 0.23, 0.38, M.solder, pins, 0);
-    many(group, 0.68, 0.29, 0.58, M.solder, fillets, 0.13);
-    many(group, 0.65, 0.025, 0.65, M.hbmMark, CONTROLLERS.map(([x, z]) => [x - 2.3, PCB_TOP + 1.15, z - 2.7]), 0);
+    // markings printed on top of the chokes and polymer capacitors
+    many(group, 3.2, 0.02, 1, M.hbmMark, at(phases.map((p) => p.choke), PCB_TOP + CHOKE.h), 0);
+    many(group, 0.9, 0.02, POLYMER.d - 0.6, M.hbmMark, polymerCaps.map(([x, z]): [number, number, number] => [x + POLYMER.w / 2 - 0.9, PCB_TOP + POLYMER.h, z]), 0);
+    // a pin-1 dot on every power stage
+    many(group, 0.6, 0.02, 0.6, M.hbmMark, phases.map((p): [number, number, number] => [p.stage[0] - 1.6, PCB_TOP + STAGE.h, p.stage[1] - 2.1]), 0);
 
-    const passives: [number, number, number][] = POWER_STAGES.map(([x, z]) => [x * 0.7, PCB_TOP, z]);
-    for (let i = 0; i < 14; i++) {
-      const x = -24.7 + i * 3.8;
-      passives.push([x, PCB_TOP, -36], [x, PCB_TOP, 36], [x, PCB_TOP, 42]);
-    }
-    many(group, 2.4, 0.45, 1.25, M.solder, passives, 0);
-    many(group, 1.42, 0.34, 1.28, M.ceramic, passives.map(([x, y, z]) => [x, y + 0.26, z]), 0);
+    // input MLCCs with tinned terminations
+    many(group, MLCC.w, MLCC.h, MLCC.d - 1, M.ceramic, at(inputCaps), 0.12);
+    many(group, MLCC.w + 0.02, MLCC.h + 0.02, 0.5, M.solder, inputCaps.flatMap(([x, z]) => [-1, 1].map((s): [number, number, number] => [x, PCB_TOP, z + s * (MLCC.d / 2 - 0.25)])), 0.08);
+
+    // bypass capacitors beside the package
+    many(group, BYPASS.w, 0.45, BYPASS.d, M.solder, at(bypass), 0);
+    many(group, BYPASS.w - 1, BYPASS.h - 0.45 + 0.26, BYPASS.d + 0.03, M.ceramic, at(bypass, PCB_TOP + 0.2), 0);
+    // 0402 resistors around the controllers and housekeeping chips
+    many(group, PASSIVE.w, PASSIVE.h, PASSIVE.d, M.fet, at(smallPassives), 0);
+
+    // the chips: controllers and monitors (QFN), the BIOS flash (SOIC with
+    // gull-wing leads), a metal-can crystal, and three status LEDs
+    const body = (kind: string) => chips.filter((c) => c.kind === kind);
+    for (const c of [...body("qfn"), ...body("soic")]) part(group, c.w, c.h, c.d, M.fet, c.x, PCB_TOP, c.z);
+    many(group, 0.5, 0.02, 0.5, M.hbmMark, [...body("qfn"), ...body("soic")].map((c): [number, number, number] => [c.x - c.w / 2 + 0.7, PCB_TOP + c.h, c.z - c.d / 2 + 0.7]), 0);
+    const leads: [number, number, number][] = [];
+    for (const c of body("soic"))
+      for (let i = 0; i < 4; i++) for (const s of [-1, 1]) leads.push([c.x + s * (c.w / 2 + 0.45), PCB_TOP, c.z - 1.905 + i * 1.27]);
+    many(group, 1.1, 0.3, 0.42, M.solder, leads, 0);
+    for (const c of body("crystal")) part(group, c.w, c.h, c.d, M.crystal, c.x, PCB_TOP, c.z);
+    body("led").forEach((c, i) => part(group, c.w, c.h, c.d, i === 2 ? M.ledAmber : M.ledGreen, c.x, PCB_TOP, c.z));
 
     const capLids = new THREE.InstancedMesh(new THREE.CylinderGeometry(2.55, 2.55, 0.15, 20), M.solder, BULK_X.length);
     BULK_X.forEach((x, i) => {
-      o.position.set(x, PCB_TOP + 9, BULK_Z);
+      o.position.set(x, PCB_TOP + BULK.h, BULK_Z);
       o.updateMatrix();
       capLids.setMatrixAt(i, o.matrix);
     });
     group.add(capLids);
-    many(group, 2.9, 0.025, 0.25, M.bulk, BULK_X.map((x) => [x, PCB_TOP + 9.075, BULK_Z]), 0);
+    many(group, 2.9, 0.025, 0.25, M.bulk, BULK_X.map((x) => [x, PCB_TOP + BULK.h + 0.075, BULK_Z]), 0);
   }
 
   return { group, dieAnchor };

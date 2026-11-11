@@ -10,6 +10,12 @@
  * All 144 SMs light: the readout names the full die.
  */
 
+import {
+  BOARD, BULK, COOLER_MOUNTS, LABEL, NVLINK, POLYMER, STAGE, chips, footprints, nvlink, pcie, phases, polymerCaps,
+  type Footprint,
+} from "./models/boardLayout";
+
+
 type Ctx = CanvasRenderingContext2D;
 
 function canvas(w: number, h = w): [HTMLCanvasElement, Ctx] {
@@ -235,114 +241,273 @@ export function dieTextures(resolution: number) {
 
 /* ---- PCB ----------------------------------------------------------- */
 
-type PcbLayout = {
-  width: number;
-  length: number;
-  boardZ: number;
-  powerStages: [number, number][];
-  controllers: [number, number][];
-  bulkX: number[];
-  bulkZ: number;
-};
-
-export function pcbTexture({ width, length, boardZ, powerStages, controllers, bulkX, bulkZ }: PcbLayout) {
-  const [c, x] = canvas(768, 1848);
+/**
+ * The board's top face: solder mask over copper pours, via fences and
+ * arrays, differential pairs from the edge connectors to the package (some
+ * length-matched with serpentines), and silkscreen registered to every part
+ * in boardLayout.ts — outlines, refdes, pin-1 and polarity marks, fiducials,
+ * test points, the board ID and a serial label.
+ */
+export function pcbTexture() {
+  const { width, length, centerZ } = BOARD;
+  const [c, x] = canvas(1024, 2464);
   const mask = x.createLinearGradient(0, 0, c.width, c.height);
-  mask.addColorStop(0, "#20302a");
-  mask.addColorStop(0.5, "#263b32");
-  mask.addColorStop(1, "#1c2a25");
+  mask.addColorStop(0, "#1f2f29");
+  mask.addColorStop(0.5, "#253a31");
+  mask.addColorStop(1, "#1b2924");
   x.fillStyle = mask;
   x.fillRect(0, 0, c.width, c.height);
-  // The top-face UVs run along x and z, so the artwork can use card millimetres.
+  // card millimetres from here on: canvas x = card x, canvas y = card z
   x.translate(c.width / 2, c.height / 2);
   x.scale(c.width / width, c.height / length);
-  x.translate(0, -boardZ);
+  x.translate(0, -centerZ);
+  const left = -width / 2;
+  const right = width / 2;
 
-  const trace = (points: [number, number][]) => {
+  const COPPER = "#2c463a"; // mask over a copper pour reads a little lighter
+  const TRACE = "#3e5c4d";
+  const SIGNAL = "#5b7a6b";
+  const SILK = "#c9cec6";
+  const PAD = "#b9a676";
+
+  const round = (u: number, z: number, w: number, d: number, r: number) => {
+    x.beginPath();
+    x.roundRect(u - w / 2, z - d / 2, w, d, r);
+  };
+  const line = (points: [number, number][]) => {
     x.beginPath();
     x.moveTo(...points[0]);
-    points.slice(1).forEach((point) => x.lineTo(...point));
+    points.slice(1).forEach((p) => x.lineTo(...p));
     x.stroke();
   };
-  const via = (u: number, z: number, radius = 0.44) => {
+  const via = (u: number, z: number, r = 0.32) => {
     x.beginPath();
-    x.arc(u, z, radius, 0, 2 * Math.PI);
-    x.fillStyle = "#8a8563";
+    x.arc(u, z, r, 0, 2 * Math.PI);
+    x.fillStyle = "#79775c";
     x.fill();
     x.beginPath();
-    x.arc(u, z, radius * 0.48, 0, 2 * Math.PI);
-    x.fillStyle = "#17231f";
+    x.arc(u, z, r * 0.45, 0, 2 * Math.PI);
+    x.fillStyle = "#14201b";
+    x.fill();
+  };
+  const text = (s: string, u: number, z: number, size: number, opts: { rotate?: boolean; bold?: boolean; align?: CanvasTextAlign } = {}) => {
+    x.save();
+    x.translate(u, z);
+    if (opts.rotate) x.rotate(-Math.PI / 2);
+    x.font = `${opts.bold ? "bold " : ""}${size}px monospace`;
+    x.textAlign = opts.align ?? "center";
+    x.textBaseline = "middle";
+    x.fillStyle = SILK;
+    x.fillText(s, 0, 0);
+    x.restore();
+  };
+  const all = footprints();
+  const find = (ref: string) => all.find((f) => f.ref === ref)!;
+
+  /* copper pours: the core supply's planes and the 12 V input */
+  x.fillStyle = COPPER;
+  round(0, -79, 100, 82, 2.5);
+  x.fill();
+  round(0, -112, 96, 14, 2);
+  x.fill();
+  round(30, -128, 18, 22, 2);
+  x.fill();
+  for (const s of [-1, 1]) {
+    round(s * 37.5, 52, 25, 26, 2);
+    x.fill();
+  }
+  // plane splits between the pours
+  x.strokeStyle = "#17241f";
+  x.lineWidth = 0.5;
+  line([[-50, -95.5], [50, -95.5]]);
+  line([[-50, -104], [50, -104]]);
+
+  /* via fence round the edge, broken at the connectors */
+  const nearConnector = (u: number, z: number) =>
+    (u < 0 && z > pcie.front[0].z - 2 && z < pcie.back[pcie.back.length - 1].z + 2) ||
+    (u > 0 && nvlink.some((n) => Math.abs(z - n.center) < 11));
+  for (let z = BOARD.minZ + 3; z < BOARD.maxZ - 2; z += 2.4)
+    for (const u of [left + 1.6, right - 1.6]) if (!nearConnector(u, z)) via(u, z, 0.28);
+  for (let u = left + 4; u < right - 3; u += 2.4) {
+    via(u, BOARD.minZ + 1.6, 0.28);
+    via(u, BOARD.maxZ - 1.6, 0.28);
+  }
+
+  /* via arrays between each power stage and its choke */
+  for (const p of phases) {
+    const gap = p.choke[1] > p.stage[1] ? 1 : -1;
+    for (let i = -1; i <= 1; i++) {
+      via(p.stage[0] + i * 1.5, p.stage[1] + gap * (STAGE.d / 2 + 1.1));
+      via(p.stage[0] + i * 1.5, p.stage[1] - gap * (STAGE.d / 2 + 0.9), 0.26);
+    }
+  }
+  for (const [u, z] of COOLER_MOUNTS) for (let a = 0; a < 8; a++) via(u + Math.cos(a * Math.PI / 4) * 4.3, z + Math.sin(a * Math.PI / 4) * 4.3, 0.26);
+
+  /* gate-drive and sense traces from the controllers to the stages */
+  x.strokeStyle = TRACE;
+  x.lineWidth = 0.22;
+  phases.filter((p) => p.rail === "core").forEach((p, i) => {
+    const ctl = p.stage[0] < 0 ? find("U2") : find("U3");
+    const lane = -91.5 - (i % 9) * 0.35;
+    line([[ctl.x + (p.stage[0] - ctl.x) * 0.1, ctl.z - ctl.d / 2], [ctl.x + (p.stage[0] - ctl.x) * 0.1, lane], [p.stage[0] - 1.6, lane], [p.stage[0] - 1.6, p.stage[1] + STAGE.d / 2]]);
+  });
+
+  /* differential pairs: PCIe from the fingers, NVLink from each connector */
+  const pair = (points: [number, number][], meander: [number, number] | null, cap: number | null) => {
+    x.strokeStyle = SIGNAL;
+    x.lineWidth = 0.15;
+    for (const off of [-0.22, 0.22]) {
+      x.beginPath();
+      points.forEach(([u, z], i) => {
+        const p: [number, number] = [u, z + off];
+        if (i === 0) x.moveTo(...p);
+        else if (meander && i === points.length - 1) {
+          // a length-matching serpentine on the last straight run
+          const [m0, m1] = meander;
+          x.lineTo(m0, p[1]);
+          for (let k = 0, u2 = m0; u2 < m1; k++, u2 += 0.5) x.lineTo(u2 + 0.5, p[1] + (k % 2 ? 0 : 0.75));
+          x.lineTo(...p);
+        } else x.lineTo(...p);
+      });
+      x.stroke();
+    }
+    if (cap !== null) {
+      // AC coupling capacitors on the transmit pairs
+      x.fillStyle = "#8d7b62";
+      for (const off of [-0.32, 0.32]) x.fillRect(cap - 0.3, points[0][1] + off - 0.15, 0.6, 0.3);
+    }
+  };
+  const fingersEnd = pcie.edge + pcie.length;
+  for (let k = 0; k < 32; k++) {
+    const zf = -42 + k * 2.1;
+    const zp = -24 + k * 1.5;
+    pair([[fingersEnd + 0.2, zf], [-47, zf], [-40, zp], [-29.5, zp]], k % 3 === 1 ? [-38.5, -33] : null, k % 2 === 0 ? -49 : null);
+  }
+  nvlink.forEach((n, j) => {
+    for (let k = 0; k < 6; k++) {
+      const zf = n.center - 7 + k * 2.8;
+      const zp = [-24, -6, 13][j] + k * 2;
+      pair([[NVLINK.edge - NVLINK.length - 0.2, zf], [47, zf], [38.5, zp], [29.5, zp]], k % 2 ? [33, 37] : null, null);
+    }
+  });
+
+  /* silkscreen */
+  x.strokeStyle = SILK;
+  x.lineWidth = 0.18;
+  const box = (f: Footprint, pad = 0.4) => x.strokeRect(f.x - f.w / 2 - pad, f.z - f.d / 2 - pad, f.w + pad * 2, f.d + pad * 2);
+  const corners = (f: Footprint, pad = 0.5, arm = 1.6) => {
+    const l = f.x - f.w / 2 - pad, r = f.x + f.w / 2 + pad, t = f.z - f.d / 2 - pad, b = f.z + f.d / 2 + pad;
+    for (const [cx, cz, dx, dz] of [[l, t, 1, 1], [r, t, -1, 1], [l, b, 1, -1], [r, b, -1, -1]])
+      line([[cx + dx * arm, cz], [cx, cz], [cx, cz + dz * arm]]);
+  };
+  const dot = (u: number, z: number, r = 0.35) => {
+    x.beginPath();
+    x.arc(u, z, r, 0, 2 * Math.PI);
+    x.fillStyle = SILK;
     x.fill();
   };
 
-  // Power rails and short branches from each regulator stage.
-  x.lineWidth = 0.8;
-  x.strokeStyle = "#456052";
-  // Fan the rear power connector out into the two regulator rails.
-  const connectorZ = boardZ - 126;
-  for (let pin = 0; pin < 4; pin++) {
-    const z = connectorZ + 7 + pin * 2;
-    trace([[24 + pin * 3, connectorZ + 4], [24 + pin * 3, z], [43 + pin * 2, z], [49.5, z + 6]]);
-    trace([[20, connectorZ - 2 - pin * 1.2], [-38, connectorZ - 2 - pin * 1.2], [-49.5, connectorZ + 9.5 - pin * 1.2]]);
-  }
-  for (const side of [-1, 1]) {
-    trace([[side * 49.5, boardZ - 127], [side * 49.5, boardZ + 113]]);
-    trace([[side * 51, boardZ - 126], [side * 51, boardZ + 111]]);
-  }
-  powerStages.forEach(([u, z]) => {
-    const side = Math.sign(u);
-    trace([[side * 49.5, z - 2.6], [u, z - 2.6], [u - side * 6, z]]);
-    trace([[u - side * 6, z + 1.1], [side * 33, z + 1.1], [side * 29.4, z + 4.7]]);
-    via(side * 29.4, z + 4.7);
-  });
-
-  // Parallel signals fan out from the package toward the connectors.
-  x.lineWidth = 0.27;
-  x.strokeStyle = "#698076";
-  for (const side of [-1, 1]) {
-    for (let i = 0; i < 14; i++) {
-      const start = -22 + i * 1.28;
-      const jog = 43 + i * 1.7;
-      const end = 72 + i * 1.35;
-      trace([[start, side * 29], [start, side * jog], [start - 7, side * (jog + 7)], [start - 7, side * end]]);
-      via(start - 7, side * end, 0.37);
-    }
-    for (let i = 0; i < 15; i++) {
-      const z = -23 + i * 2.75;
-      trace([[side * 29, z], [side * 35, z], [side * 44, z + 9], [side * 51.6, z + 9]]);
-      via(side * 51.6, z + 9, 0.34);
-    }
-  }
-  for (const [u, z] of [[-34, 95], [33, 84], [-34, -107], [5, -119]]) {
-    for (let i = 0; i < 15; i++) via(u + (i % 5) * 1.9, z + Math.floor(i / 5) * 1.9);
-  }
-
-  // Silkscreen is registered to the component footprints.
-  x.strokeStyle = "#a2aba2";
-  x.fillStyle = "#bbc1b5";
-  x.lineWidth = 0.32;
-  x.strokeRect(-31, -31, 62, 62);
-  x.font = "2.35px monospace";
-  x.fillText("U1", -30.5, -32);
-  powerStages.forEach(([u, z], i) => {
-    x.strokeRect(u - 4.3, z - 4.3, 8.6, 8.6);
-    x.fillText(`L${101 + i}`, Math.sign(u) * 42 - 2.5, z + 4.75);
-  });
-  controllers.forEach(([u, z], i) => {
-    x.strokeRect(u - 5.5, z - 4.4, 11, 8.8);
-    x.fillText(`U${i + 2}`, u - 5.3, z - 5.2);
-  });
-  bulkX.forEach((u, i) => {
+  // package: outline, pin-1 corner and its name
+  const pkg = find("U1");
+  box(pkg, 0.8);
+  line([[pkg.x - 29.8, pkg.z - 26], [pkg.x - 26, pkg.z - 29.8]]);
+  text("U1", -26.5, -31.6, 1.5);
+  // the cooler's mounting holes: a keepout ring each
+  for (const [u, z] of COOLER_MOUNTS) {
     x.beginPath();
-    x.arc(u, bulkZ, 3.35, 0, 2 * Math.PI);
+    x.arc(u, z, 3.4, 0, 2 * Math.PI);
     x.stroke();
-    x.fillText(`C${101 + i}`, u - 2.7, bulkZ + 5.65);
+  }
+  // power stages, chokes and their refdes in the gaps between rows
+  all.filter((f) => f.kind === "stage" || f.kind === "choke").forEach((f) => (f.kind === "choke" ? corners(f) : box(f, 0.3)));
+  phases.forEach((p, i) => {
+    const [u, cz] = p.choke;
+    const [, sz] = p.stage;
+    const below = cz > sz; // choke further from the package than its stage?
+    text(`L${101 + i}`, u, p.rail === "memory" ? cz + 5.4 : below ? cz + 5 : cz - 5, 1.15);
+    text(`Q${101 + i}`, u, p.rail === "memory" ? sz - 4 : below ? sz - 4.3 : sz + 4.3, 1.1);
   });
-  x.fillText("J1", 19, boardZ - 119);
-  x.fillText("PCIE", -49, 59);
-  x.fillText("NVLINK", 40, 32);
-  x.font = "bold 5px monospace";
-  x.fillText("UWHPC", -7, 86);
+  // polymer capacitors: outline with the anode corner cut, and a +
+  polymerCaps.forEach(([u, z]) => {
+    const l = u - POLYMER.w / 2 - 0.3, r = u + POLYMER.w / 2 + 0.3, t = z - POLYMER.d / 2 - 0.3, b = z + POLYMER.d / 2 + 0.3;
+    line([[l, t], [r - 1, t], [r, t + 1], [r, b - 1], [r - 1, b], [l, b], [l, t]]);
+    text("+", r + 0.9, z, 1.3, { bold: true });
+  });
+  // chips: outlines, pin-1 dots, refdes
+  chips.forEach((ch) => {
+    const f = find(ch.ref);
+    box(f, ch.kind === "soic" ? 1.3 : 0.45);
+    if (ch.kind !== "led" && ch.kind !== "crystal") dot(f.x - f.w / 2 - 1.1, f.z - f.d / 2 - 0.2, 0.3);
+    text(ch.ref, f.x, f.z - f.d / 2 - (ch.kind === "soic" ? 2.4 : 1.4), 1.15);
+  });
+  text("PWR", 50.6, 91, 0.9, { align: "left" });
+  text("ERR", 50.6, 97, 0.9, { align: "left" });
+  // bulk cans: circle with the negative half hatched
+  BULK.x.forEach((u, i) => {
+    x.beginPath();
+    x.arc(u, BULK.z, BULK.r + 0.35, 0, 2 * Math.PI);
+    x.stroke();
+    x.beginPath();
+    x.arc(u, BULK.z, BULK.r + 0.35, 0, Math.PI);
+    x.closePath();
+    x.fillStyle = "rgba(201,206,198,0.35)";
+    x.fill();
+    text(`C${101 + i}`, u, BULK.z + BULK.r + 1.6, 1.1);
+  });
+  const j1 = find("J1");
+  box(j1, 0.5);
+  text("J1", j1.x - j1.w / 2 - 2, j1.z, 1.3);
+  text("12V-2X6", j1.x, j1.z + j1.d / 2 + 1.7, 1.2);
+  // input MLCCs and bypass caps are too small for refdes; a row label each
+  text("C301-C318", -46.5, -88.5, 1, { rotate: true });
+
+  // edge connectors
+  text("PCIE X16", fingersEnd + 2.4, -8, 1.5, { rotate: true });
+  text("B1", fingersEnd + 1.2, pcie.front[0].z, 0.9);
+  text("B82", fingersEnd + 1.6, pcie.back[pcie.back.length - 1].z, 0.9);
+  nvlink.forEach((n, j) => text(`NVL${j}`, NVLINK.edge - NVLINK.length - 2.2, n.center, 1.3, { rotate: true }));
+
+  // fiducials (bare copper dots in a clearance ring) and test points
+  for (const [u, z] of [[-50, 102], [50, -122], [50, 75]]) {
+    x.beginPath();
+    x.arc(u, z, 1.5, 0, 2 * Math.PI);
+    x.fillStyle = "#121c18";
+    x.fill();
+    x.beginPath();
+    x.arc(u, z, 0.55, 0, 2 * Math.PI);
+    x.fillStyle = PAD;
+    x.fill();
+  }
+  [[-10, -122], [0, -122], [10, -122], [-20, 67], [-8, 67], [4, 67]].forEach(([u, z], i) => {
+    x.beginPath();
+    x.arc(u, z, 0.6, 0, 2 * Math.PI);
+    x.fillStyle = PAD;
+    x.fill();
+    text(`TP${i + 1}`, u, z + 1.6, 0.9);
+  });
+
+  // board ID, layer stack, date code and flammability rating
+  text("UWHPC-G1 PCIE", 16, 92, 2, { bold: true, align: "left" });
+  text("PCB REV A1  12L 1.6MM", 16, 95, 1.2, { align: "left" });
+  text("2611  94V-0", 16, 97.4, 1.2, { align: "left" });
+  text("UWHPC", 26, 104, 4.2, { bold: true });
+
+  // serial label: white sticker, barcode, serial number
+  x.fillStyle = "#e9ebe6";
+  round(LABEL.x, LABEL.z, LABEL.w, LABEL.d, 0.8);
+  x.fill();
+  x.fillStyle = "#1c1d1f";
+  let bar = LABEL.x - LABEL.w / 2 + 1.5;
+  for (let i = 0; bar < LABEL.x + LABEL.w / 2 - 1.5; i++) {
+    const w = [0.18, 0.36, 0.18, 0.54, 0.27][(i * 7) % 5];
+    if (i % 2 === 0) x.fillRect(bar, LABEL.z - 3.6, w, 4.4);
+    bar += w + 0.12;
+  }
+  x.font = "1.3px monospace";
+  x.textAlign = "left";
+  x.textBaseline = "middle";
+  x.fillText("S/N 1652611034718", LABEL.x - LABEL.w / 2 + 1.5, LABEL.z + 2.4);
+  x.fillText("REV A1", LABEL.x + LABEL.w / 2 - 6.2, LABEL.z + 2.4);
   return c;
 }
 
