@@ -6,11 +6,10 @@ import { Container } from "@/components/ui";
  * Accent words carry their own lit color.
  */
 const STATEMENT: { text: string; accent?: boolean }[][] = [
-  [{ text: "We're a student design team at the University of Waterloo building" }],
-  [{ text: "high\u2011performance software", accent: true }],
-  [{ text: "for computationally intensive workloads — from numerical methods down to the" }],
-  [{ text: "compilers and systems", accent: true }],
-  [{ text: "that make them fast." }],
+  [{ text: "We're a student design team at the University of Waterloo working on" }],
+  [{ text: "high‑performance computing.", accent: true }],
+  [{ text: "We write software that makes demanding workloads run" }],
+  [{ text: "faster and at scale.", accent: true }],
 ];
 
 export default function About() {
