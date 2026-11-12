@@ -284,4 +284,11 @@ export const TEAM: TeamMember[] = [
     group: "Core Members",
     role: "Core Member",
   },
+  {
+    name: "Aayush Sood",
+    linkedin: "https://www.linkedin.com/in/soodaayush/",
+    portfolio: "https://www.aayushsood.com/",
+    group: "Core Members",
+    role: "Core Member",
+  },
 ];
