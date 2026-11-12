@@ -11,8 +11,8 @@
   --color-accent-bright: #e0494d;
   --color-line: #272727;
   --color-line-strong: #3d3d3d;
-  --font-sans: var(--font-archivo);
-  --font-mono: var(--font-fragment-mono);
+  --font-sans: var(--font-archivo, system-ui), system-ui, sans-serif;
+  --font-mono: var(--font-fragment-mono, ui-monospace), ui-monospace, Menlo, Consolas, monospace;
 }
 
 html {
@@ -33,7 +33,7 @@ p {
 body {
   background: var(--color-bg);
   color: var(--color-ink);
-  font-family: var(--font-sans), system-ui, sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
 

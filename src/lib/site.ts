@@ -187,7 +187,7 @@ export function pageMetadata({
 }
 
 /** Sections on /team, in page order. */
-export const TEAM_GROUPS = ["Founders", "Project Directors", "Core Members"] as const;
+export const TEAM_GROUPS = ["Founders", "Directors", "Core Members"] as const;
 export type TeamGroup = (typeof TEAM_GROUPS)[number];
 
 export type TeamMember = {
@@ -225,7 +225,7 @@ export const TEAM: TeamMember[] = [
     name: "Rita Bhowmik",
     linkedin: "https://www.linkedin.com/in/ritabhowmik/",
     portfolio: "https://ritabhowmik.vercel.app",
-    group: "Core Members",
+    group: "Directors",
     role: "Growth & Operations Director",
     image: "/team/rita-bhowmik.png",
     imageClassName: "object-cover object-center",
@@ -234,7 +234,7 @@ export const TEAM: TeamMember[] = [
     name: "Shpat Sahiti",
     linkedin: "https://www.linkedin.com/in/shpatsahiti/",
     portfolio: "https://shsahiti.github.io/portfolio/",
-    group: "Project Directors",
+    group: "Directors",
     role: "Founding Project Manager",
     image: "/team/shpat.png",
     imageClassName: "object-cover object-center",
@@ -243,7 +243,7 @@ export const TEAM: TeamMember[] = [
     name: "Alyan Salamat",
     linkedin: "https://www.linkedin.com/in/alyansal/",
     portfolio: "https://alyansal.github.io/alyan-salamat/",
-    group: "Project Directors",
+    group: "Directors",
     role: "Founding Project Manager",
     image: "/team/alyan.png",
     imageClassName: "object-cover object-[50%_22%]",
@@ -252,8 +252,8 @@ export const TEAM: TeamMember[] = [
     name: "Julian Salvador",
     linkedin: "https://www.linkedin.com/in/julian-salvador727/",
     portfolio: "https://www.juliansalvador.com",
-    group: "Core Members",
-    role: "Software Developer",
+    group: "Directors",
+    role: "Partnerships Director & Core Developer",
     image: "/team/julian.png",
     imageClassName: "object-cover object-center",
   },
@@ -261,14 +261,20 @@ export const TEAM: TeamMember[] = [
     name: "Vijay Goyal",
     linkedin: "https://www.linkedin.com/in/vijay-goyal7/",
     portfolio: "https://www.vijaygoyal.dev",
-    group: "Project Directors",
+    group: "Directors",
     role: "Founding Project Manager",
   },
   {
     name: "Adam Kamel",
     linkedin: "https://www.linkedin.com/in/adamkamel/",
     portfolio: "https://akamel.dev",
-    group: "Project Directors",
+    group: "Directors",
     role: "Founding Project Manager",
+  },
+  {
+    name: "Calo Zheng",
+    linkedin: "https://www.linkedin.com/in/calo-zheng/",
+    group: "Core Members",
+    role: "General Member",
   },
 ];

@@ -5,8 +5,8 @@ import { SOCIAL_LINKS } from "@/lib/site";
 const PATHS = [
   {
     kicker: "For Students",
-    title: "Ready to join?",
-    body: "New members start here. Join our Discord to meet the team, hear about upcoming meetings, and find a project to get involved in.",
+    title: "Join the team",
+    body: "Join our Discord and introduce yourself. Ask about our projects and find out when we meet next.",
     cta: "Join our Discord",
     href: SOCIAL_LINKS.discord,
     external: true,
@@ -15,7 +15,7 @@ const PATHS = [
   {
     kicker: "Sponsors & Partners",
     title: "Work with us",
-    body: "Interested in sponsoring, partnering, or have a general inquiry? We'd love to hear from you.",
+    body: "Email us if you'd like to sponsor the team or collaborate on a project.",
     cta: "Get in Touch",
     href: "/contact",
     external: false,

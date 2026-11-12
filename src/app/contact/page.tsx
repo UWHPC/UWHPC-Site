@@ -7,7 +7,7 @@ import { pageMetadata } from "@/lib/site";
 export const metadata: Metadata = pageMetadata({
   title: "Contact",
   description:
-    "Get in touch with UWHPC, the UW High Performance Computing student design team at the University of Waterloo, by email, Discord, GitHub, or LinkedIn.",
+    "Email UWHPC about sponsorship or collaboration, join our Discord, or find the team on GitHub and LinkedIn.",
   path: "/contact",
 });
 

@@ -14,7 +14,7 @@ import {
 export const metadata: Metadata = pageMetadata({
   title: "Sponsors",
   description:
-    "The organizations supporting UWHPC, the UW High Performance Computing design team at the University of Waterloo, and how to partner with us.",
+    "Meet the organizations that support UWHPC and find out how to sponsor the University of Waterloo student design team.",
   path: "/sponsors",
 });
 
@@ -46,8 +46,8 @@ export default function SponsorsPage() {
               Sponsors
             </h1>
             <p className="max-w-md text-ink-muted">
-              The organizations funding the hardware, compute, and
-              infrastructure behind our work.
+              Our sponsors help us get the hardware and compute time we need
+              to build and test our projects.
             </p>
           </div>
 
@@ -103,11 +103,9 @@ export default function SponsorsPage() {
                   Become a Sponsor
                 </h2>
                 <p className="max-w-prose text-ink-muted">
-                  Sponsorship funds GPUs, compute access, and project
-                  infrastructure for hands-on engineering work, and gives your
-                  team a focused point of contact with students interested in
-                  systems and performance engineering. Email us with your goals
-                  and we&apos;ll send our sponsorship package.
+                  If your organization would like to support the team, email us
+                  for our sponsorship package. We can walk you through what
+                  each tier includes.
                 </p>
               </div>
               <div className="md:col-span-5 md:justify-self-end">

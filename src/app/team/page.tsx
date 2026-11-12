@@ -56,10 +56,11 @@ export default function TeamPage() {
             {TEAM_GROUPS.map((group) => {
               const members = TEAM.filter((m) => m.group === group);
               if (members.length === 0) return null;
+              const headingId = `team-${group.toLowerCase().replaceAll(" ", "-")}`;
               return (
-                <section key={group} aria-labelledby={`team-${group}`}>
+                <section key={group} aria-labelledby={headingId}>
                   <h2
-                    id={`team-${group}`}
+                    id={headingId}
                     className="mb-6 flex items-center gap-4 font-mono text-[11px] tracking-[0.18em] uppercase text-ink-faint after:h-px after:flex-1 after:bg-line"
                   >
                     {group}

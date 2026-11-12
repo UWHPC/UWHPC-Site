@@ -36,7 +36,7 @@ const channels: Channel[] = [
   },
   {
     label: "Discord",
-    value: "https://discord.gg/Q54uuaWvhA",
+    value: "Join our Discord",
     href: "https://discord.gg/Q54uuaWvhA",
     external: true,
     icon: (
@@ -119,7 +119,7 @@ export default function Contact({ as = "h2" }: { as?: "h1" | "h2" }) {
           as={as}
           kicker="Get in Touch"
           title="Contact"
-          blurb="Reach out through whichever channel works best for you."
+          blurb="Email us about sponsorship or working together. If you're a student interested in joining, start on Discord."
         />
 
         <div className="max-w-2xl border-b border-line">
