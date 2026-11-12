@@ -277,4 +277,11 @@ export const TEAM: TeamMember[] = [
     group: "Core Members",
     role: "General Member",
   },
+  {
+    name: "Colin Cai",
+    linkedin: "https://www.linkedin.com/in/colin-cai-634689449/",
+    portfolio: "https://creative0708.github.io/resume/",
+    group: "Core Members",
+    role: "Core Member",
+  },
 ];
