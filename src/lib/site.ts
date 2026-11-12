@@ -275,7 +275,7 @@ export const TEAM: TeamMember[] = [
     name: "Calo Zheng",
     linkedin: "https://www.linkedin.com/in/calo-zheng/",
     group: "Core Members",
-    role: "General Member",
+    role: "Core Member",
   },
   {
     name: "Colin Cai",
