@@ -27,7 +27,7 @@ export type BuildupScene = {
 
 export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: boolean }): BuildupScene {
   // phones build the many small rounded parts with fewer segments
-  detail.segments = opts.mobile ? 1 : 3;
+  detail.segments = opts.mobile ? 1 : 2;
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -382,8 +382,21 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
     sweep.intensity = 1.65 * sweepStrength;
     sweep.position.set(-410 + 820 * sw, SERVER_FLOOR_Y + 285, 305);
     atmosphere.update(cardStage, floorStage, sweepStrength, time, renderer.getPixelRatio());
-    camera.lookAt(target[0], framingY, target[2]);
-    const d = camera.position.distanceTo(new THREE.Vector3(target[0], framingY, target[2]));
+    // On tall, narrow screens the three-quarter view puts the far end of
+    // the board, card and server toward the right edge; pan the camera
+    // sideways (a fraction of its distance) so the subject sits centred.
+    // The die close-ups are already centred, so the pan eases in after them.
+    const look = new THREE.Vector3(target[0], framingY, target[2]);
+    const pan = 0.025 * narrow * THREE.MathUtils.smoothstep(p, STEPS.toDie[1] - 0.04, STEPS.toBoard[1]);
+    if (pan > 0) {
+      const toward = look.clone().sub(camera.position);
+      const right = new THREE.Vector3().crossVectors(toward, camera.up).normalize();
+      const shift = right.multiplyScalar(pan * toward.length());
+      camera.position.add(shift);
+      look.add(shift);
+    }
+    camera.lookAt(look);
+    const d = camera.position.distanceTo(look);
     camera.near = Math.max(0.05, d / 60);
     camera.far = d * 40 + 2000;
     camera.updateProjectionMatrix();
@@ -406,17 +419,25 @@ export function createBuildupScene(canvas: HTMLCanvasElement, opts: { mobile: bo
   }
 
   function dispose() {
-    renderer.dispose();
     pmrem.dispose();
     env.dispose();
     atmosphere.dispose();
     dieTop.dispose();
     railMaterial.dispose();
     textures.forEach((t) => t.dispose());
+    // geometries, materials (shared ones are freed once) and instance buffers
+    const materials = new Set<THREE.Material>();
     scene.traverse((o) => {
       const m = o as THREE.Mesh;
       if (m.geometry) m.geometry.dispose();
+      if (m.material) (Array.isArray(m.material) ? m.material : [m.material]).forEach((mat) => materials.add(mat));
+      if (o instanceof THREE.InstancedMesh) o.dispose();
     });
+    materials.forEach((mat) => mat.dispose());
+    renderer.dispose();
+    // release the WebGL context itself, not just its resources, so repeat
+    // visits within the site never hit the browser's context limit
+    renderer.forceContextLoss();
   }
 
   return { update, setMoving, resize, dispose };

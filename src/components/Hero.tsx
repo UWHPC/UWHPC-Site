@@ -64,11 +64,11 @@ export default function Hero() {
         </div>
 
         {/* headline — resolves at the bird's-eye finale */}
-        <div className="chip-title pointer-events-none absolute inset-x-0 top-[12vh] z-10 bg-[radial-gradient(ellipse_42%_60%_at_50%_50%,rgb(17_17_17/0.88),transparent)] px-6 py-[4vh] text-center landscape:md:top-[10vh] landscape:md:py-2">
-          <p className="mx-auto mb-6 text-5xl font-bold tracking-tight font-stretch-expanded leading-[0.98] sm:text-6xl lg:text-7xl landscape:md:mb-3">
+        <div className="chip-title pointer-events-none absolute inset-x-0 top-[12vh] z-10 bg-[radial-gradient(ellipse_42%_60%_at_50%_50%,rgb(17_17_17/0.88),transparent)] px-6 py-[4vh] text-center landscape:md:top-[10vh] landscape:md:py-2 [@media(max-height:500px)]:top-[4.25rem] [@media(max-height:500px)]:py-1">
+          <p className="mx-auto mb-6 text-5xl font-bold tracking-tight font-stretch-expanded leading-[0.98] sm:text-6xl lg:text-7xl landscape:md:mb-3 [@media(max-height:500px)]:mb-1.5 [@media(max-height:500px)]:text-4xl">
             UW<span className="text-accent">HPC</span>
           </p>
-          <p className="mx-auto max-w-lg text-base text-ink-muted sm:text-lg">
+          <p className="mx-auto max-w-lg text-base text-ink-muted sm:text-lg [@media(max-height:500px)]:text-sm">
             A student design team at the University of Waterloo pushing the
             boundaries of parallel and high-performance computing.
           </p>
