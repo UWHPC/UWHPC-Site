@@ -26,7 +26,7 @@ function MemberCard({
 
       <div className="mb-5 flex h-16 w-16 items-center justify-center border border-line">
         <Image
-          src={member.image}
+          src={member.image ?? "/logo-mark-dark.svg"}
           alt={member.name}
           width={387}
           height={234}

@@ -186,48 +186,73 @@ export function pageMetadata({
   };
 }
 
+/** Sections on /team, in page order. */
+export const TEAM_GROUPS = ["Founders", "Project Directors", "Core Members"] as const;
+export type TeamGroup = (typeof TEAM_GROUPS)[number];
+
 export type TeamMember = {
   name: string;
   role: string;
-  image: string;
+  group: TeamGroup;
+  /** Profile links; a card shows the label dimmed until one is set. */
+  linkedin?: string;
+  portfolio?: string;
+  /** Photos are no longer shown on /team; kept for the unused home preview. */
+  image?: string;
   imageClassName?: string;
 };
 
 export const TEAM: TeamMember[] = [
   {
     name: "James Redekopp",
+    group: "Founders",
     role: "Founder",
     image: "/team/james1.jpg",
     imageClassName: "object-cover object-[50%_28%]",
   },
   {
     name: "Karl Keshavarzi",
+    group: "Founders",
     role: "Founder",
     image: "/team/karl.png",
     imageClassName: "object-cover object-[50%_28%]",
   },
   {
     name: "Rita Bhowmik",
+    group: "Core Members",
     role: "Growth & Operations Director",
     image: "/team/rita-bhowmik.png",
     imageClassName: "object-cover object-center",
   },
   {
     name: "Shpat Sahiti",
-    role: "Software Developer",
+    group: "Project Directors",
+    role: "Founding Project Manager",
     image: "/team/shpat.png",
     imageClassName: "object-cover object-center",
   },
   {
     name: "Alyan Salamat",
-    role: "Software Developer",
+    group: "Project Directors",
+    role: "Founding Project Manager",
     image: "/team/alyan.png",
     imageClassName: "object-cover object-[50%_22%]",
   },
   {
     name: "Julian Salvador",
+    group: "Core Members",
     role: "Software Developer",
     image: "/team/julian.png",
     imageClassName: "object-cover object-center",
+  },
+  {
+    name: "Vijay Goyal",
+    group: "Project Directors",
+    role: "Founding Project Manager",
+  },
+  {
+    name: "Adam Kamel",
+    group: "Project Directors",
+    role: "Founding Project Manager",
   },
 ];
