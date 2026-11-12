@@ -47,28 +47,55 @@ export const SOCIAL_LINKS = {
 
 export type Project = {
   title: string;
+  /** Full name, when the title is an acronym or codename. */
+  subtitle?: string;
   description: string;
   tags: string[];
   status: string;
+  leads?: string[];
   href?: string;
+  /** Current flagship work, shown large with its own visual. */
+  featured?: boolean;
 };
 
 export const PROJECTS: Project[] = [
   {
+    title: "BATS",
+    subtitle: "Beamforming Across Tensor-core Systems",
+    description:
+      "Beamforming combines signals from an array of sensors so that one direction adds up and the rest cancel out. It sits at the core of radio astronomy, radar, and medical ultrasound. Forming many beams across frequency channels is a batched complex matrix multiply, which tensor cores accelerate. BATS is building a distributed tensor-core beamformer across GPUs and nodes, with a planner that chooses how to split the work from the workload, where the data lives, and the interconnect.",
+    tags: ["CUDA", "Tensor cores", "Multi-GPU"],
+    status: "In Progress",
+    leads: ["Alyan Salamat", "Shpat Sahiti"],
+    featured: true,
+  },
+  {
+    title: "Maverick",
+    subtitle: "Topology-aware GPU execution of graph neural networks",
+    description:
+      "Two graphs with the same number of edges can produce very different GPU workloads: a handful of high-degree nodes can leave most of the GPU waiting. Maverick analyzes the topology of a static graph once and uses it to choose specialized execution strategies for GNN inference, measured against TorchInductor under torch.compile, with the cost of that analysis counted against the speedup.",
+    tags: ["PyTorch", "Triton", "GNNs"],
+    status: "In Progress",
+    leads: ["James Redekopp", "Vijay Goyal"],
+    featured: true,
+  },
+  {
     title: "XPU",
     description:
-      "A lightweight C++23 library providing a shared interface for memory management, math operations, data layouts, and execution across CPU and NVIDIA CUDA. It gives UWHPC projects a reusable performance foundation, with AMD HIP and SYCL backends on the roadmap.",
-    tags: ["C++", "CUDA", "Portability"],
+      "A header-only C++23 library that lets the same allocation, layout, and math code compile for either CPU or NVIDIA CUDA. Backend-aware buffers, structure-of-arrays storage, OpenMP + SIMD parallel loops on the CPU, and launch helpers on the GPU. It's the performance foundation shared across UWHPC projects.",
+    tags: ["C++23", "CUDA", "OpenMP"],
     status: "In Progress",
     href: "https://github.com/UWHPC/xpu",
+    featured: true,
   },
   {
     title: "Variational Monte Carlo",
     description:
-      "A Monte Carlo engine for simulating the homogeneous electron gas. Implements a Slater–Jastrow trial wavefunction and Metropolis sampling for electron configurations.",
-    tags: ["C++", "Monte Carlo", "Quantum"],
+      "A Variational Monte Carlo engine in CUDA C++ for the homogeneous electron gas. A plane-wave Slater determinant with a Padé–Jastrow factor, sampled by Metropolis moves in a periodic cell, with Jastrow optimization and blocking analysis for honest error bars.",
+    tags: ["CUDA C++", "Monte Carlo", "Many-body physics"],
     status: "In Progress",
     href: "https://github.com/UWHPC/Variational-Monte-Carlo",
+    featured: true,
   },
 ];
 
@@ -159,48 +186,102 @@ export function pageMetadata({
   };
 }
 
+/** Sections on /team, in page order. */
+export const TEAM_GROUPS = ["Founders", "Directors", "Core Members"] as const;
+export type TeamGroup = (typeof TEAM_GROUPS)[number];
+
 export type TeamMember = {
   name: string;
   role: string;
-  image: string;
+  group: TeamGroup;
+  /** Profile links; a card shows the label dimmed until one is set. */
+  linkedin?: string;
+  portfolio?: string;
+  /** Photos are no longer shown on /team; kept for the unused home preview. */
+  image?: string;
   imageClassName?: string;
 };
 
 export const TEAM: TeamMember[] = [
   {
     name: "James Redekopp",
+    linkedin: "https://www.linkedin.com/in/tesselland/",
+    portfolio: "https://www.redekopp.dev",
+    group: "Founders",
     role: "Founder",
     image: "/team/james1.jpg",
     imageClassName: "object-cover object-[50%_28%]",
   },
   {
     name: "Karl Keshavarzi",
+    linkedin: "https://www.linkedin.com/in/karl-keshavarzi/",
+    portfolio: "https://karlkes.uwce.ca",
+    group: "Founders",
     role: "Founder",
     image: "/team/karl.png",
     imageClassName: "object-cover object-[50%_28%]",
   },
   {
     name: "Rita Bhowmik",
+    linkedin: "https://www.linkedin.com/in/ritabhowmik/",
+    portfolio: "https://ritabhowmik.vercel.app",
+    group: "Directors",
     role: "Growth & Operations Director",
     image: "/team/rita-bhowmik.png",
     imageClassName: "object-cover object-center",
   },
   {
     name: "Shpat Sahiti",
-    role: "Software Developer",
+    linkedin: "https://www.linkedin.com/in/shpatsahiti/",
+    portfolio: "https://shsahiti.github.io/portfolio/",
+    group: "Directors",
+    role: "Founding Project Manager",
     image: "/team/shpat.png",
     imageClassName: "object-cover object-center",
   },
   {
     name: "Alyan Salamat",
-    role: "Software Developer",
+    linkedin: "https://www.linkedin.com/in/alyansal/",
+    portfolio: "https://alyansal.github.io/alyan-salamat/",
+    group: "Directors",
+    role: "Founding Project Manager",
     image: "/team/alyan.png",
     imageClassName: "object-cover object-[50%_22%]",
   },
   {
     name: "Julian Salvador",
-    role: "Software Developer",
+    linkedin: "https://www.linkedin.com/in/julian-salvador727/",
+    portfolio: "https://www.juliansalvador.com",
+    group: "Directors",
+    role: "Partnerships Director & Core Developer",
     image: "/team/julian.png",
     imageClassName: "object-cover object-center",
+  },
+  {
+    name: "Vijay Goyal",
+    linkedin: "https://www.linkedin.com/in/vijay-goyal7/",
+    portfolio: "https://www.vijaygoyal.dev",
+    group: "Directors",
+    role: "Founding Project Manager",
+  },
+  {
+    name: "Adam Kamel",
+    linkedin: "https://www.linkedin.com/in/adamkamel/",
+    portfolio: "https://akamel.dev",
+    group: "Directors",
+    role: "Founding Project Manager",
+  },
+  {
+    name: "Calo Zheng",
+    linkedin: "https://www.linkedin.com/in/calo-zheng/",
+    group: "Core Members",
+    role: "General Member",
+  },
+  {
+    name: "Colin Cai",
+    linkedin: "https://www.linkedin.com/in/colin-cai-634689449/",
+    portfolio: "https://creative0708.github.io/resume/",
+    group: "Core Members",
+    role: "Core Member",
   },
 ];

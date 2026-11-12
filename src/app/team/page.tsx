@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { Container, Pins } from "@/components/ui";
-import { TEAM, pageMetadata } from "@/lib/site";
+import { TEAM, TEAM_GROUPS, pageMetadata } from "@/lib/site";
 
 export const metadata: Metadata = pageMetadata({
   title: "Team",
@@ -12,6 +11,28 @@ export const metadata: Metadata = pageMetadata({
   path: "/team",
 });
 
+/** A profile link, or its label dimmed until the link is filled in. */
+function ProfileLink({ href, label, name }: { href?: string; label: string; name: string }) {
+  if (!href) return <span className="text-ink-faint/60">{label}</span>;
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={`${name} on ${label}`}
+      className="group/link inline-flex items-center gap-1.5 text-ink transition-colors hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+    >
+      <span className="link-trace">{label}</span>
+      <span aria-hidden="true" className="transition-transform group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5">
+        ↗
+      </span>
+    </a>
+  );
+}
+
+/** Everyone in the order they appear on the page, so cards number 01, 02… down it. */
+const PAGE_ORDER = TEAM_GROUPS.flatMap((g) => TEAM.filter((m) => m.group === g));
+
 export default function TeamPage() {
   return (
     <>
@@ -19,66 +40,56 @@ export default function TeamPage() {
       <main className="pt-16">
         <Container className="py-24">
           <div className="mb-14">
-            <div className="mb-4 flex items-baseline gap-3 font-mono text-xs tracking-[0.2em] uppercase">
+            <div className="mb-4 flex items-baseline gap-3 font-mono text-xs tracking-[0.18em] uppercase">
               <span className="text-accent">01</span>
               <span className="text-ink-faint">/ Our Team</span>
             </div>
             <h1 className="mb-5 text-3xl font-bold tracking-tight uppercase font-stretch-expanded sm:text-4xl">
               Meet the Team
             </h1>
-            <p className="max-w-md font-light text-ink-muted">
+            <p className="max-w-md text-ink-muted">
               The people behind UWHPC.
             </p>
           </div>
 
-          <div className="grid justify-items-center gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {TEAM.map((member, i) => {
-              const isPlaceholder = member.image.endsWith(".svg");
-
+          <div className="space-y-14">
+            {TEAM_GROUPS.map((group) => {
+              const members = TEAM.filter((m) => m.group === group);
+              if (members.length === 0) return null;
+              const headingId = `team-${group.toLowerCase().replaceAll(" ", "-")}`;
               return (
-                <div
-                  key={member.name}
-                  className="group relative flex w-full max-w-[21rem] flex-col border border-line bg-bg-panel p-6 transition-colors hover:border-line-strong"
-                >
-                  <Pins className="absolute -top-[7px] left-6" />
-                  <Pins className="absolute -bottom-[7px] right-6" />
+                <section key={group} aria-labelledby={headingId}>
+                  <h2
+                    id={headingId}
+                    className="mb-6 flex items-center gap-4 font-mono text-[11px] tracking-[0.18em] uppercase text-ink-faint after:h-px after:flex-1 after:bg-line"
+                  >
+                    {group}
+                  </h2>
+                  <div className="flex flex-wrap justify-center gap-5">
+                    {members.map((member) => {
+                      const n = PAGE_ORDER.indexOf(member) + 1;
+                      return (
+                        <div
+                          key={member.name}
+                          className="group relative flex w-full flex-col border border-line bg-bg-panel p-5 transition-colors hover:border-line-strong sm:w-[calc((100%-1.25rem)/2)] lg:w-[calc((100%-3.75rem)/4)]"
+                        >
+                          <Pins className="absolute -top-[7px] left-5" />
 
-                  <div className="mb-6 flex items-center justify-between border-b border-line pb-4 font-mono text-[0.65rem] tracking-[0.2em] text-ink-faint">
-                    <span>MEMBER</span>
-                    <span>{String(i + 1).padStart(2, "0")}</span>
-                  </div>
+                          <span className="mb-4 font-mono text-[11px] tracking-[0.18em] text-ink-faint">
+                            {String(n).padStart(2, "0")}
+                          </span>
+                          <h3 className="text-base font-semibold tracking-tight">{member.name}</h3>
+                          <p className="mt-1 mb-5 font-mono text-[11px] tracking-[0.06em] text-ink-muted">{member.role}</p>
 
-                  <div className="relative mb-7 flex aspect-[4/5] items-center justify-center overflow-hidden border border-line bg-bg">
-                    {isPlaceholder ? (
-                      <Image
-                        src={member.image}
-                        alt=""
-                        width={387}
-                        height={234}
-                        className="h-12 w-auto opacity-35 transition-opacity group-hover:opacity-60"
-                        unoptimized
-                      />
-                    ) : (
-                      <Image
-                        src={member.image}
-                        alt={member.name}
-                        fill
-                        sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                        className={member.imageClassName ?? "object-contain object-center"}
-                      />
-                    )}
+                          <div className="mt-auto flex items-center gap-5 border-t border-line pt-3 font-mono text-[10px] tracking-[0.14em] uppercase transition-colors group-hover:border-line-strong">
+                            <ProfileLink href={member.linkedin} label="LinkedIn" name={member.name} />
+                            <ProfileLink href={member.portfolio} label="Portfolio" name={member.name} />
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-
-                  <div className="mt-auto">
-                    <h2 className="text-xl font-semibold tracking-tight">
-                      {member.name}
-                    </h2>
-                    <p className="mt-2 font-mono text-xs tracking-[0.08em] text-ink-muted">
-                      {member.role}
-                    </p>
-                    <div className="mt-6 h-px w-full bg-line transition-colors group-hover:bg-line-strong" />
-                  </div>
-                </div>
+                </section>
               );
             })}
           </div>

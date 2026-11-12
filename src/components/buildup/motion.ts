@@ -1,0 +1,55 @@
+/**
+ * One frame of the hero's scroll smoothing, as a pure function so it is
+ * tested (motion.test.ts). Ordinary scrolling eases toward the target
+ * (camera inertia); a jump bigger than JUMP — scroll restored after a
+ * reload, a hash link, End — lands at once instead of replaying the whole
+ * build. Frames off screen never render, and once progress settles the
+ * loop draws one last frame and stops until the next scroll.
+ */
+
+const DAMPING = 6; // per second
+const JUMP = 0.15; // of the runway
+const SETTLE = 0.0002;
+
+export function stepProgress(s: { current: number; target: number; dt: number; visible: boolean }): {
+  current: number;
+  render: boolean;
+  idle: boolean;
+} {
+  let current = s.current;
+  if (Math.abs(s.target - current) > JUMP) current = s.target;
+  else current += (s.target - current) * (1 - Math.exp(-DAMPING * s.dt));
+  if (Math.abs(s.target - current) < SETTLE) current = s.target;
+  return { current, render: s.visible, idle: current === s.target };
+}
+
+/**
+ * Easing for a part flying into place: it leaves at rest, overshoots by
+ * about 3%, and settles exactly on 1, so things seat instead of stopping
+ * dead. Constrained parts use the underlying smoothstep by itself.
+ */
+export function seat(x: number, overshoot = true): number {
+  if (x <= 0) return 0;
+  if (x >= 1) return 1;
+  const s = x * x * (3 - 2 * x);
+  if (!overshoot) return s;
+  const back = 0.9;
+  const u = s - 1;
+  return 1 + (back + 1) * u * u * u + back * u * u;
+}
+
+/**
+ * Lens and resolution for the canvas at its current CSS width, so turning
+ * a phone re-frames the scene. Narrow screens get a wider lens and a
+ * resolution cap, and drop to 1x while the scene is moving (restored for
+ * the frame it settles on); wide screens keep up to 2x throughout.
+ */
+export function renderQuality(width: number, devicePixelRatio: number, moving: boolean): {
+  fov: number;
+  pixelRatio: number;
+  mobile: boolean;
+} {
+  const mobile = width < 768;
+  const cap = mobile ? (moving ? 1 : 1.5) : 2;
+  return { fov: mobile ? 48 : 34, pixelRatio: Math.min(devicePixelRatio || 1, cap), mobile };
+}

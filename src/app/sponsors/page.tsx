@@ -14,7 +14,7 @@ import {
 export const metadata: Metadata = pageMetadata({
   title: "Sponsors",
   description:
-    "The organizations supporting UWHPC, the UW High Performance Computing design team at the University of Waterloo, and how to partner with us.",
+    "Meet the organizations that support UWHPC and find out how to sponsor the University of Waterloo student design team.",
   path: "/sponsors",
 });
 
@@ -38,23 +38,23 @@ export default function SponsorsPage() {
       <main className="pt-16">
         <Container className="py-24">
           <div className="mb-14">
-            <div className="mb-4 flex items-baseline gap-3 font-mono text-xs tracking-[0.2em] uppercase">
+            <div className="mb-4 flex items-baseline gap-3 font-mono text-xs tracking-[0.18em] uppercase">
               <span className="text-accent">01</span>
               <span className="text-ink-faint">/ Our Partners</span>
             </div>
             <h1 className="mb-5 text-3xl font-bold tracking-tight uppercase font-stretch-expanded sm:text-4xl">
               Sponsors
             </h1>
-            <p className="max-w-md font-light text-ink-muted">
-              The organizations funding the hardware, compute, and
-              infrastructure behind our work.
+            <p className="max-w-md text-ink-muted">
+              Our sponsors help us get the hardware and compute time we need
+              to build and test our projects.
             </p>
           </div>
 
           <div className="space-y-12">
             {tiers.map(({ tier, sponsors }) => (
               <section key={tier}>
-                <h2 className="mb-5 flex items-baseline gap-3 font-mono text-xs tracking-[0.2em] uppercase">
+                <h2 className="mb-5 flex items-baseline gap-3 font-mono text-xs tracking-[0.18em] uppercase">
                   <span className={tierStyle[tier].label}>{tier}</span>
                   <span className="text-ink-faint">/ Sponsor</span>
                 </h2>
@@ -95,25 +95,23 @@ export default function SponsorsPage() {
           <Container className="py-24">
             <div className="grid gap-8 md:grid-cols-12 md:items-end">
               <div className="md:col-span-7">
-                <div className="mb-4 flex items-baseline gap-3 font-mono text-xs tracking-[0.2em] uppercase">
+                <div className="mb-4 flex items-baseline gap-3 font-mono text-xs tracking-[0.18em] uppercase">
                   <span className="text-accent">02</span>
                   <span className="text-ink-faint">/ Partner With Us</span>
                 </div>
                 <h2 className="mb-5 text-3xl font-bold tracking-tight uppercase font-stretch-expanded sm:text-4xl">
                   Become a Sponsor
                 </h2>
-                <p className="max-w-prose font-light text-ink-muted">
-                  Sponsorship funds GPUs, compute access, and project
-                  infrastructure for hands-on engineering work, and gives your
-                  team a focused point of contact with students interested in
-                  systems and performance engineering. Email us with your goals
-                  and we&apos;ll send our sponsorship package.
+                <p className="max-w-prose text-ink-muted">
+                  If your organization would like to support the team, email us
+                  for our sponsorship package. We can walk you through what
+                  each tier includes.
                 </p>
               </div>
               <div className="md:col-span-5 md:justify-self-end">
                 <a
                   href={`mailto:${CONTACT_EMAIL}?subject=Sponsoring%20UWHPC`}
-                  className="inline-block bg-accent px-6 py-3 font-mono text-xs tracking-[0.15em] uppercase text-white transition-colors hover:bg-accent-bright focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  className="inline-block bg-accent px-6 py-3 font-mono text-xs tracking-[0.14em] uppercase text-white transition-colors hover:bg-accent-bright focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                 >
                   {CONTACT_EMAIL}
                 </a>

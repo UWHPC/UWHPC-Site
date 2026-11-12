@@ -7,7 +7,7 @@ import { pageMetadata } from "@/lib/site";
 export const metadata: Metadata = pageMetadata({
   title: "Join the Team",
   description:
-    "Join UWHPC, the UW High Performance Computing student design team at the University of Waterloo. Open to students interested in performance engineering.",
+    "Interested in high-performance computing at the University of Waterloo? Join the UWHPC Discord to meet the team and find a project.",
   path: "/join",
 });
 

@@ -36,7 +36,7 @@ const channels: Channel[] = [
   },
   {
     label: "Discord",
-    value: "https://discord.gg/Q54uuaWvhA",
+    value: "Join our Discord",
     href: "https://discord.gg/Q54uuaWvhA",
     external: true,
     icon: (
@@ -92,7 +92,7 @@ function Row({ channel, index }: { channel: Channel; index: number }) {
       </span>
       <div className="flex min-w-0 flex-1 items-center justify-between gap-4">
         <div className="min-w-0">
-          <span className="block font-mono text-xs tracking-[0.15em] uppercase text-ink-faint">
+          <span className="block font-mono text-xs tracking-[0.14em] uppercase text-ink-faint">
             {channel.label}
           </span>
           <span className="mt-0.5 block truncate text-sm font-medium text-ink transition-colors group-hover:text-accent sm:text-base">
@@ -119,7 +119,7 @@ export default function Contact({ as = "h2" }: { as?: "h1" | "h2" }) {
           as={as}
           kicker="Get in Touch"
           title="Contact"
-          blurb="Reach out through whichever channel works best for you."
+          blurb="Email us about sponsorship or working together. If you're a student interested in joining, start on Discord."
         />
 
         <div className="max-w-2xl border-b border-line">

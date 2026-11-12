@@ -108,7 +108,7 @@ export const organizationSchema = {
     "@type": "Person",
     name: m.name,
     jobTitle: m.role,
-    image: `${SITE_URL}${m.image}`,
+    ...(m.image ? { image: `${SITE_URL}${m.image}` } : {}),
   })),
 };
 
