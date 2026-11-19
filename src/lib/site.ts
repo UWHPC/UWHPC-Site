@@ -291,4 +291,11 @@ export const TEAM: TeamMember[] = [
     group: "Core Members",
     role: "Core Member",
   },
+  {
+    name: "Qinkai Li",
+    linkedin: "https://www.linkedin.com/in/qinkai-li-40198b31a/",
+    portfolio: "https://batteryspecial.xyz",
+    group: "Core Members",
+    role: "Core Member",
+  },
 ];
