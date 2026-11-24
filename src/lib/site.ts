@@ -123,6 +123,14 @@ export const SPONSORS: Sponsor[] = [
     logoHeight: 146,
     href: "https://www.janestreet.com",
   },
+  {
+    name: "Hudson River Trading",
+    tier: "Gold",
+    logo: "/sponsors/hrt.svg",
+    logoWidth: 100,
+    logoHeight: 58,
+    href: "https://www.hudsonrivertrading.com",
+  },
 ];
 
 /**

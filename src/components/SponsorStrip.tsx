@@ -6,12 +6,12 @@ import { SPONSORS } from "@/lib/site";
 /**
  * "Backed by" band: sponsor logos scroll past in an endless loop (the row
  * is drawn twice and slides by half its width, so the seam never shows),
- * plus an open slot. It only moves once there are two or more sponsors;
- * with one, the logo simply sits centred.
+ * plus an open slot. It only moves once there are more than two sponsors;
+ * with fewer, the logos simply sit centred.
  */
 const REPEAT = 4; // logos per half of the track, so a short list still fills it
 export default function SponsorStrip() {
-  const scrolls = SPONSORS.length > 1;
+  const scrolls = SPONSORS.length > 2;
   const logos = scrolls
     ? [0, 1].flatMap((half) =>
         Array.from({ length: REPEAT }, (_, r) =>
